@@ -1,0 +1,23 @@
+.DS_Store
+log/*.*
+*.log
+tmp/*
+*~
+*.bak
+bin
+# Ignore application configuration
+/config.yml
+dist/
+.idea
+/src
+/cmd/viewsrv/vendor
+env.*
+web/test.html
+info.txt
+run.sh
+brun.sh
+/scripts
+buildtag.*
+package/scripts/build.ksh
+package/scripts/shell.ksh
+local_db.sh
