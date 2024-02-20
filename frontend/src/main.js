@@ -19,6 +19,7 @@ app.use(router)
 import '@fortawesome/fontawesome-free/css/all.css'
 import './assets/styles/main.scss'
 import './assets/styles/uva-colors.css'
+import './assets/styles/styleoverrides.scss'
 
 // Primevue setup
 import PrimeVue from 'primevue/config'
@@ -26,6 +27,7 @@ import ConfirmationService from 'primevue/confirmationservice'
 import ToastService from 'primevue/toastservice'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
+import 'primevue/resources/themes/saga-blue/theme.css'
 
 app.use(PrimeVue, { ripple: true })
 app.use(ConfirmationService)
