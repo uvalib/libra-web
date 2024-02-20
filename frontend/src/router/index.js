@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import OpenDashboard from '../views/OpenDashboard.vue'
+import ETDDashboard from '../views/ETDDashboard.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
 
@@ -10,6 +12,16 @@ const router = createRouter({
          path: '/',
          name: 'home',
          component: HomeView
+      },
+      {
+         path: '/etd',
+         name: 'edt',
+         component: ETDDashboard
+      },
+      {
+         path: '/oa',
+         name: 'open',
+         component: OpenDashboard
       },
       {
          path: '/expired',

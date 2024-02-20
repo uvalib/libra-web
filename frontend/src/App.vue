@@ -10,7 +10,12 @@
             </a>
          </div>
          <div class="site-link">
-            <router-link to="/">Libra</router-link>
+            <router-link to="/">
+               <img v-if="isLibraOpen" src="@/assets/LibraOpen.svg"/>
+               <img v-else-if="isLibraETD" src="@/assets/LibraETD.svg"/>
+               <img v-else src="@/assets/Libra.svg"/>
+            </router-link>
+            <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
       </div>
       <div class="user-header">
@@ -19,7 +24,9 @@
       </div>
    </header>
 
-   <RouterView v-if="configuring==false" />
+   <main  v-if="configuring==false" >
+      <RouterView/>
+   </main>
 
    <LibraryFooter />
 
@@ -33,7 +40,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, watch } from 'vue'
+import { onBeforeMount, ref, watch, computed } from 'vue'
 import UvaLibraryLogo from "@/components/UvaLibraryLogo.vue"
 import LibraryFooter from "@/components/LibraryFooter.vue"
 import { RouterView } from 'vue-router'
@@ -42,11 +49,20 @@ import { useUserStore } from "@/stores/user"
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
+import { useRoute } from 'vue-router'
 
 const toast = useToast()
 const systemStore = useSystemStore()
 const user = useUserStore()
 const configuring = ref(true)
+const route = useRoute()
+
+const isLibraOpen = computed( () => {
+   return route.fullPath.indexOf("/oa") > -1
+})
+const isLibraETD = computed( () => {
+   return route.fullPath.indexOf("/etd") > -1
+})
 
 watch(() => systemStore.toast.show, (newShow) => {
    if ( newShow == true) {
@@ -105,7 +121,11 @@ header {
    }
    div.site-link {
       order: 0;
-      font-size: 1.5em;
+      text-align: right;
+      .sub {
+         display: block;
+         font-size: 0.9em;
+      }
       a {
          color: white;
          text-decoration: none;
