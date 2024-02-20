@@ -8,6 +8,7 @@ import (
 type userServiceCfg struct {
 	URL    string
 	JWTKey string
+	JWT    string
 }
 
 type configData struct {
@@ -24,7 +25,7 @@ func getConfiguration() *configData {
 
 	// user service
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
-	flag.StringVar(&config.userService.JWTKey, "userjwtkey", "", "JWT for the user service")
+	flag.StringVar(&config.userService.JWTKey, "userwskey", "", "JWT key for the user service")
 
 	// dev user
 	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")

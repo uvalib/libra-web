@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
@@ -57,10 +58,31 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: HTTP Client created")
 
+	log.Printf("INFO: generate JWT for the user-ws")
+	err := ctx.generateUserServiceJWT()
+	if err != nil {
+		log.Fatal(fmt.Sprintf("unable to generate user service jwt: %s", err.Error()))
+	}
+
 	return &ctx
 }
 
-// GetVersion reports the version of the serivce
+func (svc *serviceContext) generateUserServiceJWT() error {
+	expirationTime := time.Now().Add(8 * time.Hour)
+	claims := jwt.StandardClaims{
+		ExpiresAt: expirationTime.Unix(),
+		Issuer:    "libra3",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
+	if jwtErr != nil {
+		return jwtErr
+	}
+	svc.UserService.JWT = signedStr
+	return nil
+}
+
 func (svc *serviceContext) getVersion(c *gin.Context) {
 	vMap := svc.lookupVersion()
 	c.JSON(http.StatusOK, vMap)
