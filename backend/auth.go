@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,8 +13,31 @@ import (
 )
 
 type jwtClaims struct {
-	ComputeID string `json:"computeID"`
+	*userDetails
 	jwt.StandardClaims
+}
+
+type userDetails struct {
+	ComputeID   string   `json:"cid"`
+	UVAID       string   `json:"uva_id"`
+	DisplayName string   `json:"display_name"`
+	FirstName   string   `json:"first_name"`
+	Initials    string   `json:"initials"`
+	LastName    string   `json:"last_name"`
+	Description []string `json:"description"`
+	Department  []string `json:"department"`
+	Title       []string `json:"title"`
+	Office      []string `json:"office"`
+	Phone       []string `json:"phone"`
+	Affiliation []string `json:"affiliation"`
+	Email       string   `json:"email"`
+	Private     string   `json:"private"`
+}
+
+type userServiceResp struct {
+	Status  int         `json:"status"`
+	Message string      `json:"message"`
+	User    userDetails `json:"user"`
 }
 
 func (svc *serviceContext) authenticate(c *gin.Context) {
@@ -37,10 +61,32 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		return
 	}
 
+	log.Printf("INFO: request user info for %s", computingID)
+	err := svc.checkUserServiceJWT()
+	if err != nil {
+		log.Printf("ERROR: unable to check user service uwt: %s", err.Error())
+		c.Redirect(http.StatusFound, "/forbidden")
+		return
+	}
+	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.UserService.URL, computingID, svc.UserService.JWT)
+	resp, userErr := svc.sendGetRequest(url)
+	if userErr != nil {
+		log.Printf("ERROR: unable get info for user %s: %s", computingID, userErr.Message)
+		c.Redirect(http.StatusFound, "/forbidden")
+		return
+	}
+	var jsonResp userServiceResp
+	err = json.Unmarshal(resp, &jsonResp)
+	if err != nil {
+		log.Printf("ERROR: unable to parse user serice responce: %s", err.Error())
+		c.Redirect(http.StatusFound, "/forbidden")
+		return
+	}
+
 	log.Printf("INFO: generate JWT for %s", computingID)
 	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwtClaims{
-		ComputeID: computingID,
+		userDetails: &jsonResp.User,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 			Issuer:    "libra3",

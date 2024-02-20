@@ -58,8 +58,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: HTTP Client created")
 
-	log.Printf("INFO: generate JWT for the user-ws")
-	err := ctx.generateUserServiceJWT()
+	err := ctx.checkUserServiceJWT()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("unable to generate user service jwt: %s", err.Error()))
 	}
@@ -67,7 +66,20 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	return &ctx
 }
 
-func (svc *serviceContext) generateUserServiceJWT() error {
+func (svc *serviceContext) checkUserServiceJWT() error {
+	if svc.UserService.JWT != "" {
+		jwtClaims := &jwtClaims{}
+		_, jwtErr := jwt.ParseWithClaims(svc.UserService.JWT, jwtClaims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(svc.JWTKey), nil
+		})
+		if jwtErr != nil {
+			log.Printf("INFO: exiasting user ws jwt is not valid; generate another: %s", jwtErr.Error())
+		}
+		log.Printf("INFO: user ws jwt already exists and is valid")
+		return nil
+	}
+
+	log.Printf("INFO: generate jwt for userws")
 	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwt.StandardClaims{
 		ExpiresAt: expirationTime.Unix(),
@@ -75,7 +87,7 @@ func (svc *serviceContext) generateUserServiceJWT() error {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
+	signedStr, jwtErr := token.SignedString([]byte(svc.UserService.JWTKey))
 	if jwtErr != nil {
 		return jwtErr
 	}
