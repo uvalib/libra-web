@@ -13,7 +13,7 @@ type configData struct {
 
 func getConfiguration() *configData {
 	var config configData
-	flag.IntVar(&config.port, "port", 8080, "Port to offer service on (default 8085)")
+	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 
 	// dev user
