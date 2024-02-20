@@ -6,8 +6,8 @@ import (
 )
 
 type userServiceCfg struct {
-	URL string
-	JWT string
+	URL    string
+	JWTKey string
 }
 
 type configData struct {
@@ -24,7 +24,7 @@ func getConfiguration() *configData {
 
 	// user service
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
-	flag.StringVar(&config.userService.JWT, "userjwt", "", "JWT for the user service")
+	flag.StringVar(&config.userService.JWTKey, "userjwtkey", "", "JWT for the user service")
 
 	// dev user
 	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")
@@ -37,7 +37,7 @@ func getConfiguration() *configData {
 	if config.userService.URL == "" {
 		log.Fatal("Parameter userws is required")
 	}
-	if config.userService.JWT == "" {
+	if config.userService.JWTKey == "" {
 		log.Fatal("Parameter userjwt is required")
 	}
 
