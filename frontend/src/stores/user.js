@@ -31,6 +31,9 @@ export const useUserStore = defineStore('user', {
 	   private: "",
    }),
    getters: {
+      isSignedIn: state => {
+         return state.jwt != "" && state.computeID != ""
+      }
    },
    actions: {
       setJWT(jwt) {
@@ -40,12 +43,12 @@ export const useUserStore = defineStore('user', {
          localStorage.setItem("libra3_jwt", jwt)
 
          let parsed = parseJwt(jwt)
-         this.computeID = parsed.computeID
-         this.uvaID = parsed.uvaID
-         this.displayName = parsed.displayName
-         this.firstName = parsed.firstName
+         this.computeID = parsed.cid
+         this.uvaID = parsed.uva_id
+         this.displayName = parsed.display_name
+         this.firstName = parsed.first_name
          this.initials = parsed.initials
-         this.lastName = parsed.lastName
+         this.lastName = parsed.last_name
          this.description = parsed.description
          this.department = parsed.department
          this.title = parsed.title

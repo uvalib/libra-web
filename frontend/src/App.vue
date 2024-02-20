@@ -13,6 +13,10 @@
             <router-link to="/">Libra</router-link>
          </div>
       </div>
+      <div class="user-header">
+         <span v-if="user.isSignedIn">{{ user.displayName }}</span>
+         <span v-else>Not signed in</span>
+      </div>
    </header>
 
    <RouterView v-if="configuring==false" />
@@ -34,12 +38,14 @@ import UvaLibraryLogo from "@/components/UvaLibraryLogo.vue"
 import LibraryFooter from "@/components/LibraryFooter.vue"
 import { RouterView } from 'vue-router'
 import { useSystemStore } from "@/stores/system"
+import { useUserStore } from "@/stores/user"
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
 
 const toast = useToast()
 const systemStore = useSystemStore()
+const user = useUserStore()
 const configuring = ref(true)
 
 watch(() => systemStore.toast.show, (newShow) => {
@@ -107,6 +113,12 @@ header {
             text-decoration: underline;
          }
       }
+   }
+   .user-header {
+      background-color: var(--uvalib-blue-alt-darkest);
+      color: white;
+      text-align: right;
+      padding: 10px;
    }
 }
 </style>
