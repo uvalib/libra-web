@@ -28,6 +28,10 @@ export default defineConfig({
             target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
             changeOrigin: true
          },
+         '/config': {
+            target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
+            changeOrigin: true
+         },
          '/healthcheck': {
             target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
             changeOrigin: true

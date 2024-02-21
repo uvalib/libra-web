@@ -9,13 +9,19 @@ GOVET = $(GOCMD) vet
 
 BASE_NAME=libra3
 
-build: darwin web
+build: darwin web deploy-data
 
-all: darwin linux web
+all: darwin linux web deploy-data
 
-linux-full: linux web
+linux-full: linux web deploy-data
 
-darwin-full: darwin web
+darwin-full: darwin web deploy-data
+
+deploy-data:
+	mkdir -p bin/
+	rm -rf bin/data
+	mkdir -p bin/data
+	cp ./data/* bin/data
 
 web:
 	mkdir -p bin/

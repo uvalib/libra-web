@@ -26,10 +26,11 @@ func main() {
 	router.Use(cors.Default())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 
-	// Set routes and start server
-	router.GET("/version", svc.getVersion)
-	router.GET("/healthcheck", svc.healthCheck)
+	// Set routes and start serve
 	router.GET("/authenticate", svc.authenticate)
+	router.GET("/config", svc.getConfig)
+	router.GET("/healthcheck", svc.healthCheck)
+	router.GET("/version", svc.getVersion)
 
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by yarn and it proxies all requests to the API to the routes above

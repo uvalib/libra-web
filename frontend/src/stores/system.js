@@ -5,6 +5,9 @@ export const useSystemStore = defineStore('system', {
    state: () => ({
       working: false,
 		version: "unknown",
+      languages: [],
+      licenses: [],
+      resourceTypes: [],
       error: "",
       showError: false,
       toast: {
@@ -18,10 +21,14 @@ export const useSystemStore = defineStore('system', {
 
    },
    actions: {
-      async getVersion() {
+      async getConfig() {
          this.working = true
-         return axios.get("/version").then(response => {
-            this.version = `v${response.data.version}-build-${response.data.build}`
+         return axios.get("/config").then(response => {
+            console.log(response.data)
+            this.version = response.data.version
+            this.languages = response.data.languages
+            this.licenses = response.data.licenses
+            this.resourceTypes = response.data.resourceTypes
          }).catch( err => {
             this.setError(  err )
          })

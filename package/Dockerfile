@@ -11,6 +11,7 @@ WORKDIR /build
 COPY go.mod go.sum Makefile ./
 COPY backend ./backend
 COPY frontend ./frontend
+COPY data ./data
 RUN make linux-full
 
 #
@@ -43,9 +44,9 @@ CMD scripts/entry.sh
 # Move in necessary assets
 COPY package/data/container_bash_profile /home/docker/.profile
 COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
-#COPY templates $APP_HOME/bin/templates
 COPY --from=builder /build/bin/libra3.linux $APP_HOME/bin/libra3
 COPY --from=builder /build/bin/public $APP_HOME/bin/public
+COPY --from=builder /build/bin/data $APP_HOME/bin/data
 
 # Ensure permissions are correct
 RUN chown docker:sse /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra3 && chmod 755 /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra3

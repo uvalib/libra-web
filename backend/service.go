@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -29,6 +31,34 @@ type serviceContext struct {
 type RequestError struct {
 	StatusCode int
 	Message    string
+}
+
+type language struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+type license struct {
+	ID    int    `json:"id"`
+	URL   string `json:"url"`
+	Label string `json:"label"`
+	ETD   bool   `json:"etd"`
+	OA    bool   `json:"oa"`
+}
+
+type resourceType struct {
+	ID       string `json:"id"`
+	Label    string `json:"label"`
+	Category string `json:"category"`
+	ETD      bool   `json:"etd"`
+	OA       bool   `json:"oa"`
+}
+
+type configResponse struct {
+	Version        string         `json:"id"`
+	RessourceTypes []resourceType `json:"resourceTypes"`
+	Licenses       []license      `json:"licenses"`
+	Languages      []language     `json:"languages"`
 }
 
 // InitializeService sets up the service context for all API handlers
@@ -98,6 +128,47 @@ func (svc *serviceContext) checkUserServiceJWT() error {
 func (svc *serviceContext) getVersion(c *gin.Context) {
 	vMap := svc.lookupVersion()
 	c.JSON(http.StatusOK, vMap)
+}
+
+func (svc *serviceContext) getConfig(c *gin.Context) {
+	verInfo := svc.lookupVersion()
+	ver := fmt.Sprintf("v%s-build%s", verInfo["version"], verInfo["build"])
+	resp := configResponse{Version: ver}
+
+	log.Printf("INFO: load languages")
+	bytes, err := os.ReadFile("./data/languages.json")
+	if err != nil {
+		log.Printf("ERROR: unable to load languages: %s", err.Error())
+	} else {
+		err = json.Unmarshal(bytes, &resp.Languages)
+		if err != nil {
+			log.Printf("ERROR: unable to parse languages: %s", err.Error())
+		}
+	}
+
+	log.Printf("INFO: load licenses")
+	bytes, err = os.ReadFile("./data/licenses.json")
+	if err != nil {
+		log.Printf("ERROR: unable to load licenses: %s", err.Error())
+	} else {
+		err = json.Unmarshal(bytes, &resp.Licenses)
+		if err != nil {
+			log.Printf("ERROR: unable to parse licenses: %s", err.Error())
+		}
+	}
+
+	log.Printf("INFO: load resource types")
+	bytes, err = os.ReadFile("./data/resourceTypes.json")
+	if err != nil {
+		log.Printf("ERROR: unable to load resource types: %s", err.Error())
+	} else {
+		err = json.Unmarshal(bytes, &resp.RessourceTypes)
+		if err != nil {
+			log.Printf("ERROR: unable to parse resource types: %s", err.Error())
+		}
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 func (svc *serviceContext) lookupVersion() map[string]string {
