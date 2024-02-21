@@ -18,7 +18,12 @@ export const useSystemStore = defineStore('system', {
       }
    }),
    getters: {
-
+      oaResourceTypes: state => {
+         return state.resourceTypes.filter( rt => rt.oa == true)
+      },
+      etdResourceTypes: state => {
+         return state.resourceTypes.filter( rt => rt.etd == true)
+      }
    },
    actions: {
       async getConfig() {

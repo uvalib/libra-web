@@ -34,12 +34,12 @@ type RequestError struct {
 }
 
 type language struct {
-	ID    string `json:"id"`
+	Value string `json:"value"`
 	Label string `json:"label"`
 }
 
 type license struct {
-	ID    int    `json:"id"`
+	Value string `json:"value"`
 	URL   string `json:"url"`
 	Label string `json:"label"`
 	ETD   bool   `json:"etd"`
@@ -47,7 +47,7 @@ type license struct {
 }
 
 type resourceType struct {
-	ID       string `json:"id"`
+	Value    string `json:"value"`
 	Label    string `json:"label"`
 	Category string `json:"category"`
 	ETD      bool   `json:"etd"`

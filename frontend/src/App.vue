@@ -19,6 +19,8 @@
          </div>
       </div>
       <div class="user-header">
+         <span class="dashboard" v-if="isDashboard">Dashboard</span>
+         <router-link class="dashboard" v-else :to="dashboardLink">Dashboard</router-link>
          <span v-if="user.isSignedIn">{{ user.displayName }}</span>
          <span v-else>Not signed in</span>
       </div>
@@ -57,6 +59,15 @@ const user = useUserStore()
 const configuring = ref(true)
 const route = useRoute()
 
+const isDashboard = computed( () => {
+   return route.path == "/oa" ||  route.path == "/etd"
+})
+const dashboardLink = computed( () => {
+   if ( isLibraOpen.value ) {
+      return "/oa"
+   }
+   return "/etd"
+})
 const isLibraOpen = computed( () => {
    return route.fullPath.indexOf("/oa") > -1
 })
@@ -140,6 +151,15 @@ header {
       color: white;
       text-align: right;
       padding: 10px;
+      font-weight: normal;
+      .dashboard {
+         display: inline-block;
+         margin-right: 25px;
+      }
+      a.dashboard {
+         color: white !important;
+         font-weight: normal !important;
+      }
    }
 }
 </style>
