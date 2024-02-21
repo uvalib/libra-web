@@ -23,7 +23,13 @@ export const useSystemStore = defineStore('system', {
       },
       etdResourceTypes: state => {
          return state.resourceTypes.filter( rt => rt.etd == true)
-      }
+      },
+      oaLicenses: state => {
+         return state.licenses.filter( rt => rt.oa == true)
+      },
+      etdLicenses: state => {
+         return state.licenses.filter( rt => rt.etd == true)
+      },
    },
    actions: {
       async getConfig() {

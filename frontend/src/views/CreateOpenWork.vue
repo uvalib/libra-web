@@ -1,11 +1,33 @@
 <template>
    <h1>Add New Work</h1>
    <div class="form">
-      <FormKit type="form" id="openurl-book" :actions="false" @submit="submitClicked">
+      <FormKit type="form" :actions="false" @submit="submitClicked">
          <FormKit type="select" label="Resource Type" v-model="data.resourceType"
             placeholder="Select a resource type"
             :options="system.oaResourceTypes" validation="required"
          />
+         <FormKit label="Title" type="text" v-model="data.title" validation="required"/>
+         <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
+
+         <FormKit type="select" label="Rights" v-model="data.rights"
+            placeholder="Select rights"
+            :options="system.oaLicenses" validation="required"
+         />
+         <p class="note">
+            Libra lets you choose an open license when you post your work, and will prominently display the
+            license you choose as part of the record for your work. See
+            <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+            for option details.
+         </p>
+
+         <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
+         <p class="note">
+            Libra lets you choose an open license when you post your work, and will prominently display the
+            license you choose as part of the record for your work. See
+            <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+            for option details.
+         </p>
+
       </FormKit>
    </div>
 </template>
@@ -24,7 +46,11 @@ const system = useSystemStore()
 // })
 
 const data = ref({
-   resourceType: ""
+   resourceType: null,
+   title: "",
+   abstract: "",
+   rights: null,
+   publisher: "University of Virginia"
 })
 
 const submitClicked = ( () => {
@@ -34,8 +60,16 @@ const submitClicked = ( () => {
 
 <style lang="scss" scoped>
 .form {
-   width: 70%;
+   width: 50%;
    margin: 50px auto;
    min-height: 600px;
+   text-align: left;
+   .note {
+      font-size: 0.85em;
+      font-style: italic;
+      color: var(--uvalib-grey);
+      margin-top: 0;
+      padding-top: 5px;
+   }
 }
 </style>

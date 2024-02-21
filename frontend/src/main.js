@@ -41,12 +41,13 @@ app.component("ConfirmDialog", ConfirmDialog)
 import { plugin, defaultConfig } from '@formkit/vue'
 
 const fkCfg = defaultConfig({
+   // plugins: [addRequiredNotePlugin],
    config: {
       classes: {
-         input: '$reset v4-form-input',
-         label: '$reset v4-form-label',
-         messages: '$reset v4-form-invalid',
-         help: '$reset v4-form-help',
+         input: '$reset libra-form-input',
+         label: '$reset libra-form-label',
+         messages: '$reset libra-form-invalid',
+         help: '$reset libra-form-help',
       },
       incompleteMessage: false,
       validationVisibility: 'submit'
@@ -55,3 +56,30 @@ const fkCfg = defaultConfig({
 app.use(plugin, fkCfg)
 
 app.mount('#app')
+
+// Plugins for formkit -------
+
+function addRequiredNotePlugin(node) {
+   var showRequired = true
+   node.on('created', () => {
+      if (node.config.disableRequiredDecoration == true) {
+         showRequired = false
+      }
+      const schemaFn = node.props.definition.schema
+      node.props.definition.schema = (sectionsSchema = {}) => {
+         const isRequired = node.props.parsedRules.some(rule => rule.name === 'required')
+
+         if (isRequired && showRequired) {
+            // this input has the required rule so we modify
+            // the schema to add an astrics to the label.
+            sectionsSchema.label = {
+               attrs: {
+                  innerHTML: `<span class="req-label">${node.props.label}</span><span class="req">required</span>`
+               },
+               children: null//['$label', '*']
+            }
+         }
+         return schemaFn(sectionsSchema)
+      }
+   })
+}
