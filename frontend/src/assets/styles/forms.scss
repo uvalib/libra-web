@@ -64,22 +64,15 @@ button.libra-form-input {
    }
  }
 
-span.req {
-   margin-left: 5px;
-   color: var(--uvalib-teal-darkest);
+span.req-field {
+   color: #990000;
    font-size: 0.75em;
-   background-color: var(--uvalib-teal-lightest);
+   background-color: #ffeeee;
    padding: 2px 8px;
-   border-radius: 10px;
-   position: relative;
-   top: -8px;
-   left: 5px;
-   border: 1px solid var(--uvalib-teal);
+   border-radius: 5px;
+   margin-left: auto;
+   border: 1px solid #990000;
 }
-span.req-label {
-   color: var(--uvalib-text);
-}
-
 .libra-form-help {
    margin: 5px 0;
    font-size: 0.9em;
@@ -101,7 +94,7 @@ span.req-label {
    justify-content: flex-start;
    align-items: center;
    margin-bottom: 0.3em;
-   margin-top: 20px;
+   margin-top: 30px;
    color: var(--uvalib-text-dark);
    font-weight: normal;
 }

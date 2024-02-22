@@ -35,7 +35,6 @@ export const useSystemStore = defineStore('system', {
       async getConfig() {
          this.working = true
          return axios.get("/config").then(response => {
-            console.log(response.data)
             this.version = response.data.version
             this.languages = response.data.languages
             this.licenses = response.data.licenses

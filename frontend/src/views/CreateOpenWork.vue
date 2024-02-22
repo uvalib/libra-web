@@ -27,6 +27,10 @@
             <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
             for option details.
          </p>
+         <FormKit label="Source citation" type="text" v-model="data.citaion"/>
+         <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
+         <FormKit label="Published date" type="text" v-model="data.pubDate"/>
+         <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
 
       </FormKit>
    </div>
@@ -50,7 +54,10 @@ const data = ref({
    title: "",
    abstract: "",
    rights: null,
-   publisher: "University of Virginia"
+   publisher: "University of Virginia",
+   citation: "",
+   pubDate: "",
+   notes: ""
 })
 
 const submitClicked = ( () => {

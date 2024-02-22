@@ -41,7 +41,7 @@ app.component("ConfirmDialog", ConfirmDialog)
 import { plugin, defaultConfig } from '@formkit/vue'
 
 const fkCfg = defaultConfig({
-   // plugins: [addRequiredNotePlugin],
+   plugins: [addRequiredNotePlugin],
    config: {
       classes: {
          input: '$reset libra-form-input',
@@ -60,24 +60,18 @@ app.mount('#app')
 // Plugins for formkit -------
 
 function addRequiredNotePlugin(node) {
-   var showRequired = true
    node.on('created', () => {
-      if (node.config.disableRequiredDecoration == true) {
-         showRequired = false
-      }
       const schemaFn = node.props.definition.schema
       node.props.definition.schema = (sectionsSchema = {}) => {
-         const isRequired = node.props.parsedRules.some(rule => rule.name === 'required')
-
-         if (isRequired && showRequired) {
-            // this input has the required rule so we modify
-            // the schema to add an astrics to the label.
-            sectionsSchema.label = {
+         sectionsSchema['label'] = {
+            children: ['$label', {
+               $el: 'span',
+               if: '$state.required',
                attrs: {
-                  innerHTML: `<span class="req-label">${node.props.label}</span><span class="req">required</span>`
+                  class: 'req-field',
                },
-               children: null//['$label', '*']
-            }
+               children: ['Required']
+            }]
          }
          return schemaFn(sectionsSchema)
       }
