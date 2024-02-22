@@ -16,7 +16,6 @@ app.use(pinia)
 app.use(router)
 
 // Styles
-import '@fortawesome/fontawesome-free/css/all.css'
 import './assets/styles/main.scss'
 import './assets/styles/uva-colors.css'
 import './assets/styles/styleoverrides.scss'
@@ -29,6 +28,7 @@ import ToastService from 'primevue/toastservice'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
 import 'primevue/resources/themes/saga-blue/theme.css'
+import 'primeicons/primeicons.css'
 
 app.use(PrimeVue, { ripple: true })
 app.use(ConfirmationService)

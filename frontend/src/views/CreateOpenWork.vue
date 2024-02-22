@@ -20,6 +20,22 @@
             for option details.
          </p>
 
+         <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
+            <div v-for="(item, index) in items" :key="item" class="input-row">
+               <div class="input-wrap">
+                  <FormKit v-if="index == 0" label="Keyword" type="text" :index="index" />
+                  <FormKit v-else type="text" :index="index" />
+               </div>
+               <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"
+                  :disabled="data.keywords.length == 1" @click="removeKeyword(index)"/>
+            </div>
+         </FormKit>
+         <p class="note controls">
+            <span>Add one keyword or keyword phrase per line.</span>
+            <Button label="Add keyword" @click="addKeyword"/>
+         </p>
+
+
          <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
          <p class="note">
             Libra lets you choose an open license when you post your work, and will prominently display the
@@ -54,10 +70,18 @@ const data = ref({
    title: "",
    abstract: "",
    rights: null,
+   keywords: [""],
    publisher: "University of Virginia",
    citation: "",
    pubDate: "",
    notes: ""
+})
+
+const removeKeyword = ((idx)=> {
+   data.value.keywords.splice(idx,1)
+})
+const addKeyword = ( () => {
+   data.value.keywords.push("")
 })
 
 const submitClicked = ( () => {
@@ -71,12 +95,37 @@ const submitClicked = ( () => {
    margin: 50px auto;
    min-height: 600px;
    text-align: left;
+   .input-row {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: flex-end;
+      .remove {
+         padding: 5px 25px;
+         margin-bottom: 0.3em;
+         border: 0;
+         margin-left: 5px;
+      }
+      .input-wrap {
+         flex-grow: 1;
+      }
+   }
    .note {
       font-size: 0.85em;
       font-style: italic;
       color: var(--uvalib-grey);
       margin-top: 0;
       padding-top: 5px;
+   }
+   .note.controls {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: center;
+      button {
+         font-size: 0.9em;
+         padding: 4px 10px;
+      }
    }
 }
 </style>
