@@ -20,11 +20,26 @@
             for option details.
          </p>
 
+         <FormKit v-model="data.languages" type="list" dynamic #default="{ items }">
+            <div v-for="(item, index) in items" :key="item" class="input-row">
+               <div class="input-wrap">
+                  <FormKit type="select" :label="inputLabel('Language', index)" :index="index"
+                     placeholder="Select a language" :options="system.languages"
+                  />
+               </div>
+               <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language"
+                  :disabled="data.languages.length == 1" @click="removeLanguage(index)"/>
+            </div>
+         </FormKit>
+         <p class="note controls">
+            <span>The language of the work's content.</span>
+            <Button label="Add Language" @click="addLanguage"/>
+         </p>
+
          <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
             <div v-for="(item, index) in items" :key="item" class="input-row">
                <div class="input-wrap">
-                  <FormKit v-if="index == 0" label="Keyword" type="text" :index="index" />
-                  <FormKit v-else type="text" :index="index" />
+                  <FormKit :label="inputLabel('Keyword', index)" type="text" :index="index" />
                </div>
                <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"
                   :disabled="data.keywords.length == 1" @click="removeKeyword(index)"/>
@@ -32,9 +47,8 @@
          </FormKit>
          <p class="note controls">
             <span>Add one keyword or keyword phrase per line.</span>
-            <Button label="Add keyword" @click="addKeyword"/>
+            <Button label="Add Keyword" @click="addKeyword"/>
          </p>
-
 
          <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
          <p class="note">
@@ -46,6 +60,34 @@
          <FormKit label="Source citation" type="text" v-model="data.citaion"/>
          <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
          <FormKit label="Published date" type="text" v-model="data.pubDate"/>
+
+         <FormKit v-model="data.relatedURLs" type="list" dynamic #default="{ items }">
+            <div v-for="(item, index) in items" :key="item" class="input-row">
+               <div class="input-wrap">
+                  <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
+               </div>
+               <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"
+                  :disabled="data.relatedURLs.length == 1" @click="removeURL(index)"/>
+            </div>
+         </FormKit>
+         <p class="note controls">
+            <span>Links to another version, another location with the file, website or other specific content (audio, video, PDF document) related to the work.</span>
+            <Button label="Add URL" @click="addURL"/>
+         </p>
+
+         <FormKit v-model="data.sponsors" type="list" dynamic #default="{ items }">
+            <div v-for="(item, index) in items" :key="item" class="input-row">
+               <div class="input-wrap">
+                  <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
+               </div>
+               <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"
+                  :disabled="data.sponsors.length == 1" @click="removeAgency(index)"/>
+            </div>
+         </FormKit>
+         <p class="note controls">
+            <Button label="Add Agency" @click="addAgency"/>
+         </p>
+
          <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
 
       </FormKit>
@@ -57,31 +99,50 @@ import { ref } from 'vue'
 import { useSystemStore } from "@/stores/system"
 
 const system = useSystemStore()
-// import { useRouter } from 'vue-router'
-
-// const router = useRouter()
-
-// const createWorkClicked = (() => {
-//    router.push("/oa/new")
-// })
 
 const data = ref({
    resourceType: null,
    title: "",
    abstract: "",
    rights: null,
+   languages: [""],
    keywords: [""],
    publisher: "University of Virginia",
    citation: "",
    pubDate: "",
+   relatedURLs: [""],
+   sponsors: [""],
    notes: ""
 })
 
+const inputLabel = ( (lbl, idx) => {
+   console.log(lbl+" idx "+idx)
+   if (idx==0) return lbl
+   return null
+})
 const removeKeyword = ((idx)=> {
    data.value.keywords.splice(idx,1)
 })
 const addKeyword = ( () => {
    data.value.keywords.push("")
+})
+const removeLanguage = ((idx)=> {
+   data.value.languages.splice(idx,1)
+})
+const addLanguage = ( () => {
+   data.value.languages.push("")
+})
+const removeURL = ((idx)=> {
+   data.value.relatedURLs.splice(idx,1)
+})
+const addURL = ( () => {
+   data.value.relatedURLs.push("")
+})
+const removeAgency = ((idx)=> {
+   data.value.sponsors.splice(idx,1)
+})
+const addAgency = ( () => {
+   data.value.sponsors.push("")
 })
 
 const submitClicked = ( () => {
@@ -101,7 +162,7 @@ const submitClicked = ( () => {
       justify-content: flex-start;
       align-items: flex-end;
       .remove {
-         padding: 5px 25px;
+         padding: 6.25px 15px;
          margin-bottom: 0.3em;
          border: 0;
          margin-left: 5px;
@@ -125,6 +186,8 @@ const submitClicked = ( () => {
       button {
          font-size: 0.9em;
          padding: 4px 10px;
+         white-space: nowrap;
+         margin-left: auto;
       }
    }
 }
