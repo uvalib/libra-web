@@ -7,6 +7,38 @@
             :options="system.oaResourceTypes" validation="required"
          />
          <FormKit label="Title" type="text" v-model="data.title" validation="required"/>
+
+         <FormKit v-model="data.authors" type="list" dynamic #default="{ items }">
+            <label class="libra-form-label">Authors</label>
+            <p class="note controls">
+               <span>The main researchers involved in producing the work, or the authors of the publication, in priority order.</span>
+               <Button label="Add Author" @click="addAuthor"/>
+            </p>
+            <div class="authors">
+               <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
+                  <div class="author" :class="{border: index != data.authors.length-1}">
+                     <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author"
+                        :disabled="data.authors.length == 1" @click="removeAuthor(index)"/>
+                     <div class="two-col">
+                        <FormKit type="text" name="computeID" label="Computing ID"/>
+                        <span class="sep"></span>
+                        <p class="note inline">Enter a UVA Computing ID to automatically fill the remaining fields for this person.</p>
+                     </div>
+                     <div class="two-col">
+                        <FormKit type="text" name="firstName" label="First Name"/>
+                        <span class="sep"></span>
+                        <FormKit type="text" name="lastName" label="Last Name"/>
+                     </div>
+                     <div class="two-col">
+                        <FormKit type="text" name="department" label="Department"/>
+                        <span class="sep"></span>
+                        <FormKit type="text" name="institution" label="Institution"/>
+                     </div>
+                  </div>
+               </FormKit>
+            </div>
+         </FormKit>
+
          <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
 
          <FormKit type="select" label="Rights" v-model="data.rights"
@@ -49,6 +81,37 @@
             <span>Add one keyword or keyword phrase per line.</span>
             <Button label="Add Keyword" @click="addKeyword"/>
          </p>
+
+         <FormKit v-model="data.contributors" type="list" dynamic #default="{ items }">
+            <label class="libra-form-label">Contributors</label>
+            <p class="note controls">
+               <span>The person(s) responsible for contributing to the development of the resource, such as editor or producer (not an author).</span>
+               <Button label="Add Contributor" @click="addContributor"/>
+            </p>
+            <div class="authors">
+               <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
+                  <div class="author" :class="{border: index != data.contributors.length-1}">
+                     <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author"
+                        :disabled="data.contributors.length == 1" @click="removeContributor(index)"/>
+                     <div class="two-col">
+                        <FormKit type="text" name="computeID" label="Computing ID"/>
+                        <span class="sep"></span>
+                        <p class="note inline">Enter a UVA Computing ID to automatically fill the remaining fields for this person.</p>
+                     </div>
+                     <div class="two-col">
+                        <FormKit type="text" name="firstName" label="First Name"/>
+                        <span class="sep"></span>
+                        <FormKit type="text" name="lastName" label="Last Name"/>
+                     </div>
+                     <div class="two-col">
+                        <FormKit type="text" name="department" label="Department"/>
+                        <span class="sep"></span>
+                        <FormKit type="text" name="institution" label="Institution"/>
+                     </div>
+                  </div>
+               </FormKit>
+            </div>
+         </FormKit>
 
          <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
          <p class="note">
@@ -95,18 +158,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useSystemStore } from "@/stores/system"
+import { useUserStore } from "@/stores/user"
 
 const system = useSystemStore()
+const user = useUserStore()
 
 const data = ref({
    resourceType: null,
    title: "",
+   authors: [],
    abstract: "",
    rights: null,
    languages: [""],
    keywords: [""],
+   contributors: [{computeID: "", firstName: "", lastName: "", department: "", institution: ""}],
    publisher: "University of Virginia",
    citation: "",
    pubDate: "",
@@ -115,10 +182,33 @@ const data = ref({
    notes: ""
 })
 
+onMounted( () => {
+   if ( user.isSignedIn) {
+      data.value.authors.push({
+         computeID: user.computeID, firstName: user.firstName,
+         lastName: user.lastName, department: user.department[0], institution: "University of Virginia"
+      })
+   } else {
+      data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   }
+})
+
 const inputLabel = ( (lbl, idx) => {
    console.log(lbl+" idx "+idx)
    if (idx==0) return lbl
    return null
+})
+const addAuthor = ( () => {
+   data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+})
+const removeAuthor = ((idx)=> {
+   data.value.authors.splice(idx,1)
+})
+const addContributor = ( () => {
+   data.value.contributors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+})
+const removeContributor = ((idx)=> {
+   data.value.contributors.splice(idx,1)
 })
 const removeKeyword = ((idx)=> {
    data.value.keywords.splice(idx,1)
@@ -156,6 +246,45 @@ const submitClicked = ( () => {
    margin: 50px auto;
    min-height: 600px;
    text-align: left;
+
+   .authors {
+      border: 1px solid var(--uvalib-grey-light);
+      border-radius: 5px;
+      padding: 0;
+      .author {
+         position: relative;
+         padding: 0 25px 25px 25px;
+         .remove {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+         }
+      }
+      .author.border {
+         padding-bottom: 25px;
+         border-bottom: 1px solid var(--uvalib-grey-light);
+      }
+   }
+   .two-col {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: flex-end;
+      p.note.inline {
+         max-width: 50%;
+         padding: 0;
+         margin: 0;
+         position: relative;
+         top: -5px;
+      }
+      .sep {
+         display: block;
+         width: 15px;
+      }
+      div.formkit-outer {
+         flex-grow: 1;
+      }
+   }
    .input-row {
       display: flex;
       flex-flow: row nowrap;
