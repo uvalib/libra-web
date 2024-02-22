@@ -203,6 +203,34 @@ func (svc *serviceContext) healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, hcMap)
 }
 
+func (svc *serviceContext) lookupComputeID(c *gin.Context) {
+	computeID := c.Param("cid")
+	log.Printf("INFO: lookup compute id [%s]", computeID)
+	err := svc.checkUserServiceJWT()
+	if err != nil {
+		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.UserService.URL, computeID, svc.UserService.JWT)
+	resp, userErr := svc.sendGetRequest(url)
+	if userErr != nil {
+		log.Printf("INFO: lookup info user [%s] failed: %s", computeID, userErr.Message)
+		c.Redirect(http.StatusNotFound, fmt.Sprintf("%s not found", computeID))
+		return
+	}
+
+	log.Printf("GOT: %s", resp)
+	var jsonResp userServiceResp
+	err = json.Unmarshal(resp, &jsonResp)
+	if err != nil {
+		log.Printf("ERROR: unable to parse user serice responce: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, jsonResp.User)
+}
+
 func (svc *serviceContext) sendGetRequest(url string) ([]byte, *RequestError) {
 	return svc.sendRequest("GET", url, nil)
 }

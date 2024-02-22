@@ -32,6 +32,11 @@ func main() {
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/version", svc.getVersion)
 
+	api := router.Group("/api", svc.authMiddleware)
+	{
+		api.GET("/lookup/:cid", svc.lookupComputeID)
+	}
+
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by yarn and it proxies all requests to the API to the routes above
 	router.Use(static.Serve("/", static.LocalFile("./public", true)))

@@ -13,11 +13,12 @@ import (
 )
 
 type jwtClaims struct {
-	*userDetails
+	*UserDetails
 	jwt.StandardClaims
 }
 
-type userDetails struct {
+// UserDetails contains a user response from the user-ws
+type UserDetails struct {
 	ComputeID   string   `json:"cid"`
 	UVAID       string   `json:"uva_id"`
 	DisplayName string   `json:"display_name"`
@@ -37,7 +38,7 @@ type userDetails struct {
 type userServiceResp struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
-	User    userDetails `json:"user"`
+	User    UserDetails `json:"user"`
 }
 
 func (svc *serviceContext) authenticate(c *gin.Context) {
@@ -64,7 +65,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	log.Printf("INFO: request user info for %s", computingID)
 	err := svc.checkUserServiceJWT()
 	if err != nil {
-		log.Printf("ERROR: unable to check user service uwt: %s", err.Error())
+		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
 		c.Redirect(http.StatusFound, "/forbidden")
 		return
 	}
@@ -86,7 +87,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	log.Printf("INFO: generate JWT for %s", computingID)
 	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwtClaims{
-		userDetails: &jsonResp.User,
+		UserDetails: &jsonResp.User,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 			Issuer:    "libra3",

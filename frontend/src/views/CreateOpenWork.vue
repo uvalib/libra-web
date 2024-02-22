@@ -20,10 +20,14 @@
                      <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author"
                         :disabled="data.authors.length == 1" @click="removeAuthor(index)"/>
                      <div class="two-col">
-                        <FormKit type="text" name="computeID" label="Computing ID"/>
+                        <div class="search-field">
+                           <FormKit type="text" name="computeID" label="Computing ID"/>
+                           <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAuthorID(index)"/>
+                        </div>
                         <span class="sep"></span>
-                        <p class="note inline">Enter a UVA Computing ID to automatically fill the remaining fields for this person.</p>
+                        <p class="note inline">Lookup a UVA Computing ID to automatically fill the remaining fields for this person.</p>
                      </div>
+                     <p v-if="data.authors[index].msg != ''" class="err">{{ data.authors[index].msg }}</p>
                      <div class="two-col">
                         <FormKit type="text" name="firstName" label="First Name"/>
                         <span class="sep"></span>
@@ -94,10 +98,14 @@
                      <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author"
                         :disabled="data.contributors.length == 1" @click="removeContributor(index)"/>
                      <div class="two-col">
-                        <FormKit type="text" name="computeID" label="Computing ID"/>
+                        <div class="search-field">
+                           <FormKit type="text" name="computeID" label="Computing ID"/>
+                           <Button class="check" icon="pi pi-search" severity="secondary" @click="checkContributorID(index)"/>
+                        </div>
                         <span class="sep"></span>
-                        <p class="note inline">Enter a UVA Computing ID to automatically fill the remaining fields for this person.</p>
+                        <p class="note inline">Lookup a UVA Computing ID to automatically fill the remaining fields for this person.</p>
                      </div>
+                     <p v-if="data.contributors[index].msg != ''" class="err">{{ data.contributors[index].msg }}</p>
                      <div class="two-col">
                         <FormKit type="text" name="firstName" label="First Name"/>
                         <span class="sep"></span>
@@ -161,6 +169,7 @@
 import { ref, onMounted } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
+import axios from 'axios'
 
 const system = useSystemStore()
 const user = useUserStore()
@@ -173,7 +182,7 @@ const data = ref({
    rights: null,
    languages: [""],
    keywords: [""],
-   contributors: [{computeID: "", firstName: "", lastName: "", department: "", institution: ""}],
+   contributors: [{computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""}],
    publisher: "University of Virginia",
    citation: "",
    pubDate: "",
@@ -186,15 +195,14 @@ onMounted( () => {
    if ( user.isSignedIn) {
       data.value.authors.push({
          computeID: user.computeID, firstName: user.firstName,
-         lastName: user.lastName, department: user.department[0], institution: "University of Virginia"
+         lastName: user.lastName, department: user.department[0], institution: "University of Virginia", msg: ""
       })
    } else {
-      data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+      data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""})
    }
 })
 
 const inputLabel = ( (lbl, idx) => {
-   console.log(lbl+" idx "+idx)
    if (idx==0) return lbl
    return null
 })
@@ -204,11 +212,33 @@ const addAuthor = ( () => {
 const removeAuthor = ((idx)=> {
    data.value.authors.splice(idx,1)
 })
+const checkAuthorID = ((idx) => {
+   let cID = data.value.authors[idx].computeID
+   data.value.authors[idx].msg = ""
+   if (cID.lenth <3) return
+   axios.get(`/api/lookup/${cID}`).then(r => {
+      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
+      data.value.authors[idx] = auth
+   }).catch( () => {
+      data.value.authors[idx].msg = cID+" is not a valid computing ID"
+   })
+})
 const addContributor = ( () => {
    data.value.contributors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
 })
 const removeContributor = ((idx)=> {
    data.value.contributors.splice(idx,1)
+})
+const checkContributorID = ((idx) => {
+   let cID = data.value.contributors[idx].computeID
+   data.value.contributors[idx].msg = ""
+   if (cID.lenth <3) return
+   axios.get(`/api/lookup/${cID}`).then(r => {
+      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
+      data.value.contributors[idx] = auth
+   }).catch( () => {
+      data.value.contributors[idx].msg = cID+" is not a valid computing ID"
+   })
 })
 const removeKeyword = ((idx)=> {
    data.value.keywords.splice(idx,1)
@@ -246,6 +276,26 @@ const submitClicked = ( () => {
    margin: 50px auto;
    min-height: 600px;
    text-align: left;
+
+   .err {
+      padding: 0;
+      margin: 2px 0 0 0;
+      color: var(--uvalib-red-emergency);
+      font-style: italic;
+   }
+
+   .search-field {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: flex-end;
+      button {
+         font-size: 0.8em;
+         padding: 7px;
+         margin-bottom: 0.3em;
+         margin-left: 5px;
+      }
+   }
 
    .authors {
       border: 1px solid var(--uvalib-grey-light);
