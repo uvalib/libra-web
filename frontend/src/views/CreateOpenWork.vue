@@ -160,7 +160,8 @@
          </p>
 
          <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
-
+         <FormKit type="file" label="Files" multiple="true" v-model="data.files"/>
+         <p class="note">Select one or more files to upload.</p>
       </FormKit>
    </div>
 </template>
@@ -188,7 +189,8 @@ const data = ref({
    pubDate: "",
    relatedURLs: [""],
    sponsors: [""],
-   notes: ""
+   notes: "",
+   files: []
 })
 
 onMounted( () => {
