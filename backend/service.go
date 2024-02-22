@@ -117,7 +117,7 @@ func (svc *serviceContext) checkUserServiceJWT() error {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedStr, jwtErr := token.SignedString([]byte(svc.UserService.JWTKey))
+	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
 	if jwtErr != nil {
 		return jwtErr
 	}
