@@ -56,6 +56,23 @@
    }
 }
 
+.p-fileupload  {
+   border-radius: 5px;
+   img.p-fileupload-file-thumbnail {
+      display: none;
+   }
+   .p-fileupload-buttonbar {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: flex-start;
+      border-radius: 5px 5px 0 0;
+      padding: 10px;
+   }
+   .p-fileupload-content {
+      border-radius: 0 0 5px 5px;
+   }
+}
+
 div.p-card.p-component {
    text-align: left;
    border: 1px solid var(--uvalib-grey-light);
@@ -90,17 +107,10 @@ nav.p-paginator-top.sticky {
    position: relative;
 }
 
-span.p-button.p-component.p-fileupload-choose {
-   width: 100%;
-}
-
 .p-picklist-buttons.p-picklist-transfer-buttons, .p-picklist-buttons.p-picklist-target-controls {
    button {
       margin-bottom: 0.5rem;
    }
-}
-.p-fileupload.p-fileupload-basic.p-component {
-   padding: 0.5em 1em;
 }
 
 button.p-button, .p-fileupload.p-fileupload-basic.p-component {

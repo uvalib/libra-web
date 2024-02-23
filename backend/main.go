@@ -35,6 +35,8 @@ func main() {
 	api := router.Group("/api", svc.authMiddleware)
 	{
 		api.GET("/lookup/:cid", svc.lookupComputeID)
+		api.GET("/token", svc.getDepositToken)
+		api.POST("/upload/:token", svc.uploadSubmissionFiles)
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served

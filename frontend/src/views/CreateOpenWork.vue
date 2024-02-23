@@ -160,8 +160,16 @@
          </p>
 
          <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
-         <FormKit type="file" label="Files" multiple="true" v-model="data.files"/>
-         <p class="note">Select one or more files to upload.</p>
+
+         <label class="libra-form-label">Files</label>
+         <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
+            @upload="filesUploaded($event)" @before-send="uploadRequested($event)" @error="uploadFailed($event)"
+            :multiple="true" :withCredentials="true" >
+            <template #empty>
+               <p>Click Choose or drag and drop files to here to be uploaded. Uploaded files will be attached to the work upon submission.</p>
+            </template>
+         </FileUpload>
+
       </FormKit>
    </div>
 </template>
@@ -170,10 +178,13 @@
 import { ref, onMounted } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
+import { useRepositoryStore } from "@/stores/repository"
+import FileUpload from 'primevue/fileupload'
 import axios from 'axios'
 
 const system = useSystemStore()
 const user = useUserStore()
+const repository = useRepositoryStore()
 
 const data = ref({
    resourceType: null,
@@ -193,7 +204,7 @@ const data = ref({
    files: []
 })
 
-onMounted( () => {
+onMounted( async () => {
    if ( user.isSignedIn) {
       data.value.authors.push({
          computeID: user.computeID, firstName: user.firstName,
@@ -202,6 +213,20 @@ onMounted( () => {
    } else {
       data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""})
    }
+   await repository.getDepositToken()
+})
+
+const uploadRequested = ( (request) => {
+   console.log(request)
+   request.xhr.setRequestHeader('Authorization', 'Bearer ' + user.jwt)
+   return request
+})
+
+const filesUploaded = ( () => {
+   console.log("uploaded")
+})
+const uploadFailed = ( (err) => {
+   console.log(err)
 })
 
 const inputLabel = ( (lbl, idx) => {
