@@ -16,5 +16,9 @@ export const useRepositoryStore = defineStore('repository', {
             system.setError(  err )
          })
       },
+      cancel() {
+         axios.post(`/api/cancel/${this.depositToken}`)
+         this.depositToken = ""
+      }
    }
 })

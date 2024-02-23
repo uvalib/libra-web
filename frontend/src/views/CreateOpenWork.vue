@@ -1,7 +1,13 @@
 <template>
    <h1>Add New Work</h1>
    <div class="form">
-      <FormKit type="form" :actions="false" @submit="submitClicked">
+      <Panel header="Save Work" class="sidebar">
+         <div class="button-bar">
+            <Button severity="secondary" label="Cancel" @click="cancelClicked"/>
+            <Button label="Submit" @click="submitClicked"/>
+         </div>
+      </Panel>
+      <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
          <FormKit type="select" label="Resource Type" v-model="data.resourceType"
             placeholder="Select a resource type"
             :options="system.oaResourceTypes" validation="required"
@@ -180,12 +186,17 @@ import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useRepositoryStore } from "@/stores/repository"
 import FileUpload from 'primevue/fileupload'
+import Panel from 'primevue/panel'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const system = useSystemStore()
 const user = useUserStore()
 const repository = useRepositoryStore()
 
+const oaForm = ref(null)
 const data = ref({
    resourceType: null,
    title: "",
@@ -293,16 +304,48 @@ const addAgency = ( () => {
 })
 
 const submitClicked = ( () => {
+   const node = oaForm.value.node
+   node.submit()
+})
+const submitHandler = ( () => {
    alert("ER")
+})
+const cancelClicked = (() => {
+   repository.cancel()
+   router.push("/oa")
+
 })
 </script>
 
 <style lang="scss" scoped>
 .form {
-   width: 50%;
    margin: 50px auto;
    min-height: 600px;
    text-align: left;
+   display: flex;
+   flex-flow: row nowrap;
+   justify-content: flex-start;
+   align-items: flex-start;
+   padding: 0 50px;
+   .formkit-form {
+      border: 1px solid var(--uvalib-grey-light);
+      border-radius: 5px;
+      padding: 0 25px 25px 25px;
+   }
+
+   .sidebar {
+      width: 250px;
+      margin-right: 25px;
+      .button-bar {
+         display: flex;
+         flex-flow: row nowrap;
+         justify-content: flex-end;
+         align-items: flex-end;
+         button {
+            margin-left: 10px;
+         }
+      };
+   }
 
    .err {
       padding: 0;

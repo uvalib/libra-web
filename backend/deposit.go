@@ -17,6 +17,20 @@ func (svc *serviceContext) getDepositToken(c *gin.Context) {
 	c.String(http.StatusOK, newUUID.String())
 }
 
+func (svc *serviceContext) cancelSubmission(c *gin.Context) {
+	token := c.Param("token")
+	log.Printf("INFO: cancel submission %s", token)
+	uploadDir := path.Join("/tmp", token)
+	if pathExists(uploadDir) {
+		err := os.RemoveAll(uploadDir)
+		if err != nil {
+			log.Printf("ERROR: unable to remove submission upload direcroty %s: %s", uploadDir, err.Error())
+		}
+	}
+	log.Printf("INFO: submission canceled and temporary files cleaned up")
+	c.String(http.StatusOK, "cancled")
+}
+
 func (svc *serviceContext) uploadSubmissionFiles(c *gin.Context) {
 	log.Printf("INFO: file upload request received")
 	token := c.Param("token")

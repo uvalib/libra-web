@@ -37,6 +37,7 @@ func main() {
 		api.GET("/lookup/:cid", svc.lookupComputeID)
 		api.GET("/token", svc.getDepositToken)
 		api.POST("/upload/:token", svc.uploadSubmissionFiles)
+		api.POST("/cancel/:token", svc.cancelSubmission)
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served
