@@ -23,7 +23,7 @@ import (
 type serviceContext struct {
 	Version     string
 	HTTPClient  *http.Client
-	EasyStore   *uvaeasystore.EasyStore
+	EasyStore   uvaeasystore.EasyStore
 	UserService userServiceCfg
 	JWTKey      string
 	DevAuthUser string
@@ -108,7 +108,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		if err != nil {
 			log.Fatalf("create easystore failed: %s", err.Error())
 		}
-		ctx.EasyStore = &es
+		ctx.EasyStore = es
 	} else {
 		log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
 	}

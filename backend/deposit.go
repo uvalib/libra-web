@@ -1,14 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 type authorData struct {
@@ -35,7 +39,34 @@ type oaDepositData struct {
 	RelatedURLs      []string     `json:"relatedURLs"`
 	Sponsors         []string     `json:"sponsors"`
 	Notes            string       `json:"notes"`
-	Files            []string     `json:"files"`
+}
+
+type easystoreOAWrapper struct {
+	JSONData   oaDepositData
+	CreatedAt  time.Time
+	ModifiedAt time.Time
+}
+
+func (oa easystoreOAWrapper) MimeType() string {
+	return "application/json"
+}
+
+func (oa easystoreOAWrapper) Payload() []byte {
+	out, _ := json.Marshal(oa.JSONData)
+	return out
+}
+
+func (oa easystoreOAWrapper) PayloadNative() []byte {
+	out, _ := json.Marshal(oa.JSONData)
+	return out
+}
+
+func (oa easystoreOAWrapper) Created() time.Time {
+	return oa.CreatedAt
+}
+
+func (oa easystoreOAWrapper) Modified() time.Time {
+	return oa.ModifiedAt
 }
 
 func (svc *serviceContext) getDepositToken(c *gin.Context) {
@@ -54,9 +85,56 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: %+v", req)
+	uploadDir := path.Join("/tmp", req.Token)
+	log.Printf("INFO: uploaded subission file location: %s", uploadDir)
 
-	c.String(http.StatusNotImplemented, "boop")
+	oID := fmt.Sprintf("oid:%s", req.Token)
+	obj := uvaeasystore.NewEasyStoreObject(oID)
+
+	md := easystoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
+	obj.SetMetadata(md)
+
+	log.Printf("INFO: add files associated with submission token %s", req.Token)
+	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
+	err = filepath.Walk(uploadDir, func(fullPath string, f os.FileInfo, err error) error {
+		if err != nil {
+			log.Printf("ERROR: directory %s traverse failed: %s", uploadDir, err.Error())
+			return nil
+		}
+		if f.IsDir() {
+			log.Printf("INFO: directory %s", f.Name())
+			return nil
+		}
+
+		log.Printf("INFO: add %s", fullPath)
+		fileBytes, fileErr := os.ReadFile(fullPath)
+		if fileErr != nil {
+			return fileErr
+		}
+		mimeType := http.DetectContentType(fileBytes)
+		esBlob := uvaeasystore.NewEasyStoreBlob(f.Name(), mimeType, fileBytes)
+		esFiles = append(esFiles, esBlob)
+		return nil
+	})
+	if err != nil {
+		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
+		c.String(http.StatusInternalServerError, "unable to find units")
+		return
+	}
+
+	log.Printf("INFO: cleanup upload directory %s", uploadDir)
+	os.RemoveAll(uploadDir)
+
+	obj.SetFiles(esFiles)
+
+	_, err = svc.EasyStore.Create(obj)
+	if err != nil {
+		log.Printf("ERROR: easystore create failed: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.String(http.StatusOK, oID)
 }
 
 func (svc *serviceContext) cancelSubmission(c *gin.Context) {
