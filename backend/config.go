@@ -35,7 +35,7 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")
 
 	// easystore cfg
-	flag.StringVar(&config.easyStore.mode, "esmode", "sqlite", "EasyStore mode (sqlite, psql)")
+	flag.StringVar(&config.easyStore.mode, "esmode", "none", "EasyStore mode (sqlite, psql)")
 	flag.StringVar(&config.easyStore.namespace, "esnamespace", "libraopen", "EasyStore namespace")
 	flag.StringVar(&config.easyStore.fileSystem, "esfilesys", "/tmp", "EasyStore sqlite filesystem")
 	flag.StringVar(&config.easyStore.dbName, "esdb", "", "EasyStore psql database name")
