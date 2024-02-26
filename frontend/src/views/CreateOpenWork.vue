@@ -3,8 +3,8 @@
    <div class="form">
       <Panel header="Save Work" class="sidebar">
          <div class="button-bar">
-            <Button severity="secondary" label="Cancel" @click="cancelClicked"/>
-            <Button label="Submit" @click="submitClicked"/>
+            <Button severity="secondary" label="Cancel" @click="cancelClicked" :disabled="repository.working"/>
+            <Button label="Submit" @click="submitClicked" :disabled="repository.working"/>
          </div>
       </Panel>
       <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
@@ -51,7 +51,7 @@
 
          <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
 
-         <FormKit type="select" label="Rights" v-model="data.rights"
+         <FormKit type="select" label="Rights" v-model="data.license"
             placeholder="Select rights"
             :options="system.oaLicenses" validation="required"
          />
@@ -134,7 +134,7 @@
             <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
             for option details.
          </p>
-         <FormKit label="Source citation" type="text" v-model="data.citaion"/>
+         <FormKit label="Source citation" type="text" v-model="data.citation"/>
          <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
          <FormKit label="Published date" type="text" v-model="data.pubDate"/>
 
@@ -169,7 +169,8 @@
 
          <label class="libra-form-label">Files</label>
          <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
-            @upload="filesUploaded($event)" @before-send="uploadRequested($event)" @error="uploadFailed($event)"
+            @upload="filesUploaded($event)" @before-send="uploadRequested($event)"
+            @error="uploadFailed($event)" @removeUploadedFile="fileRemoved($event)"
             :multiple="true" :withCredentials="true" >
             <template #empty>
                <p>Click Choose or drag and drop files to here to be uploaded. Uploaded files will be attached to the work upon submission.</p>
@@ -198,20 +199,20 @@ const repository = useRepositoryStore()
 
 const oaForm = ref(null)
 const data = ref({
-   resourceType: null,
-   title: "",
+   resourceType: "Book",
+   title: "title",
    authors: [],
-   abstract: "",
-   rights: null,
-   languages: [""],
-   keywords: [""],
+   abstract: "ABS",
+   license: "1",
+   languages: ["English"],
+   keywords: ["key1"],
    contributors: [{computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""}],
    publisher: "University of Virginia",
-   citation: "",
-   pubDate: "",
-   relatedURLs: [""],
-   sponsors: [""],
-   notes: "",
+   citation: "fake citation",
+   pubDate: "1980",
+   relatedURLs: ["fake_url"],
+   sponsors: ["sponsor"],
+   notes: "note text",
    files: []
 })
 
@@ -233,8 +234,11 @@ const uploadRequested = ( (request) => {
    return request
 })
 
-const filesUploaded = ( () => {
-   console.log("uploaded")
+const fileRemoved = ( event => {
+   repository.removeFile( event.file.name )
+})
+const filesUploaded = ( (event) => {
+   event.files.forEach( uf => data.value.files.push( uf.name ))
 })
 const uploadFailed = ( (err) => {
    console.log(err)
@@ -308,7 +312,7 @@ const submitClicked = ( () => {
    node.submit()
 })
 const submitHandler = ( () => {
-   alert("ER")
+   repository.depositOA( data.value )
 })
 const cancelClicked = (() => {
    repository.cancel()

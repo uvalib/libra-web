@@ -4,6 +4,7 @@ import { useSystemStore } from './system'
 
 export const useRepositoryStore = defineStore('repository', {
    state: () => ({
+      working: false,
       depositToken: "",
    }),
    actions: {
@@ -19,6 +20,21 @@ export const useRepositoryStore = defineStore('repository', {
       cancel() {
          axios.post(`/api/cancel/${this.depositToken}`)
          this.depositToken = ""
+      },
+      removeFile( file) {
+         axios.delete(`/api/${this.depositToken}/${file}`)
+      } ,
+      async depositOA( jsonPayload ) {
+         this.working = true
+         jsonPayload.token = this.depositToken
+         return axios.post("/api/oa", jsonPayload).then(response => {
+            this.depositToken = response.data
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
       }
    }
 })

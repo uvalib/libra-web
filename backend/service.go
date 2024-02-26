@@ -16,12 +16,14 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/uvalib/easystore/uvaeasystore"
 )
 
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version     string
 	HTTPClient  *http.Client
+	EasyStore   *uvaeasystore.EasyStore
 	UserService userServiceCfg
 	JWTKey      string
 	DevAuthUser string
@@ -92,6 +94,25 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	if err != nil {
 		log.Fatal(fmt.Sprintf("unable to generate user service jwt: %s", err.Error()))
 	}
+
+	log.Printf("INFO: configure easystore")
+	if cfg.easyStore.mode == "none" {
+		log.Printf("INFO: easystore is set to none and will not be used")
+	} else if cfg.easyStore.mode == "sqlite" {
+		config := uvaeasystore.DatastoreSqliteConfig{
+			Filesystem: cfg.easyStore.fileSystem,
+			Namespace:  cfg.easyStore.namespace,
+			Log:        log.Default(),
+		}
+		es, err := uvaeasystore.NewEasyStore(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = &es
+	} else {
+		log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
+	}
+	log.Printf("INFO: easystore configured")
 
 	return &ctx
 }
