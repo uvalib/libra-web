@@ -2,9 +2,34 @@
    <h1>Add New Work</h1>
    <div class="form">
       <Panel header="Save Work" class="sidebar">
+         <Fieldset legend="Requirements">
+            <div class="requirement">
+               <i v-if="workDescribed" class="done pi pi-check"></i>
+               <i v-else class="not-done pi pi-exclamation-circle"></i>
+               <span>Describe your work</span>
+            </div>
+            <div class="requirement">
+               <i v-if="data.files.length > 0" class="done pi pi-check"></i>
+               <i v-else class="not-done pi pi-exclamation-circle"></i>
+               <span>Add files</span>
+            </div>
+         </Fieldset>
+         <Fieldset legend="Visibility">
+            <div v-for="v in system.oaVisibility" :key="v.value" class="visibility-opt">
+               <RadioButton v-model="data.visibility" :inputId="v.value"  :value="v.value"  class="visibility"/>
+               <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+            </div>
+         </Fieldset>
+         <div class="agree">
+            <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
+            <label for="agree-cb">
+               By saving this work, I agree to the
+               <a href="https://www.library.virginia.edu/libra/open/libra-deposit-license" target="_blank">Libra Deposit Agreement</a>
+            </label>
+         </div>
          <div class="button-bar">
             <Button severity="secondary" label="Cancel" @click="cancelClicked" :disabled="repository.working"/>
-            <Button label="Submit" @click="submitClicked" :disabled="repository.working"/>
+            <Button label="Submit" @click="submitClicked" :disabled="!canSubmit"/>
          </div>
       </Panel>
       <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
@@ -171,9 +196,10 @@
          <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
             @upload="filesUploaded($event)" @before-send="uploadRequested($event)"
             @error="uploadFailed($event)" @removeUploadedFile="fileRemoved($event)"
-            :multiple="true" :withCredentials="true" >
+            :multiple="true" :withCredentials="true" :auto="true"
+            :showUploadButton="false" :showCancelButton="false">
             <template #empty>
-               <p>Click Choose or drag and drop files to here to be uploaded. Uploaded files will be attached to the work upon submission.</p>
+               <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
             </template>
          </FileUpload>
 
@@ -182,11 +208,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useRepositoryStore } from "@/stores/repository"
 import FileUpload from 'primevue/fileupload'
+import Checkbox from 'primevue/checkbox'
+import Fieldset from 'primevue/fieldset'
+import RadioButton from 'primevue/radiobutton'
 import Panel from 'primevue/panel'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
@@ -213,9 +242,21 @@ const data = ref({
    relatedURLs: ["fake_url"],
    sponsors: ["sponsor"],
    notes: "note text",
-   files: []
+   files: [],
+   visibility: ""
 })
+const agree = ref(false)
 
+const canSubmit = computed( () => {
+   if (workDescribed.value == false ) return false
+   return agree.value == true && repository.working == false && data.value.visibility != "" && data.value.files.length > 0
+})
+const workDescribed = computed( () => {
+   if ( oaForm.value ) {
+      return oaForm.value.node.context.state.valid
+   }
+   return false
+})
 onMounted( async () => {
    if ( user.isSignedIn) {
       data.value.authors.push({
@@ -338,12 +379,60 @@ const cancelClicked = (() => {
    }
 
    .sidebar {
-      width: 250px;
+      width: 300px;
       margin-right: 25px;
+      .requirement {
+         display: flex;
+         flex-flow: row nowrap;
+         justify-content: flex-start;
+         align-items: center;
+         i {
+            display: inline-block;
+            margin-right: 10px;
+            font-size: 1.25rem;
+         }
+         .not-done {
+            color: var(--uvalib-red-darker);
+         }
+         .done {
+            color: var(--uvalib-green-dark);
+         }
+      }
+      .requirement:first-of-type {
+         margin-bottom: 5px;
+      }
+      .visibility-opt {
+         margin: 5px 0;
+         label.visibility {
+            font-size: 0.85em;
+            margin-left: 10px;
+            border-radius: 5px;
+            padding: 2px 10px;
+            color: white;
+         }
+         .visibility.open {
+            background-color: var(--uvalib-green-dark);
+         }
+         .visibility.authenticated {
+            background-color: var(--uvalib-brand-orange);
+         }
+         .visibility.embargo {
+            background-color: var(--uvalib-blue-alt);
+         }
+         .visibility.restricted {
+            background-color: var(--uvalib-red-darker);
+         }
+      }
+      .agree {
+         margin: 25px 0;
+         label {
+            margin-left: 10px;
+         }
+      }
       .button-bar {
          display: flex;
          flex-flow: row nowrap;
-         justify-content: flex-end;
+         justify-content: center;
          align-items: flex-end;
          button {
             margin-left: 10px;

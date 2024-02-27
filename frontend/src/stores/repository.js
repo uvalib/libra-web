@@ -26,8 +26,7 @@ export const useRepositoryStore = defineStore('repository', {
       } ,
       async depositOA( jsonPayload ) {
          this.working = true
-         jsonPayload.token = this.depositToken
-         return axios.post("/api/oa", jsonPayload).then(response => {
+         return axios.post(`/api/oa/${this.depositToken}`, jsonPayload).then(response => {
             this.depositToken = response.data
             this.working = false
          }).catch( err => {

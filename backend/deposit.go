@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/rs/xid"
 	"github.com/uvalib/easystore/uvaeasystore"
 )
 
@@ -24,7 +24,7 @@ type authorData struct {
 }
 
 type oaDepositData struct {
-	Token            string       `json:"token"`
+	Visibility       string       `json:"visibility"`
 	ResourceType     string       `json:"resourceType"`
 	Title            string       `json:"title"`
 	Authors          []authorData `json:"authors"`
@@ -71,12 +71,27 @@ func (oa easystoreOAWrapper) Modified() time.Time {
 
 func (svc *serviceContext) getDepositToken(c *gin.Context) {
 	log.Printf("INFO: request a deposit token")
-	newUUID := uuid.New()
-	c.String(http.StatusOK, newUUID.String())
+	guid := xid.New()
+	c.String(http.StatusOK, guid.String())
+}
+
+func (svc *serviceContext) deleteWork(c *gin.Context) {
+	workID := c.Param("id")
+	log.Printf("INFO: request to delete work %s", workID)
+
+	c.String(http.StatusNotImplemented, "not implemented")
+}
+
+func (svc *serviceContext) oaUpdate(c *gin.Context) {
+	workID := c.Param("id")
+	log.Printf("INFO: request to update work %s", workID)
+
+	c.String(http.StatusNotImplemented, "not implemented")
 }
 
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
-	log.Printf("INFO: received oa deposit request")
+	token := c.Param("token")
+	log.Printf("INFO: received oa deposit request for %s", token)
 	var req oaDepositData
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
@@ -85,16 +100,8 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 		return
 	}
 
-	uploadDir := path.Join("/tmp", req.Token)
-	log.Printf("INFO: uploaded subission file location: %s", uploadDir)
-
-	oID := fmt.Sprintf("oid:%s", req.Token)
-	obj := uvaeasystore.NewEasyStoreObject(oID)
-
-	md := easystoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
-	obj.SetMetadata(md)
-
-	log.Printf("INFO: add files associated with submission token %s", req.Token)
+	uploadDir := path.Join("/tmp", token)
+	log.Printf("INFO: add files associated with submission token %s from location %s", token, uploadDir)
 	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
 	err = filepath.Walk(uploadDir, func(fullPath string, f os.FileInfo, err error) error {
 		if err != nil {
@@ -125,11 +132,21 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
+	log.Printf("INFO: create easystore object")
+	oID := fmt.Sprintf("oid:%s", token)
+	obj := uvaeasystore.NewEasyStoreObject(oID)
+	fields := uvaeasystore.DefaultEasyStoreFields()
+	fields["depositor"] = req.Authors[0].ComputeID
+	fields["title"] = req.Title
+	md := easystoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
+	obj.SetMetadata(md)
 	obj.SetFiles(esFiles)
+	obj.SetFields(fields)
 
+	log.Printf("INFO: save easystore object")
 	_, err = svc.EasyStore.Create(obj)
 	if err != nil {
-		log.Printf("ERROR: easystore create failed: %s", err.Error())
+		log.Printf("ERROR: easystore save failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}

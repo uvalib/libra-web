@@ -7,6 +7,7 @@ export const useSystemStore = defineStore('system', {
 		version: "unknown",
       languages: [],
       licenses: [],
+      visibility: [],
       resourceTypes: [],
       error: "",
       showError: false,
@@ -30,6 +31,12 @@ export const useSystemStore = defineStore('system', {
       etdLicenses: state => {
          return state.licenses.filter( rt => rt.etd == true)
       },
+      oaVisibility: state => {
+         return state.visibility.filter( rt => rt.oa == true)
+      },
+      etdVisibility: state => {
+         return state.visibility.filter( rt => rt.etd == true)
+      },
    },
    actions: {
       async getConfig() {
@@ -39,6 +46,7 @@ export const useSystemStore = defineStore('system', {
             this.languages = response.data.languages
             this.licenses = response.data.licenses
             this.resourceTypes = response.data.resourceTypes
+            this.visibility = response.data.visibility
          }).catch( err => {
             this.setError(  err )
          })

@@ -40,6 +40,13 @@ type language struct {
 	Label string `json:"label"`
 }
 
+type visibility struct {
+	Value string `json:"value"`
+	Label string `json:"label"`
+	ETD   bool   `json:"etd"`
+	OA    bool   `json:"oa"`
+}
+
 type license struct {
 	Value string `json:"value"`
 	URL   string `json:"url"`
@@ -61,6 +68,7 @@ type configResponse struct {
 	RessourceTypes []resourceType `json:"resourceTypes"`
 	Licenses       []license      `json:"licenses"`
 	Languages      []language     `json:"languages"`
+	Visibility     []visibility   `json:"visibility"`
 }
 
 // InitializeService sets up the service context for all API handlers
@@ -186,6 +194,17 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		err = json.Unmarshal(bytes, &resp.RessourceTypes)
 		if err != nil {
 			log.Printf("ERROR: unable to parse resource types: %s", err.Error())
+		}
+	}
+
+	log.Printf("INFO: load visibility")
+	bytes, err = os.ReadFile("./data/visibility.json")
+	if err != nil {
+		log.Printf("ERROR: unable to load visibility: %s", err.Error())
+	} else {
+		err = json.Unmarshal(bytes, &resp.Visibility)
+		if err != nil {
+			log.Printf("ERROR: unable to parse visibility: %s", err.Error())
 		}
 	}
 

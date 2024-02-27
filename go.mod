@@ -8,8 +8,8 @@ require (
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.9.1
-	github.com/google/uuid v1.6.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240226175840-5562f58bcc3c
+	github.com/rs/xid v1.5.0
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240227140514-3ff8fc7145e3
 )
 
 require (
@@ -34,7 +34,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect

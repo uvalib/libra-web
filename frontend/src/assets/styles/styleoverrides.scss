@@ -56,6 +56,27 @@
    }
 }
 
+.p-radiobutton.p-highlight {
+   div.p-radiobutton-box {
+      border-color: var(--uvalib-blue-alt);
+      background: var(--uvalib-blue-alt);
+      .p-radiobutton-icon {
+         background-color: var(--uvalib-blue-alt-light);
+      }
+   }
+}
+
+fieldset.p-fieldset {
+   padding: 5px;
+   margin-bottom: 15px;
+   .p-fieldset-legend {
+      border: none;
+      background: transparent;
+      padding: 0 5px;
+      font-weight: normal;
+   }
+}
+
 .p-fileupload  {
    border-radius: 5px;
    img.p-fileupload-file-thumbnail {

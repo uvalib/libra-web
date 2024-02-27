@@ -35,21 +35,29 @@ func main() {
 	api := router.Group("/api", svc.authMiddleware)
 	{
 		api.GET("/lookup/:cid", svc.lookupComputeID)
+
+		// NOTE: when a deposit is requested, a temporary work token is generated
+		// this token is used as a subrirectory to stage uploaded files. Upon submissions,
+		// the files from the token directory are added to the work and the token is converted to a libra ID
 		api.GET("/token", svc.getDepositToken)
 		api.POST("/upload/:token", svc.uploadSubmissionFiles)
 		api.DELETE("/:token/:filename", svc.removeSubmissionFile)
 		api.POST("/cancel/:token", svc.cancelSubmission)
-		api.POST("/oa", svc.oaSubmit)
+		api.POST("/oa/:token", svc.oaSubmit)
+
+		// After initial submission, the work is referenced by the permanent ID
+		api.PUT("/oa/:id", svc.oaUpdate)
+		api.DELETE("/works/:id", svc.deleteWork)
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served
-	// by yarn and it proxies all requests to the API to the routes above
+	// by node/vite and it proxies all requests to the API to the routes above
 	router.Use(static.Serve("/", static.LocalFile("./public", true)))
 
-	// add a catchall route that renders the index page.
-	router.NoRoute(func(c *gin.Context) {
-		c.File("./public/index.html")
-	})
+	// // add a catchall route that renders the index page.
+	// router.NoRoute(func(c *gin.Context) {
+	// 	c.File("./public/index.html")
+	// })
 
 	portStr := fmt.Sprintf(":%d", cfg.port)
 	versionMap := svc.lookupVersion()
