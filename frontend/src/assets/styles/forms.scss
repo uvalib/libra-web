@@ -28,6 +28,22 @@ select,
    margin-bottom: 0.3em;
 }
 
+textarea {
+   font-family: "franklin-gothic-urw", arial, sans-serif;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+}
+
+@media only screen and (min-width: 768px) {
+   .formkit-form {
+      padding: 20px;
+   }
+}
+@media only screen and (max-width: 768px) {
+   .formkit-form {
+      padding: 5px;
+   }
+}
 button.libra-form-input {
    @include base-button();
 }

@@ -4,6 +4,12 @@ body {
    padding: 0;
    background-color: white;
 
+   .sticky {
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+   }
+
    .right-pad {
       margin-right: 10px !important;
    }

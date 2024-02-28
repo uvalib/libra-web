@@ -1,229 +1,199 @@
 <template>
-   <div class="form">
-      <Panel header="Save Work" class="sidebar">
-         <Fieldset legend="Requirements">
-            <div class="requirement">
-               <i v-if="workDescribed" class="done pi pi-check"></i>
-               <i v-else class="not-done pi pi-exclamation-circle"></i>
-               <span>Describe your work</span>
-            </div>
-            <div class="requirement">
-               <i v-if="data.files.length > 0" class="done pi pi-check"></i>
-               <i v-else class="not-done pi pi-exclamation-circle"></i>
-               <span>Add files</span>
-            </div>
-            <div class="help">
-               View the <a href="https://www.library.virginia.edu/libra/open/oc-checklist" target="_blank">Libra Open Checklist</a> for help.
-            </div>
-         </Fieldset>
-         <Fieldset legend="Visibility">
-            <div v-for="v in system.oaVisibility" :key="v.value" class="visibility-opt">
-               <RadioButton v-model="data.visibility" :inputId="v.value"  :value="v.value"  class="visibility"/>
-               <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
-            </div>
-         </Fieldset>
-         <div class="agree">
-            <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
-            <label for="agree-cb">
-               By saving this work, I agree to the
-               <a href="https://www.library.virginia.edu/libra/open/libra-deposit-license" target="_blank">Libra Deposit Agreement</a>
-            </label>
+   <div class="scroll-body">
+      <div class="form">
+         <div class="sidebar-col">
+            <SavePanel type="oa" :described="workDescribed" :files="data.files.length > 0"
+               @submit="submitClicked" @cancel="cancelClicked"/>
          </div>
-         <div class="button-bar">
-            <Button severity="secondary" label="Cancel" @click="cancelClicked" :disabled="repository.working"/>
-            <Button label="Submit" @click="submitClicked" :disabled="!canSubmit"/>
-         </div>
-      </Panel>
 
-      <Panel header="Add new work">
-         <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
-            <FormKit type="select" label="Resource Type" v-model="data.resourceType"
-               placeholder="Select a resource type"  outer-class="first"
-               :options="system.oaResourceTypes" validation="required"
-            />
-            <FormKit label="Title" type="text" v-model="data.title" validation="required"/>
+         <Panel header="Add new work" class="main-form">
+            <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
+               <FormKit type="select" label="Resource Type" v-model="data.resourceType"
+                  placeholder="Select a resource type"  outer-class="first"
+                  :options="system.oaResourceTypes" validation="required"
+               />
+               <FormKit label="Title" type="text" v-model="data.title" validation="required"/>
 
-            <FormKit v-model="data.authors" type="list" dynamic #default="{ items }">
-               <label class="libra-form-label">Authors</label>
-               <p class="note controls">
-                  <span>The main researchers involved in producing the work, or the authors of the publication, in priority order.</span>
-                  <Button label="Add Author" @click="addAuthor"/>
-               </p>
-               <div class="authors">
-                  <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
-                     <div class="author" :class="{border: index != data.authors.length-1}">
-                        <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author"
-                           :disabled="data.authors.length == 1" @click="removeAuthor(index)"/>
-                        <div class="two-col">
-                           <div class="search-field">
-                              <FormKit type="text" name="computeID" label="Computing ID"/>
-                              <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAuthorID(index)"/>
+               <Panel class="sub-panel">
+                  <template #header>
+                     <span class="hdr">
+                        <div>Authors</div>
+                        <Button label="Add Author" @click="addAuthor"/>
+                     </span>
+                  </template>
+                  <FormKit v-model="data.authors" type="list" dynamic #default="{ items }">
+                     <p class="note">The main researchers involved in producing the work, or the authors of the publication, in priority order.</p>
+                     <p class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this person.</p>
+                     <div class="authors">
+                        <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
+                           <div class="author">
+                              <div class="id-field">
+                                 <div class="search-field">
+                                    <FormKit type="text" name="computeID" label="Computing ID"/>
+                                    <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAuthorID(index)"/>
+                                 </div>
+                                 <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author" @click="removeAuthor(index)"/>
+                              </div>
+                              <p v-if="data.authors[index].msg != ''" class="err">{{ data.authors[index].msg }}</p>
+                              <div class="two-col">
+                                 <FormKit type="text" name="firstName" label="First Name"/>
+                                 <FormKit type="text" name="lastName" label="Last Name"/>
+                              </div>
+                              <div class="two-col">
+                                 <FormKit type="text" name="department" label="Department"/>
+                                 <FormKit type="text" name="institution" label="Institution"/>
+                              </div>
                            </div>
-                           <span class="sep"></span>
-                           <p class="note inline">Lookup a UVA Computing ID to automatically fill the remaining fields for this person.</p>
-                        </div>
-                        <p v-if="data.authors[index].msg != ''" class="err">{{ data.authors[index].msg }}</p>
-                        <div class="two-col">
-                           <FormKit type="text" name="firstName" label="First Name"/>
-                           <span class="sep"></span>
-                           <FormKit type="text" name="lastName" label="Last Name"/>
-                        </div>
-                        <div class="two-col">
-                           <FormKit type="text" name="department" label="Department"/>
-                           <span class="sep"></span>
-                           <FormKit type="text" name="institution" label="Institution"/>
-                        </div>
+                        </FormKit>
                      </div>
                   </FormKit>
-               </div>
-            </FormKit>
+               </Panel>
 
-            <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
+               <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
 
-            <FormKit type="select" label="Rights" v-model="data.license"
-               placeholder="Select rights"
-               :options="system.oaLicenses" validation="required"
-            />
-            <p class="note">
-               Libra lets you choose an open license when you post your work, and will prominently display the
-               license you choose as part of the record for your work. See
-               <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
-               for option details.
-            </p>
-
-            <FormKit v-model="data.languages" type="list" dynamic #default="{ items }">
-               <div v-for="(item, index) in items" :key="item" class="input-row">
-                  <div class="input-wrap">
-                     <FormKit type="select" :label="inputLabel('Language', index)" :index="index"
-                        placeholder="Select a language" :options="system.languages"
-                     />
-                  </div>
-                  <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language"
-                     :disabled="data.languages.length == 1" @click="removeLanguage(index)"/>
-               </div>
-            </FormKit>
-            <p class="note controls">
-               <span>The language of the work's content.</span>
-               <Button label="Add Language" @click="addLanguage"/>
-            </p>
-
-            <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
-               <div v-for="(item, index) in items" :key="item" class="input-row">
-                  <div class="input-wrap">
-                     <FormKit :label="inputLabel('Keyword', index)" type="text" :index="index" />
-                  </div>
-                  <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"
-                     :disabled="data.keywords.length == 1" @click="removeKeyword(index)"/>
-               </div>
-            </FormKit>
-            <p class="note controls">
-               <span>Add one keyword or keyword phrase per line.</span>
-               <Button label="Add Keyword" @click="addKeyword"/>
-            </p>
-
-            <FormKit v-model="data.contributors" type="list" dynamic #default="{ items }">
-               <label class="libra-form-label">Contributors</label>
-               <p class="note controls">
-                  <span>The person(s) responsible for contributing to the development of the resource, such as editor or producer (not an author).</span>
-                  <Button label="Add Contributor" @click="addContributor"/>
+               <FormKit type="select" label="Rights" v-model="data.license"
+                  placeholder="Select rights"
+                  :options="system.oaLicenses" validation="required"
+               />
+               <p class="note">
+                  Libra lets you choose an open license when you post your work, and will prominently display the
+                  license you choose as part of the record for your work. See
+                  <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+                  for option details.
                </p>
-               <div class="authors">
-                  <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
-                     <div class="author" :class="{border: index != data.contributors.length-1}">
-                        <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author"
-                           :disabled="data.contributors.length == 1" @click="removeContributor(index)"/>
-                        <div class="two-col">
-                           <div class="search-field">
-                              <FormKit type="text" name="computeID" label="Computing ID"/>
-                              <Button class="check" icon="pi pi-search" severity="secondary" @click="checkContributorID(index)"/>
+
+               <FormKit v-model="data.languages" type="list" dynamic #default="{ items }">
+                  <div v-for="(item, index) in items" :key="item" class="input-row">
+                     <div class="input-wrap">
+                        <FormKit type="select" :label="inputLabel('Language', index)" :index="index"
+                           placeholder="Select a language" :options="system.languages"
+                        />
+                     </div>
+                     <Button v-if="index > 0 || data.languages.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add language" @click="addLanguage"/>
+                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language" @click="removeLanguage(index)"/>
+                  </div>
+                  <p class="note">The language of the work's content.</p>
+               </FormKit>
+
+
+               <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
+                  <div v-for="(item, index) in items" :key="item" class="input-row">
+                     <div class="input-wrap">
+                        <FormKit :label="inputLabel('Keyword', index)" type="text" :index="index" />
+                     </div>
+                     <Button v-if="index > 0 || data.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
+                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
+                  </div>
+                  <p class="note">Add one keyword or keyword phrase per line.</p>
+               </FormKit>
+
+               <Panel class="sub-panel">
+                  <template #header>
+                     <span class="hdr">
+                        <div>Contributors</div>
+                        <Button label="Add Contributor" @click="addContributor"/>
+                     </span>
+                  </template>
+                  <FormKit v-model="data.contributors" type="list" dynamic #default="{ items }">
+                     <p class="note">The person(s) responsible for contributing to the development of the resource, such as editor or producer (not an author).</p>
+                     <div class="authors">
+                        <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
+                           <div class="author">
+                              <div class="id-field">
+                                 <div class="search-field">
+                                    <FormKit type="text" name="computeID" label="Computing ID"/>
+                                    <Button class="check" icon="pi pi-search" severity="secondary" @click="checkContributorID(index)"/>
+                                 </div>
+                                 <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove contributor" @click="removeContributor(index)"/>
+                              </div>
+                              <p v-if="data.contributors[index].msg != ''" class="err">{{ data.contributors[index].msg }}</p>
+                              <div class="two-col">
+                                 <FormKit type="text" name="firstName" label="First Name"/>
+                                 <FormKit type="text" name="lastName" label="Last Name"/>
+                              </div>
+                              <div class="two-col">
+                                 <FormKit type="text" name="department" label="Department"/>
+                                 <FormKit type="text" name="institution" label="Institution"/>
+                              </div>
                            </div>
-                           <span class="sep"></span>
-                           <p class="note inline">Lookup a UVA Computing ID to automatically fill the remaining fields for this person.</p>
-                        </div>
-                        <p v-if="data.contributors[index].msg != ''" class="err">{{ data.contributors[index].msg }}</p>
-                        <div class="two-col">
-                           <FormKit type="text" name="firstName" label="First Name"/>
-                           <span class="sep"></span>
-                           <FormKit type="text" name="lastName" label="Last Name"/>
-                        </div>
-                        <div class="two-col">
-                           <FormKit type="text" name="department" label="Department"/>
-                           <span class="sep"></span>
-                           <FormKit type="text" name="institution" label="Institution"/>
-                        </div>
+                        </FormKit>
                      </div>
                   </FormKit>
-               </div>
-            </FormKit>
+               </Panel>
 
-            <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
-            <p class="note">
-               Libra lets you choose an open license when you post your work, and will prominently display the
-               license you choose as part of the record for your work. See
-               <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
-               for option details.
-            </p>
-            <FormKit label="Source citation" type="text" v-model="data.citation"/>
-            <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
-            <FormKit label="Published date" type="text" v-model="data.pubDate"/>
+               <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
+               <p class="note">
+                  Libra lets you choose an open license when you post your work, and will prominently display the
+                  license you choose as part of the record for your work. See
+                  <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+                  for option details.
+               </p>
+               <FormKit label="Source citation" type="text" v-model="data.citation"/>
+               <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
+               <FormKit label="Published date" type="text" v-model="data.pubDate"/>
 
-            <FormKit v-model="data.relatedURLs" type="list" dynamic #default="{ items }">
-               <div v-for="(item, index) in items" :key="item" class="input-row">
-                  <div class="input-wrap">
-                     <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
+               <FormKit v-model="data.relatedURLs" type="list" dynamic #default="{ items }">
+                  <div v-for="(item, index) in items" :key="item" class="input-row">
+                     <div class="input-wrap">
+                        <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
+                     </div>
+                     <Button v-if="index > 0 || data.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
+                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
                   </div>
-                  <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"
-                     :disabled="data.relatedURLs.length == 1" @click="removeURL(index)"/>
-               </div>
-            </FormKit>
-            <p class="note controls">
-               <span>Links to another version, another location with the file, website or other specific content (audio, video, PDF document) related to the work.</span>
-               <Button label="Add URL" @click="addURL"/>
-            </p>
+                  <p class="note">Links to another version, another location with the file, website or other specific content (audio, video, PDF document) related to the work.</p>
+               </FormKit>
 
-            <FormKit v-model="data.sponsors" type="list" dynamic #default="{ items }">
-               <div v-for="(item, index) in items" :key="item" class="input-row">
-                  <div class="input-wrap">
-                     <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
+               <FormKit v-model="data.sponsors" type="list" dynamic #default="{ items }">
+                  <div v-for="(item, index) in items" :key="item" class="input-row">
+                     <div class="input-wrap">
+                        <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
+                     </div>
+                     <Button v-if="index > 0 || data.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
+                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
                   </div>
-                  <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"
-                     :disabled="data.sponsors.length == 1" @click="removeAgency(index)"/>
-               </div>
+               </FormKit>
+
+               <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
+
+               <label class="libra-form-label">Files</label>
+               <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
+                  @upload="filesUploaded($event)" @before-send="uploadRequested($event)"
+                  @removeUploadedFile="fileRemoved($event)"
+                  :multiple="true" :withCredentials="true" :auto="true"
+                  :showUploadButton="false" :showCancelButton="false">
+                  <template #empty>
+                     <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
+                  </template>
+               </FileUpload>
+
             </FormKit>
-            <p class="note controls">
-               <Button label="Add Agency" @click="addAgency"/>
-            </p>
-
-            <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
-
-            <label class="libra-form-label">Files</label>
-            <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
-               @upload="filesUploaded($event)" @before-send="uploadRequested($event)"
-               @error="uploadFailed($event)" @removeUploadedFile="fileRemoved($event)"
-               :multiple="true" :withCredentials="true" :auto="true"
-               :showUploadButton="false" :showCancelButton="false">
-               <template #empty>
-                  <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
-               </template>
-            </FileUpload>
-
-         </FormKit>
-      </Panel>
+         </Panel>
+      </div>
    </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import SavePanel from "@/components/SavePanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useRepositoryStore } from "@/stores/repository"
 import FileUpload from 'primevue/fileupload'
-import Checkbox from 'primevue/checkbox'
-import Fieldset from 'primevue/fieldset'
-import RadioButton from 'primevue/radiobutton'
 import Panel from 'primevue/panel'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
+// import { usePinnable } from '@/composables/pin'
+
+// usePinnable("user-header", "scroll-body", ( (isPinned) => {
+//    let p = sidebar.value.$el
+//    if ( isPinned ) {
+//       p.style.top = `88px` // top padding + height of user toolbar
+//       p.style.width = `${p.getBoundingClientRect().width}px`
+//       p.classList.add("pinned")
+//    } else {
+//       p.classList.remove("pinned")
+//    }
+// }))
 
 const router = useRouter()
 
@@ -232,6 +202,7 @@ const user = useUserStore()
 const repository = useRepositoryStore()
 
 const oaForm = ref(null)
+
 const data = ref({
    resourceType: "Book",
    title: "title",
@@ -250,18 +221,14 @@ const data = ref({
    files: [],
    visibility: ""
 })
-const agree = ref(false)
 
-const canSubmit = computed( () => {
-   if (workDescribed.value == false ) return false
-   return agree.value == true && repository.working == false && data.value.visibility != "" && data.value.files.length > 0
-})
 const workDescribed = computed( () => {
    if ( oaForm.value ) {
-      return oaForm.value.node.context.state.valid
+     return oaForm.value.node.context.state.valid
    }
    return false
 })
+
 onMounted( async () => {
    if ( user.isSignedIn) {
       data.value.authors.push({
@@ -275,7 +242,6 @@ onMounted( async () => {
 })
 
 const uploadRequested = ( (request) => {
-   console.log(request)
    request.xhr.setRequestHeader('Authorization', 'Bearer ' + user.jwt)
    return request
 })
@@ -285,9 +251,6 @@ const fileRemoved = ( event => {
 })
 const filesUploaded = ( (event) => {
    event.files.forEach( uf => data.value.files.push( uf.name ))
-})
-const uploadFailed = ( (err) => {
-   console.log(err)
 })
 
 const inputLabel = ( (lbl, idx) => {
@@ -353,12 +316,14 @@ const addAgency = ( () => {
    data.value.sponsors.push("")
 })
 
-const submitClicked = ( () => {
+const submitClicked = ( (visibility) => {
+   data.value.visibility = visibility
    const node = oaForm.value.node
    node.submit()
 })
-const submitHandler = ( () => {
-   repository.depositOA( data.value )
+const submitHandler = ( async () => {
+   await repository.depositOA( data.value )
+   router.push("/oa")
 })
 const cancelClicked = (() => {
    repository.cancel()
@@ -368,83 +333,96 @@ const cancelClicked = (() => {
 </script>
 
 <style lang="scss" scoped>
-.form {
-   margin: 50px auto;
-   min-height: 600px;
-   text-align: left;
-   display: flex;
-   flex-flow: row nowrap;
-   justify-content: flex-start;
-   align-items: flex-start;
-   padding: 0 50px;
-   .formkit-form {
-      padding: 10px 20px 20px 20px;
+@media only screen and (min-width: 768px) {
+   .scroll-body {
+      padding: 50px;
    }
-
-   .sidebar {
+   .sidebar-col {
       width: 300px;
       margin-right: 25px;
-      .help {
-         font-size: 0.9em;
-         margin-top:15px;
+   }
+   .main-form {
+      margin-bottom: 100px;
+   }
+   .form {
+      text-align: left;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: flex-start;
+   }
+}
+@media only screen and (max-width: 768px) {
+   .scroll-body {
+      padding: 10px;
+   }
+   .main-form {
+      margin-bottom: 15px;
+   }
+   .sidebar-col {
+      width: 100%;
+   }
+   :deep(.p-panel-content) {
+      padding: 10px;
+   }
+   .form {
+      min-height: 600px;
+      text-align: left;
+      display: flex;
+      flex-flow: column-reverse;
+   }
+   p.note.inline {
+      display: none;
+   }
+}
+.scroll-body {
+   display: block;
+   position: relative;
+}
+
+.form {
+   text-align: left;
+
+   .sidebar.pinned {
+      position: fixed;
+      width: 300px;
+   }
+
+   .sub-panel {
+      margin-top: 25px;
+      :deep(.p-panel-header) {
+         background-color: #fcfcfc;
+         padding: 10px;
       }
-      .requirement {
+      .id-field {
          display: flex;
          flex-flow: row nowrap;
-         justify-content: flex-start;
+         align-items: baseline;
+         justify-content: space-between;
+      }
+      .note {
+         padding: 0;
+         margin-bottom: 0px;
+      }
+      .hdr {
+         width: 100%;
+         display: flex;
+         flex-flow: row nowrap;
+         justify-content: space-between;
          align-items: center;
-         i {
-            display: inline-block;
-            margin-right: 10px;
-            font-size: 1.25rem;
-         }
-         .not-done {
-            color: var(--uvalib-red-darker);
-         }
-         .done {
-            color: var(--uvalib-green-dark);
-         }
-      }
-      .requirement:first-of-type {
-         margin-bottom: 5px;
-      }
-      .visibility-opt {
-         margin: 5px 0;
-         label.visibility {
-            font-size: 0.85em;
-            margin-left: 10px;
-            border-radius: 5px;
-            padding: 2px 10px;
-            color: white;
-         }
-         .visibility.open {
-            background-color: var(--uvalib-green-dark);
-         }
-         .visibility.authenticated {
-            background-color: var(--uvalib-brand-orange);
-         }
-         .visibility.embargo {
-            background-color: var(--uvalib-blue-alt);
-         }
-         .visibility.restricted {
-            background-color: var(--uvalib-red-darker);
-         }
-      }
-      .agree {
-         margin: 25px 0;
-         label {
-            margin-left: 10px;
-         }
-      }
-      .button-bar {
-         display: flex;
-         flex-flow: row nowrap;
-         justify-content: center;
-         align-items: flex-end;
          button {
-            margin-left: 10px;
+            font-size: 0.8em;
+            padding: 5px 10px;
          }
-      };
+      }
+      .authors {
+         padding: 0;
+         .author {
+            position: relative;
+            border-top: 1px solid var(--uvalib-grey-light);
+            margin-top: 20px;
+         }
+      }
    }
 
    .err {
@@ -467,29 +445,14 @@ const cancelClicked = (() => {
       }
    }
 
-   .authors {
-      border: 1px solid var(--uvalib-grey-light);
-      border-radius: 5px;
-      padding: 0;
-      .author {
-         position: relative;
-         padding: 0 25px 25px 25px;
-         .remove {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-         }
-      }
-      .author.border {
-         padding-bottom: 25px;
-         border-bottom: 1px solid var(--uvalib-grey-light);
-      }
-   }
    .two-col {
       display: flex;
-      flex-flow: row nowrap;
+      flex-flow: row wrap;
       justify-content: flex-start;
       align-items: flex-end;
+      .formkit-outer:first-of-type {
+         margin-right: 15px;
+      }
       p.note.inline {
          max-width: 50%;
          padding: 0;
@@ -510,7 +473,7 @@ const cancelClicked = (() => {
       flex-flow: row nowrap;
       justify-content: flex-start;
       align-items: flex-end;
-      .remove {
+      .remove, .add {
          padding: 6.25px 15px;
          margin-bottom: 0.3em;
          border: 0;
