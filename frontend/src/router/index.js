@@ -48,6 +48,8 @@ const router = createRouter({
    scrollBehavior(_to, _from, _savedPosition) {
       return new Promise(resolve => {
          setTimeout( () => {
+            let bar = document.getElementsByClassName("user-header")[0]
+            bar.classList.remove("sticky")
             resolve({left: 0, top: 0})
          }, 100)
       })
