@@ -1,9 +1,9 @@
 <template>
    <div class="scroll-body">
-      <div class="form">
+      <div class="form" id="oa-form-layout">
          <div class="sidebar-col">
             <SavePanel type="oa" :described="workDescribed" :files="data.files.length > 0"
-               @submit="submitClicked" @cancel="cancelClicked"/>
+               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"/>
          </div>
 
          <Panel header="Add new work" class="main-form">
@@ -182,18 +182,26 @@ import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
-// import { usePinnable } from '@/composables/pin'
+import { usePinnable } from '@/composables/pin'
 
-// usePinnable("user-header", "scroll-body", ( (isPinned) => {
-//    let p = sidebar.value.$el
-//    if ( isPinned ) {
-//       p.style.top = `88px` // top padding + height of user toolbar
-//       p.style.width = `${p.getBoundingClientRect().width}px`
-//       p.classList.add("pinned")
-//    } else {
-//       p.classList.remove("pinned")
-//    }
-// }))
+usePinnable("user-header", "scroll-body", ( (isPinned) => {
+   const formEle = document.getElementById("oa-form-layout")
+   const compStyles = window.getComputedStyle(formEle)
+   const flowType = compStyles.getPropertyValue("flex-flow")
+
+   // in mobile mode, the panel is at the bottom of the screen and doesn't need to be pinned
+   // when this is the case, the flex-flow will be "column-reverse".
+   if ( flowType.indexOf("column") == -1) {
+      let panelEle = savepanel.value.$el
+      if ( isPinned ) {
+         panelEle.style.top = `88px` // HACK: top padding + height of user toolbar
+         panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
+         panelEle.classList.add("pinned")
+      } else {
+         panelEle.classList.remove("pinned")
+      }
+   }
+}))
 
 const router = useRouter()
 
@@ -202,6 +210,7 @@ const user = useUserStore()
 const repository = useRepositoryStore()
 
 const oaForm = ref(null)
+const savepanel = ref(null)
 
 const data = ref({
    resourceType: "Book",
@@ -366,15 +375,12 @@ const cancelClicked = (() => {
       padding: 10px;
    }
    .form {
-      min-height: 600px;
       text-align: left;
       display: flex;
       flex-flow: column-reverse;
    }
-   p.note.inline {
-      display: none;
-   }
 }
+
 .scroll-body {
    display: block;
    position: relative;
@@ -383,9 +389,8 @@ const cancelClicked = (() => {
 .form {
    text-align: left;
 
-   .sidebar.pinned {
+   .pinned {
       position: fixed;
-      width: 300px;
    }
 
    .sub-panel {
@@ -453,21 +458,11 @@ const cancelClicked = (() => {
       .formkit-outer:first-of-type {
          margin-right: 15px;
       }
-      p.note.inline {
-         max-width: 50%;
-         padding: 0;
-         margin: 0;
-         position: relative;
-         top: -5px;
-      }
-      .sep {
-         display: block;
-         width: 15px;
-      }
       div.formkit-outer {
          flex-grow: 1;
       }
    }
+
    .input-row {
       display: flex;
       flex-flow: row nowrap;
@@ -489,18 +484,6 @@ const cancelClicked = (() => {
       color: var(--uvalib-grey);
       margin-top: 0;
       padding-top: 5px;
-   }
-   .note.controls {
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-      align-items: center;
-      button {
-         font-size: 0.9em;
-         padding: 4px 10px;
-         white-space: nowrap;
-         margin-left: auto;
-      }
    }
 }
 </style>

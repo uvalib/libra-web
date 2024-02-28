@@ -15,6 +15,7 @@ export function usePinnable( pinClass, bodyClass, pinCallback ) {
             toolbar.value.classList.remove("sticky")
             toolbar.value.style.width = `auto`
             if ( scrollBody.value ) {
+               scrollBody.value.style.height = `auto`
                scrollBody.value.style.top = `0px`
             }
          }
@@ -24,6 +25,8 @@ export function usePinnable( pinClass, bodyClass, pinCallback ) {
             pinCallback(true)
             if ( scrollBody.value ) {
                scrollBody.value.style.top = `${toolbarHeight.value}px`
+               let h = scrollBody.value.getBoundingClientRect().height
+               scrollBody.value.style.height = `${h+toolbarHeight.value}px`
             }
             toolbar.value.classList.add("sticky")
             toolbar.value.style.width = `${toolbarWidth.value}px`
