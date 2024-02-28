@@ -33,7 +33,7 @@ type oaDepositData struct {
 	Languages        []string     `json:"languages"`
 	Keywords         []string     `json:"keywords"`
 	Contributors     []authorData `json:"contributors"`
-	Published        string       `json:"publisher"`
+	Publisher        string       `json:"publisher"`
 	Citation         string       `json:"citation"`
 	PubllicationData string       `json:"pubDate"`
 	RelatedURLs      []string     `json:"relatedURLs"`
@@ -52,11 +52,6 @@ func (oa easystoreOAWrapper) MimeType() string {
 }
 
 func (oa easystoreOAWrapper) Payload() []byte {
-	out, _ := json.Marshal(oa.JSONData)
-	return out
-}
-
-func (oa easystoreOAWrapper) PayloadNative() []byte {
 	out, _ := json.Marshal(oa.JSONData)
 	return out
 }
@@ -129,21 +124,19 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: cleanup upload directory %s", uploadDir)
-	os.RemoveAll(uploadDir)
-
 	log.Printf("INFO: create easystore object")
-	oID := fmt.Sprintf("oid:%s", token)
-	obj := uvaeasystore.NewEasyStoreObject(oID)
+	obj := uvaeasystore.NewEasyStoreObject("oa", "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	fields["depositor"] = req.Authors[0].ComputeID
 	fields["title"] = req.Title
+	fields["publisher"] = req.Publisher
+	fields["resourceType"] = req.ResourceType
 	md := easystoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
 	obj.SetMetadata(md)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
 
-	log.Printf("INFO: save easystore object")
+	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Id(), obj.Namespace())
 	_, err = svc.EasyStore.Create(obj)
 	if err != nil {
 		log.Printf("ERROR: easystore save failed: %s", err.Error())
@@ -151,7 +144,10 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusOK, oID)
+	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
+	os.RemoveAll(uploadDir)
+
+	c.String(http.StatusOK, obj.Id())
 }
 
 func (svc *serviceContext) cancelSubmission(c *gin.Context) {

@@ -44,7 +44,14 @@ const router = createRouter({
          name: "not_found",
          component: () => import('../views/NotFound.vue')
       }
-   ]
+   ],
+   scrollBehavior(_to, _from, _savedPosition) {
+      return new Promise(resolve => {
+         setTimeout( () => {
+            resolve({left: 0, top: 0})
+         }, 100)
+      })
+   }
 })
 
 router.beforeEach((to, _from, next) => {

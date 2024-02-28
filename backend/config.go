@@ -11,12 +11,13 @@ type userServiceCfg struct {
 }
 
 type easytStoreConfig struct {
-	mode       string // none, sqlite, psql, other?
-	namespace  string
-	fileSystem string
-	dbName     string
-	DbUser     string
-	dbPass     string
+	mode      string // none, sqlite, psql, other?
+	namespace string
+	dbDir     string
+	dbFile    string
+	dbName    string
+	DbUser    string
+	dbPass    string
 }
 
 type configData struct {
@@ -36,8 +37,8 @@ func getConfiguration() *configData {
 
 	// easystore cfg
 	flag.StringVar(&config.easyStore.mode, "esmode", "none", "EasyStore mode (sqlite, psql)")
-	flag.StringVar(&config.easyStore.namespace, "esnamespace", "libraopen", "EasyStore namespace")
-	flag.StringVar(&config.easyStore.fileSystem, "esfilesys", "/tmp", "EasyStore sqlite filesystem")
+	flag.StringVar(&config.easyStore.dbDir, "esdbdir", "/tmp", "EasyStore sqlite base directory")
+	flag.StringVar(&config.easyStore.dbFile, "esdbfile", "sqlite.db", "EasyStore sqlite file")
 	flag.StringVar(&config.easyStore.dbName, "esdb", "", "EasyStore psql database name")
 	flag.StringVar(&config.easyStore.DbUser, "esdbuser", "", "EasyStore psql user")
 	flag.StringVar(&config.easyStore.dbPass, "esdbpass", "", "EasyStore psql password")
@@ -54,10 +55,10 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] port          = [%d]", config.port)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
 	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
-	log.Printf("[CONFIG] esnamespace   = [%s]", config.easyStore.namespace)
 
 	if config.easyStore.mode == "sqlite" {
-		log.Printf("[CONFIG] esfilesys     = [%s]", config.easyStore.namespace)
+		log.Printf("[CONFIG] esdbdir       = [%s]", config.easyStore.dbDir)
+		log.Printf("[CONFIG] esdbfile      = [%s]", config.easyStore.dbFile)
 	} else {
 		log.Printf("[CONFIG] esdb          = [%s]", config.easyStore.dbName)
 		log.Printf("[CONFIG] esdbuser      = [%s]", config.easyStore.DbUser)

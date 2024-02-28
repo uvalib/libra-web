@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -108,8 +109,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		log.Printf("INFO: easystore is set to none and will not be used")
 	} else if cfg.easyStore.mode == "sqlite" {
 		config := uvaeasystore.DatastoreSqliteConfig{
-			Filesystem: cfg.easyStore.fileSystem,
-			Namespace:  cfg.easyStore.namespace,
+			DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
 			Log:        log.Default(),
 		}
 		es, err := uvaeasystore.NewEasyStore(config)
