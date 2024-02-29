@@ -2,11 +2,11 @@
    <div class="scroll-body">
       <div class="form" id="oa-form-layout">
          <div class="sidebar-col">
-            <SavePanel type="oa" :described="workDescribed" :files="data.files.length > 0"
+            <SavePanel type="oa" mode="create" :described="workDescribed" :files="data.files.length > 0"
                @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"/>
          </div>
 
-         <Panel header="Add new work" class="main-form">
+         <Panel header="Add New Work" class="main-form">
             <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
                <FormKit type="select" label="Resource Type" v-model="data.resourceType"
                   placeholder="Select a resource type"  outer-class="first"
@@ -204,7 +204,6 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
 }))
 
 const router = useRouter()
-
 const system = useSystemStore()
 const user = useUserStore()
 const repository = useRepositoryStore()
@@ -347,7 +346,7 @@ const cancelClicked = (() => {
       padding: 50px;
    }
    .sidebar-col {
-      width: 300px;
+      width: 350px;
       margin-right: 25px;
    }
    .main-form {
@@ -388,10 +387,6 @@ const cancelClicked = (() => {
 
 .form {
    text-align: left;
-
-   .pinned {
-      position: fixed;
-   }
 
    .sub-panel {
       margin-top: 25px;

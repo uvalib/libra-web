@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import OpenDashboard from '../views/OpenDashboard.vue'
-import CreateOpenWork from '../views/CreateOpenWork.vue'
+import OpenWorkForm from '../views/OpenWorkForm.vue'
+import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
@@ -20,14 +21,21 @@ const router = createRouter({
          component: ETDDashboard
       },
       {
+         // NOTE: this route is temporary as users can't create new ETD works; they are
+         // autocreated by a back end process and users just edit them
+         path: '/etd/new',
+         name: 'edtworkform',
+         component: ETDWorkForm
+      },
+      {
          path: '/oa',
          name: 'open',
          component: OpenDashboard
       },
       {
          path: '/oa/new',
-         name: 'newopen',
-         component: CreateOpenWork
+         name: 'openworkform',
+         component: OpenWorkForm
       },
       {
          path: '/expired',

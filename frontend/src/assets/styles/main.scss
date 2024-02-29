@@ -24,6 +24,10 @@ body {
       padding: 0;
       background: white;
 
+      .pinned {
+         position: fixed;
+      }
+
       a {
          color: var(--uvalib-brand-blue-light);
          font-weight: 600;
