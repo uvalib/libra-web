@@ -105,10 +105,10 @@ github.com/ugorji/go v1.2.7/go.mod h1:nF9osbDWLy6bDVv/Rtoh6QgnvNDpmCalQV5urGCCS6
 github.com/ugorji/go/codec v1.2.7/go.mod h1:WGN1fab3R1fzQlVQTkfxVtIBhWDRqOviHU95kRgeqEY=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
-github.com/uvalib/easystore/uvaeasystore v0.0.0-20240228180535-7f39d62da098 h1:Cj2R11EVSFMFvZr8iJOBWoiG8V8tvODZNU+MHseG9bw=
-github.com/uvalib/easystore/uvaeasystore v0.0.0-20240228180535-7f39d62da098/go.mod h1:7Zad684EWyW+70mm+hycTQ5qHBAibmOT7HAgECIrG2E=
-github.com/uvalib/libra-metadata v0.0.0-20240229145143-5bc111730fa7 h1:gPi2hPhBRHb1+0PqUBs8rs+31johHqmbVAU1jRTgcvs=
-github.com/uvalib/libra-metadata v0.0.0-20240229145143-5bc111730fa7/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240229152023-47f7b172fb95 h1:WDDbRajPU5LAPToM97njplAE7kA2YG4opwdbmAVKH6U=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20240229152023-47f7b172fb95/go.mod h1:7Zad684EWyW+70mm+hycTQ5qHBAibmOT7HAgECIrG2E=
+github.com/uvalib/libra-metadata v0.0.0-20240229152959-dfc84dab0c28 h1:e14Ogr5bIVG90Cqzjg0aqX0IuaEI4gYsQyky2LSo4rA=
+github.com/uvalib/libra-metadata v0.0.0-20240229152959-dfc84dab0c28/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
 golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=
 golang.org/x/arch v0.7.0 h1:pskyeJh/3AmoQ8CPE95vxHLqp1G1GfGNXTmcl9NEKTc=
 golang.org/x/arch v0.7.0/go.mod h1:FEVrYAQjsQXMVJ1nsMoVVXPZg6p2JE2mx8psSWTDQys=
