@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,56 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
 	"github.com/uvalib/easystore/uvaeasystore"
+	"github.com/uvalib/libra-metadata"
 )
-
-type authorData struct {
-	ComputeID   string `json:"computeID"`
-	FirstName   string `json:"firstName"`
-	LastName    string `json:"lastName"`
-	Department  string `json:"department"`
-	Institution string `json:"institution"`
-}
-
-type oaDepositData struct {
-	Visibility       string       `json:"visibility"`
-	ResourceType     string       `json:"resourceType"`
-	Title            string       `json:"title"`
-	Authors          []authorData `json:"authors"`
-	Abstract         string       `json:"abstract"`
-	License          string       `json:"license"`
-	Languages        []string     `json:"languages"`
-	Keywords         []string     `json:"keywords"`
-	Contributors     []authorData `json:"contributors"`
-	Publisher        string       `json:"publisher"`
-	Citation         string       `json:"citation"`
-	PubllicationData string       `json:"pubDate"`
-	RelatedURLs      []string     `json:"relatedURLs"`
-	Sponsors         []string     `json:"sponsors"`
-	Notes            string       `json:"notes"`
-}
-
-type easystoreOAWrapper struct {
-	JSONData   oaDepositData
-	CreatedAt  time.Time
-	ModifiedAt time.Time
-}
-
-func (oa easystoreOAWrapper) MimeType() string {
-	return "application/json"
-}
-
-func (oa easystoreOAWrapper) Payload() []byte {
-	out, _ := json.Marshal(oa.JSONData)
-	return out
-}
-
-func (oa easystoreOAWrapper) Created() time.Time {
-	return oa.CreatedAt
-}
-
-func (oa easystoreOAWrapper) Modified() time.Time {
-	return oa.ModifiedAt
-}
 
 func (svc *serviceContext) getDepositToken(c *gin.Context) {
 	log.Printf("INFO: request a deposit token")
@@ -87,7 +38,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received oa deposit request for %s", token)
-	var req oaDepositData
+	var req libra.OADepositData
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		log.Printf("ERROR: bad payload in oa deposit request: %s", err.Error())
@@ -131,7 +82,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["title"] = req.Title
 	fields["publisher"] = req.Publisher
 	fields["resourceType"] = req.ResourceType
-	md := easystoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
+	md := libra.EasyStoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
 	obj.SetMetadata(md)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
