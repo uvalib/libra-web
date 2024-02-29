@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
@@ -38,7 +37,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received oa deposit request for %s", token)
-	var req librametadata.OADepositData
+	var req librametadata.OAWork
 	err := c.ShouldBindJSON(&req)
 	if err != nil {
 		log.Printf("ERROR: bad payload in oa deposit request: %s", err.Error())
@@ -82,8 +81,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["title"] = req.Title
 	fields["publisher"] = req.Publisher
 	fields["resourceType"] = req.ResourceType
-	md := librametadata.EasyStoreOA{JSONData: req, CreatedAt: time.Now()}
-	obj.SetMetadata(md)
+	obj.SetMetadata(req)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
 
