@@ -91,7 +91,7 @@
                <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
-                        <FormKit :label="inputLabel('Keyword', index)" type="text" :index="index" />
+                        <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || data.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
@@ -99,28 +99,18 @@
                   <p class="note">Add one keyword or keyword phrase per line.</p>
                </FormKit>
 
-               <FormKit v-model="data.languages" type="list" dynamic #default="{ items }">
-                  <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
-                        <FormKit type="select" :label="inputLabel('Language', index)" :index="index"
-                           placeholder="Select a language" :options="system.languages"
-                        />
-                     </div>
-                     <Button v-if="index > 0 || data.languages.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add language" @click="addLanguage"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language" @click="removeLanguage(index)"/>
-                  </div>
-                  <p class="note">The language of the work's content.</p>
-               </FormKit>
+               <FormKit type="select" label="Language" v-model="data.language"
+                  placeholder="Select a language" :options="system.languages"/>
 
                <FormKit v-model="data.relatedURLs" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
-                        <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
+                        <FormKit :label="inputLabel('Related Link(s)', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || data.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
                   </div>
-                  <p class="note">Links to another version, another location with the file, website or other specific content (audio, video, PDF document) related to the work.</p>
+                  <p class="note">A link to a website or other specific content (audio, video, PDF document) related to the work.</p>
                </FormKit>
 
                <FormKit v-model="data.sponsors" type="list" dynamic #default="{ items }">
@@ -197,7 +187,7 @@ const data = ref({
    advisors: [{computeID: "", firstName: "", lastName: "", department: "", institution: "University of Virginia", msg: ""}],
    abstract: "ABS",
    license: "1",
-   languages: ["English"],
+   language: "English",
    keywords: ["key1"],
    relatedURLs: ["fake_url"],
    sponsors: ["sponsor"],
@@ -266,12 +256,6 @@ const removeKeyword = ((idx)=> {
 })
 const addKeyword = ( () => {
    data.value.keywords.push("")
-})
-const removeLanguage = ((idx)=> {
-   data.value.languages.splice(idx,1)
-})
-const addLanguage = ( () => {
-   data.value.languages.push("")
 })
 const removeURL = ((idx)=> {
    data.value.relatedURLs.splice(idx,1)

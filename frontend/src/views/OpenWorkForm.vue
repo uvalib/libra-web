@@ -79,7 +79,7 @@
                <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
-                        <FormKit :label="inputLabel('Keyword', index)" type="text" :index="index" />
+                        <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || data.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>

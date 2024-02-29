@@ -82,7 +82,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["title"] = req.Title
 	fields["publisher"] = req.Publisher
 	fields["resourceType"] = req.ResourceType
-	md := librametadata.EasyStoreOAWrapper{JSONData: req, CreatedAt: time.Now()}
+	md := librametadata.EasyStoreOA{JSONData: req, CreatedAt: time.Now()}
 	obj.SetMetadata(md)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
