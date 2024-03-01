@@ -44,6 +44,7 @@ func main() {
 		api.DELETE("/:token/:filename", svc.removeSubmissionFile)
 		api.POST("/cancel/:token", svc.cancelSubmission)
 		api.POST("/oa/:token", svc.oaSubmit)
+		api.POST("/etd/:token", svc.etdSubmit)
 
 		// After initial submission, the work is referenced by the permanent ID
 		api.PUT("/oa/:id", svc.oaUpdate)

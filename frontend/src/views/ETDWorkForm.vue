@@ -3,7 +3,7 @@
       <div class="form" id="etd-form-layout">
          <div class="sidebar-col">
             <SavePanel type="etd" mode="edit" :described="workDescribed" :files="data.files.length > 0"
-               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"/>
+               @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked" ref="savepanel"/>
          </div>
 
          <Panel header="Edit Work" class="main-form">
@@ -180,6 +180,7 @@ const repository = useRepositoryStore()
 
 const etdForm = ref(null)
 const savepanel = ref(null)
+const nextURL =  ref("/etd")
 
 const data = ref({
    title: "title",
@@ -270,15 +271,19 @@ const addAgency = ( () => {
    data.value.sponsors.push("")
 })
 
-const submitClicked = ( (visibility) => {
+const saveAndContinueClicked= ( async (visibility) => {
+   nextURL.value = "/etd" // TODO go to display form
    data.value.visibility = visibility
-   const node = etdForm.value.node
-   node.submit()
+   etdForm.value.node.submit()
+})
+const saveAndExitClicked = ( (visibility) => {
+   nextURL.value = "/etd" // back to etd dashboard
+   data.value.visibility = visibility
+   etdForm.value.node.submit()
 })
 const submitHandler = ( async () => {
-   // await repository.depositETD( data.value )
-   // router.push("/etd")
-   alert("WOOF")
+   await repository.depositETD( data.value )
+   router.push("/etd")
 })
 const cancelClicked = (() => {
    repository.cancel()

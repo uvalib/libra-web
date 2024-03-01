@@ -6,6 +6,8 @@ export const useRepositoryStore = defineStore('repository', {
    state: () => ({
       working: false,
       depositToken: "",
+      oaWork: null,
+      etdWork: null
    }),
    actions: {
       async getDepositToken() {
@@ -27,7 +29,18 @@ export const useRepositoryStore = defineStore('repository', {
       async depositOA( jsonPayload ) {
          this.working = true
          return axios.post(`/api/oa/${this.depositToken}`, jsonPayload).then(response => {
-            this.depositToken = response.data
+            this.oaWork = response.data
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
+      async depositETD( jsonPayload ) {
+         this.working = true
+         return axios.post(`/api/etd/${this.depositToken}`, jsonPayload).then(response => {
+            this.etdWork = response.data
             this.working = false
          }).catch( err => {
             const system = useSystemStore()
