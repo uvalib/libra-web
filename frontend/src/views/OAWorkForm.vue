@@ -275,7 +275,7 @@ const checkAuthorID = ((idx) => {
    let cID = data.value.authors[idx].computeID
    data.value.authors[idx].msg = ""
    if (cID.lenth <3) return
-   axios.get(`/api/lookup/${cID}`).then(r => {
+   axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
       data.value.authors[idx] = auth
    }).catch( () => {
@@ -292,7 +292,7 @@ const checkContributorID = ((idx) => {
    let cID = data.value.contributors[idx].computeID
    data.value.contributors[idx].msg = ""
    if (cID.lenth <3) return
-   axios.get(`/api/lookup/${cID}`).then(r => {
+   axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
       data.value.contributors[idx] = auth
    }).catch( () => {

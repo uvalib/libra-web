@@ -34,7 +34,7 @@ func main() {
 
 	api := router.Group("/api", svc.authMiddleware)
 	{
-		api.GET("/lookup/:cid", svc.lookupComputeID)
+		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 
 		// NOTE: when a deposit is requested, a temporary work token is generated
 		// this token is used as a subrirectory to stage uploaded files. Upon submissions,
@@ -49,6 +49,7 @@ func main() {
 		// After initial submission, the work is referenced by the permanent ID
 		api.PUT("/oa/:id", svc.oaUpdate)
 		api.DELETE("/works/:id", svc.deleteWork)
+		api.GET("/works/search", svc.searchWorks)
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served

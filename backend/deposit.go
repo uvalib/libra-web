@@ -15,11 +15,13 @@ import (
 )
 
 type savedOA struct {
-	ID string `json:"id"`
+	ID      string `json:"id"`
+	Version string `json:"version"`
 	librametadata.OAWork
 }
 type savedETD struct {
-	ID string `json:"id"`
+	ID      string `json:"id"`
+	Version string `json:"version"`
 	librametadata.ETDWork
 }
 
@@ -27,20 +29,6 @@ func (svc *serviceContext) getDepositToken(c *gin.Context) {
 	log.Printf("INFO: request a deposit token")
 	guid := xid.New()
 	c.String(http.StatusOK, guid.String())
-}
-
-func (svc *serviceContext) deleteWork(c *gin.Context) {
-	workID := c.Param("id")
-	log.Printf("INFO: request to delete work %s", workID)
-
-	c.String(http.StatusNotImplemented, "not implemented")
-}
-
-func (svc *serviceContext) oaUpdate(c *gin.Context) {
-	workID := c.Param("id")
-	log.Printf("INFO: request to update work %s", workID)
-
-	c.String(http.StatusNotImplemented, "not implemented")
 }
 
 func (svc *serviceContext) etdSubmit(c *gin.Context) {
@@ -81,7 +69,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	c.JSON(http.StatusOK, savedETD{ID: obj.AccessId(), ETDWork: etdWork})
+	c.JSON(http.StatusOK, savedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: etdWork})
 }
 
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
@@ -124,7 +112,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	c.JSON(http.StatusOK, savedOA{ID: obj.AccessId(), OAWork: oaW})
+	c.JSON(http.StatusOK, savedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: oaW})
 }
 
 func getSubmittedFiles(uploadDir string) ([]uvaeasystore.EasyStoreBlob, error) {

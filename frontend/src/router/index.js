@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import OpenDashboard from '../views/OpenDashboard.vue'
-import OpenWorkForm from '../views/OpenWorkForm.vue'
+import OADashboard from '../views/OADashboard.vue'
+import OAWorkForm from '../views/OAWorkForm.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
 import VueCookies from 'vue-cookies'
@@ -30,12 +30,12 @@ const router = createRouter({
       {
          path: '/oa',
          name: 'open',
-         component: OpenDashboard
+         component: OADashboard
       },
       {
          path: '/oa/new',
          name: 'openworkform',
-         component: OpenWorkForm
+         component: OAWorkForm
       },
       {
          path: '/expired',
