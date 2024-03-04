@@ -1,5 +1,5 @@
 # run application
-cd bin; ./libra3 \
+cd bin; ./libra-web \
    -jwtkey     ${JWT_KEY} \
    -userws     ${USER_WS}
 #
