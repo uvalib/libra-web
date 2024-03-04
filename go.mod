@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/xid v1.5.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240304163104-a1eb51445efe
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240304184130-87ed4ede843e
 	github.com/uvalib/libra-metadata v0.0.0-20240229203527-f804c04d1111
 )
 
