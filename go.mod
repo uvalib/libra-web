@@ -9,8 +9,8 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/xid v1.5.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240304163104-a1eb51445efe
-	github.com/uvalib/libra-metadata v0.0.0-20240229203527-f804c04d1111
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240304184130-87ed4ede843e
+	github.com/uvalib/libra-metadata v0.0.0-20240304200518-53881c4991b5
 )
 
 require (
@@ -50,7 +50,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240301172655-9673b00beb16 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/crypto v0.20.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20240222234643-814bf88cf225 // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect

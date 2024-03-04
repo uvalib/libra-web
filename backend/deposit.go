@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/xid"
@@ -14,15 +15,19 @@ import (
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
-type savedOA struct {
-	ID      string `json:"id"`
-	Version string `json:"version"`
-	librametadata.OAWork
+type versionedOA struct {
+	ID         string    `json:"id"`
+	Version    string    `json:"version"`
+	CreatedAt  time.Time `json:"createdAt"`
+	ModifiedAt time.Time `json:"modifiedAt"`
+	*librametadata.OAWork
 }
-type savedETD struct {
-	ID      string `json:"id"`
-	Version string `json:"version"`
-	librametadata.ETDWork
+type versionedETD struct {
+	ID         string    `json:"id"`
+	Version    string    `json:"version"`
+	CreatedAt  time.Time `json:"createdAt"`
+	ModifiedAt time.Time `json:"modifiedAt"`
+	*librametadata.ETDWork
 }
 
 func (svc *serviceContext) getDepositToken(c *gin.Context) {
@@ -69,7 +74,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	c.JSON(http.StatusOK, savedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: etdWork})
+	c.JSON(http.StatusOK, versionedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: &etdWork})
 }
 
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
@@ -112,7 +117,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	c.JSON(http.StatusOK, savedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: oaW})
+	c.JSON(http.StatusOK, versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: &oaW})
 }
 
 func getSubmittedFiles(uploadDir string) ([]uvaeasystore.EasyStoreBlob, error) {

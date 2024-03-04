@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
+	librametadata "github.com/uvalib/libra-metadata"
 )
 
 func (svc *serviceContext) searchWorks(c *gin.Context) {
@@ -15,7 +16,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	workType := c.Query("type")
 	computeID := c.Query("cid")
 	tgtTitle := c.Query("title")
-	if workType != "oa" && workType != "etd" && workType != "" {
+	if workType != "oa" && workType != "etd" {
 		log.Printf("INFO: invalid type [%s] specified", workType)
 		c.String(http.StatusBadRequest, fmt.Sprintf("'%s' is not a valid type", workType))
 		return
@@ -36,6 +37,23 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: %d hits returned", hits.Count())
-	c.JSON(http.StatusOK, hits)
+	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
+	var resp []versionedOA
+	obj, err := hits.Next()
+	for err == nil {
+		objBytes, objErr := obj.Metadata().Payload()
+		if objErr != nil {
+			log.Printf("ERROR: unable to get object %s paylpoad: %s", obj.Id(), objErr.Error())
+			break
+		}
+		rawOaWork, objErr := librametadata.OAWorkFromBytes(objBytes)
+		if objErr != nil {
+			log.Printf("ERROR: unable to factory object %s from paylpoad: %s", obj.Id(), objErr.Error())
+			break
+		}
+		work := versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: rawOaWork, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+		resp = append(resp, work)
+		obj, err = hits.Next()
+	}
+	c.JSON(http.StatusOK, resp)
 }
