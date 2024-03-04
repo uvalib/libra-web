@@ -30,7 +30,7 @@ ENV TZ=UTC
 RUN cp /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Specify home
-ENV APP_HOME /libra3
+ENV APP_HOME /libra-web
 WORKDIR $APP_HOME
 
 # Create necessary directories
@@ -44,12 +44,12 @@ CMD scripts/entry.sh
 # Move in necessary assets
 COPY package/data/container_bash_profile /home/docker/.profile
 COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
-COPY --from=builder /build/bin/libra3.linux $APP_HOME/bin/libra3
+COPY --from=builder /build/bin/libra-web.linux $APP_HOME/bin/libra-web
 COPY --from=builder /build/bin/public $APP_HOME/bin/public
 COPY --from=builder /build/bin/data $APP_HOME/bin/data
 
 # Ensure permissions are correct
-RUN chown docker:sse /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra3 && chmod 755 /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra3
+RUN chown docker:sse /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra-web && chmod 755 /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra-web
 
 # Add the build tag
 ARG BUILD_TAG
