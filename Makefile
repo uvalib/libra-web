@@ -7,7 +7,7 @@ GOGET = $(GOCMD) get
 GOMOD = $(GOCMD) mod
 GOVET = $(GOCMD) vet
 
-BASE_NAME=libra3
+BASE_NAME=libra-web
 
 build: darwin web deploy-data
 
@@ -30,7 +30,7 @@ web:
 	mv frontend/dist bin/public
 
 darwin:
-	GOOS=darwin GOARCH=amd64 $(GOBUILD) -a -o bin/$(BASE_NAME).darwin backend/*.go
+	GOOS=darwin GOARCH=arm64 $(GOBUILD) -a -o bin/$(BASE_NAME).darwin backend/*.go
 
 linux:
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GOBUILD) -a -installsuffix cgo -o bin/$(BASE_NAME).linux backend/*.go
