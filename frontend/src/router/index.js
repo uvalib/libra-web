@@ -10,7 +10,6 @@ import ForbiddenView from '../views/ForbiddenView.vue'
 import NotFound from '../views/NotFound.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
-import { useSystemStore } from '@/stores/system'
 
 const router = createRouter({
    history: createWebHistory(import.meta.env.BASE_URL),
@@ -74,18 +73,14 @@ const router = createRouter({
    }
 })
 
-router.beforeEach( async (to, _from, next) => {
+router.beforeEach((to, _from, next) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
-   const system = useSystemStore()
    if (to.path == '/signedin') {
       let jwtStr = VueCookies.get("libra3_jwt")
       console.log(`GRANTED [${jwtStr}]`)
       if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
          userStore.setJWT(jwtStr)
-         console.log("GET CONFIG")
-         await system.getConfig()
-         console.log("REDIRECT")
          let priorURL = localStorage.getItem('prior_libra3_url')
          localStorage.removeItem("prior_libra3_url")
          if ( priorURL && priorURL != "/granted" && priorURL != "/") {
@@ -95,7 +90,6 @@ router.beforeEach( async (to, _from, next) => {
             next("/")
          }
       } else {
-         system.configured = true
          next("/forbidden")
       }
    } else if (to.name !== 'not_found' && to.name !== 'forbidden' && to.name !== "expired") {
@@ -104,11 +98,6 @@ router.beforeEach( async (to, _from, next) => {
       console.log(`GOT JWT [${jwtStr}]`)
       if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
          userStore.setJWT(jwtStr)
-         if ( system.configured == false ) {
-            console.log("GET CONFIG")
-            await system.getConfig()
-            console.log("REDIRECT")
-         }
          next()
       } else {
          console.log("AUTHENTICATE")

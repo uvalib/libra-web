@@ -27,8 +27,8 @@
    </header>
 
    <main  >
-      <RouterView  v-if="systemStore.configured"/>
-      <h1 v-else style="min-height: 800px">Authenticating...</h1>
+      <RouterView  v-if="configuring == false"/>
+      <h1 v-else style="min-height:">Authenticating...</h1>
    </main>
 
    <LibraryFooter />
@@ -57,6 +57,7 @@ import { useRoute } from 'vue-router'
 const toast = useToast()
 const systemStore = useSystemStore()
 const user = useUserStore()
+const configuring = ref(true)
 const route = useRoute()
 
 const isDashboard = computed( () => {
@@ -88,7 +89,10 @@ watch(() => systemStore.toast.show, (newShow) => {
 
 
 onBeforeMount( async () => {
+   console.log("REQUEST CONFIG")
    document.title = `Libra`
+   await systemStore.getConfig()
+   configuring.value = false
 })
 
 const errorClosed = (() => {

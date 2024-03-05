@@ -3,7 +3,6 @@ import axios from 'axios'
 
 export const useSystemStore = defineStore('system', {
    state: () => ({
-      configured: false,
       working: false,
 		version: "unknown",
       languages: [],
@@ -60,8 +59,7 @@ export const useSystemStore = defineStore('system', {
             this.licenses = response.data.licenses
             this.resourceTypes = response.data.resourceTypes
             this.visibility = response.data.visibility
-            this.configured = true
-            console.log("configured")
+            console.log("CONFIGURE SUCCESS")
          }).catch( err => {
             this.setError(  err )
          })
