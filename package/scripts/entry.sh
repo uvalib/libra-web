@@ -21,8 +21,12 @@ fi
 
 # run application
 cd bin; ./libra-web \
-   -jwtkey     ${JWT_KEY} \
-   -userws     ${USER_WS} \
+   -jwtkey       ${JWT_KEY} \
+   -userws       ${USER_WS} \
+   -oanamespace  ${OA_NAMESPACE} \
+   -etdnamespace ${ETD_NAMESPACE} \
+   -busname      ${BUS_NAME} \
+   -eventsrc     ${EVENT_SRC_NAME} \
    ${ES_CONFIG}
 
 #

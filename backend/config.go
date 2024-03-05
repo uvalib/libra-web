@@ -21,12 +21,20 @@ type easytStoreConfig struct {
 	dbPass string
 }
 
+type namespaceConfig struct {
+	oa  string
+	etd string
+}
+
 type configData struct {
-	port        int
-	userService userServiceCfg
-	devAuthUser string
-	jwtKey      string
-	easyStore   easytStoreConfig
+	port            int
+	userService     userServiceCfg
+	devAuthUser     string
+	jwtKey          string
+	easyStore       easytStoreConfig
+	namespace       namespaceConfig
+	busName         string
+	eventSourceName string
 }
 
 func getConfiguration() *configData {
@@ -46,8 +54,19 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.easyStore.dbUser, "esdbuser", "", "EasyStore psql user")
 	flag.StringVar(&config.easyStore.dbPass, "esdbpass", "", "EasyStore psql password")
 
+	// namespaces
+	flag.StringVar(&config.namespace.oa, "oanamespace", "oa", "Namespace for OA processing")
+	flag.StringVar(&config.namespace.etd, "etdnamespace", "etd", "Namespace for ETD processing")
+
+	// event bus
+	flag.StringVar(&config.busName, "busname", "", "Event bus name")
+	flag.StringVar(&config.eventSourceName, "eventsrc", "", "Event source name")
+
 	flag.Parse()
 
+	if config.easyStore.mode != "sqlite" && config.easyStore.mode != "postgres" {
+		log.Fatal("Parameter esmode must be either sqlite or postgres")
+	}
 	if config.jwtKey == "" {
 		log.Fatal("Parameter jwtkey is required")
 	}
@@ -58,6 +77,10 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] port          = [%d]", config.port)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
 	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
+	log.Printf("[CONFIG] oanamespace   = [%s]", config.namespace.oa)
+	log.Printf("[CONFIG] etdnamespace  = [%s]", config.namespace.etd)
+	log.Printf("[CONFIG] busname       = [%s]", config.busName)
+	log.Printf("[CONFIG] eventsrc      = [%s]", config.eventSourceName)
 
 	if config.easyStore.mode == "sqlite" {
 		log.Printf("[CONFIG] esdbdir       = [%s]", config.easyStore.dbDir)
