@@ -7,8 +7,17 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
+import { useSearchStore } from "@/stores/search"
+import { useUserStore } from "@/stores/user"
 
 const router = useRouter()
+const searchStore = useSearchStore()
+const user = useUserStore()
+
+onMounted( () => {
+   searchStore.search("etd", user.computeID)
+})
 
 const editWorkClicked = (() => {
    router.push("/etd/new")

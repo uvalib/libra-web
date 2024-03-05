@@ -128,25 +128,6 @@ const canSubmit = computed(() =>{
    }
    .visibility-opt {
       margin: 5px 0;
-      label.visibility {
-         font-size: 0.85em;
-         margin-left: 10px;
-         border-radius: 5px;
-         padding: 2px 10px;
-         color: white;
-      }
-      .visibility.open {
-         background-color: var(--uvalib-green-dark);
-      }
-      .visibility.authenticated {
-         background-color: var(--uvalib-brand-orange);
-      }
-      .visibility.embargo {
-         background-color: var(--uvalib-blue-alt);
-      }
-      .visibility.restricted {
-         background-color: var(--uvalib-red-darker);
-      }
    }
    .agree {
       margin: 25px 0;
