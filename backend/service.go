@@ -124,6 +124,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			DbName:     cfg.easyStore.dbName,
 			DbUser:     cfg.easyStore.dbUser,
 			DbPassword: cfg.easyStore.dbPass,
+			DbTimeout:  30, // sorry, fix me later
 		}
 		es, err := uvaeasystore.NewEasyStore(config)
 		if err != nil {
