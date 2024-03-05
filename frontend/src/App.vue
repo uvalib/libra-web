@@ -10,17 +10,17 @@
             </a>
          </div>
          <div class="site-link">
-            <router-link to="/">
-               <img v-if="isLibraOpen" src="@/assets/LibraOpen.svg"/>
-               <img v-else-if="isLibraETD" src="@/assets/LibraETD.svg"/>
-               <img v-else src="@/assets/Libra.svg"/>
-            </router-link>
+            <router-link v-if="isLibraOpen" to="/oa"><img src="@/assets/LibraOpen.svg"/></router-link>
+            <router-link v-else-if="isLibraETD" to="/etd"><img src="@/assets/LibraOpen.svg"/></router-link>
+            <router-link v-else to="/"><img src="@/assets/Libra.svg"/></router-link>
             <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
       </div>
       <div class="user-header">
-         <span class="dashboard" v-if="isDashboard">Dashboard</span>
-         <router-link class="dashboard" v-else :to="dashboardLink">Dashboard</router-link>
+         <template v-if="route.path != '/'">
+            <span class="dashboard" v-if="isDashboard">Dashboard</span>
+            <router-link class="dashboard" v-else :to="dashboardLink">Dashboard</router-link>
+         </template>
          <span v-if="user.isSignedIn">{{ user.displayName }}</span>
          <span v-else>Not signed in</span>
       </div>
