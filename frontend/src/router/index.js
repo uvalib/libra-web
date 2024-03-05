@@ -48,6 +48,10 @@ const router = createRouter({
          component: () => import('../views/ForbiddenView.vue')
       },
       {
+         path: '/granted',
+
+      },
+      {
          path: '/:pathMatch(.*)*',
          name: "not_found",
          component: () => import('../views/NotFound.vue')
@@ -66,7 +70,8 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
    const userStore = useUserStore()
-   if (to.path === '/granted') {
+   if (to.path == '/granted') {
+      console.log("GRANTED")
       let jwtStr = VueCookies.get("libra3_jwt")
       userStore.setJWT(jwtStr)
       let priorURL = localStorage.getItem('prior_libra3_url')
