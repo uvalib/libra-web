@@ -244,8 +244,7 @@ const removeAdvisor = ((idx)=> {
 const checkAdvisorID = ((idx) => {
    let cID = data.value.advisors[idx].computeID
    data.value.advisors[idx].msg = ""
-   if (cID.lenth <3) return
-   axios.get(`/api/lookup/${cID}`).then(r => {
+   axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
       data.value.advisors[idx] = auth
    }).catch( () => {

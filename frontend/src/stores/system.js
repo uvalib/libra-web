@@ -19,6 +19,18 @@ export const useSystemStore = defineStore('system', {
       }
    }),
    getters: {
+      visibilityLabel: state => {
+         return (mode, key) => {
+            if ( mode == "oa") {
+               let oaV = state.visibility.filter( rt => rt.oa == true)
+               let out = oaV.find(  v=>v.value == key)
+               return out.label
+            }
+            let etdV = state.visibility.filter( rt => rt.etd == true)
+            let out = etdV.find(  v=>v.value == key)
+            return out.label
+         }
+      },
       oaResourceTypes: state => {
          return state.resourceTypes.filter( rt => rt.oa == true)
       },

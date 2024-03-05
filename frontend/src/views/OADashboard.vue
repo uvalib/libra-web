@@ -7,34 +7,38 @@
                <Button icon="pi pi-plus" label="Create new work" @click="createWorkClicked"/>
             </span>
          </template>
-         <DataTable :value="searchStore.hits" ref="oaWorks" dataKey="id"
-            stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
-            :lazy="false" :paginator="true" :alwaysShowPaginator="false"
-            :rows="30" :totalRecords="searchStore.hits.length"
-            paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-            :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
-            currentPageReportTemplate="{first} - {last} of {totalRecords}"
-         >
-            <Column field="title" header="Title" />
-            <Column field="createdAt" header="Date Uploaded" >
-               <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
-            </Column>
-            <Column header="ORCID Status"/>
-            <Column field="visibility" header="Visibility" >
-               <template #body="slotProps">
-                  <span class="visibility" :class="slotProps.data.visibility">{{ slotProps.data.visibility }}</span>
-               </template>
-            </Column>
-            <Column header="Actions">
-               <template #body="slotProps">
-                  <div  class="acts">
-                     <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" text @click="editWorkClicked(slotProps.data.id)"/>
-                     <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
-                     <Button class="action" icon="pi pi-trash" label="Delete Work" severity="danger" text @click="deleteWorkClicked(slotProps.data.id)"/>
-                  </div>
-               </template>
-            </Column>
-         </DataTable>
+         <WaitSpinner v-if="searchStore.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active thesis</p>" />
+         <template v-else>
+            <div  v-if="searchStore.hits.length == 0" class="none">You have no active thesis</div>
+            <DataTable v-else :value="searchStore.hits" ref="oaWorks" dataKey="id"
+               stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+               :lazy="false" :paginator="true" :alwaysShowPaginator="false"
+               :rows="30" :totalRecords="searchStore.hits.length"
+               paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+               :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
+               currentPageReportTemplate="{first} - {last} of {totalRecords}"
+            >
+               <Column field="title" header="Title" />
+               <Column field="createdAt" header="Date Uploaded" >
+                  <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+               </Column>
+               <Column header="ORCID Status"/>
+               <Column field="visibility" header="Visibility" >
+                  <template #body="slotProps">
+                     <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("oa",slotProps.data.visibility) }}</span>
+                  </template>
+               </Column>
+               <Column header="Actions">
+                  <template #body="slotProps">
+                     <div  class="acts">
+                        <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" text @click="editWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-trash" label="Delete Work" severity="danger" text @click="deleteWorkClicked(slotProps.data.id)"/>
+                     </div>
+                  </template>
+               </Column>
+            </DataTable>
+         </template>
       </Panel>
    </div>
 </template>
@@ -44,14 +48,16 @@ import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
+import { useSystemStore } from "@/stores/system"
 import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-
+import WaitSpinner from "@/components/WaitSpinner.vue"
 
 const router = useRouter()
 const searchStore = useSearchStore()
 const user = useUserStore()
+const system = useSystemStore()
 
 onMounted( () => {
    searchStore.search("oa", user.computeID)

@@ -39,6 +39,7 @@ export const useRepositoryStore = defineStore('repository', {
       },
       async depositETD( jsonPayload ) {
          this.working = true
+         console.log(jsonPayload)
          return axios.post(`/api/etd/${this.depositToken}`, jsonPayload).then(response => {
             this.etdWork = response.data
             this.working = false
