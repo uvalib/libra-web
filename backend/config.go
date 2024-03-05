@@ -11,15 +11,14 @@ type userServiceCfg struct {
 }
 
 type easytStoreConfig struct {
-	mode      string // none, sqlite, psql, other?
-	namespace string
-	dbDir     string
-	dbFile    string
-	dbHost    string
-	dbPort    int
-	dbName    string
-	dbUser    string
-	dbPass    string
+	mode   string // none, sqlite, postgres
+	dbDir  string
+	dbFile string
+	dbHost string
+	dbPort int
+	dbName string
+	dbUser string
+	dbPass string
 }
 
 type configData struct {

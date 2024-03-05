@@ -117,6 +117,19 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			log.Fatalf("create easystore failed: %s", err.Error())
 		}
 		ctx.EasyStore = es
+	} else if cfg.easyStore.mode == "postgres" {
+		config := uvaeasystore.DatastorePostgresConfig{
+			DbHost:     cfg.easyStore.dbHost,
+			DbPort:     cfg.easyStore.dbPort,
+			DbName:     cfg.easyStore.dbName,
+			DbUser:     cfg.easyStore.dbUser,
+			DbPassword: cfg.easyStore.dbPass,
+		}
+		es, err := uvaeasystore.NewEasyStore(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = es
 	} else {
 		log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
 	}
