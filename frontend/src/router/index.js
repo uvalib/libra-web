@@ -4,7 +4,7 @@ import OADashboard from '../views/OADashboard.vue'
 import OAWorkForm from '../views/OAWorkForm.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
-import Granted from '../views/Granted.vue'
+import SignedIn from '../views/SignedIn.vue'
 import Expired from '../views/Expired.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import NotFound from '../views/NotFound.vue'
@@ -18,6 +18,11 @@ const router = createRouter({
          path: '/',
          name: 'home',
          component: HomeView
+      },
+      {
+         path: '/signedin',
+         name: "signedin",
+         component: SignedIn
       },
       {
          path: '/etd',
@@ -52,17 +57,13 @@ const router = createRouter({
          component: ForbiddenView
       },
       {
-         path: '/granted',
-         name: 'granted',
-         component: Granted
-      },
-      {
          path: '/:pathMatch(.*)*',
          name: "not_found",
          component: NotFound
       }
    ],
-   scrollBehavior(_to, _from, _savedPosition) {
+   scrollBehavior(to, _from, _savedPosition) {
+      console.log("SCROLL BEHAVIOR "+to.path)
       return new Promise(resolve => {
          setTimeout( () => {
             let bar = document.getElementsByClassName("user-header")[0]
@@ -76,7 +77,7 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
-   if (to.path == '/granted') {
+   if (to.path == '/signedin') {
       let jwtStr = VueCookies.get("libra3_jwt")
       console.log(`GRANTED [${jwtStr}]`)
       if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
