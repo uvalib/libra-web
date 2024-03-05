@@ -32,6 +32,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	log.Printf("INFO: find %s works with fields %v", workType, fields)
 	hits, err := svc.EasyStore.GetByFields(workType, fields, uvaeasystore.Metadata)
 	if err != nil {
+		log.Printf("ERROR: [%+v]", err)
 		log.Printf("ERROR: search failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
