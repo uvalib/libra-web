@@ -4,6 +4,10 @@ import OADashboard from '../views/OADashboard.vue'
 import OAWorkForm from '../views/OAWorkForm.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
+import Granted from '../views/Granted.vue'
+import Expired from '../views/Expired.vue'
+import ForbiddenView from '../views/ForbiddenView.vue'
+import NotFound from '../views/NotFound.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
 
@@ -40,21 +44,22 @@ const router = createRouter({
       {
          path: '/expired',
          name: "expired",
-         component: () => import('../views/Expired.vue')
+         component: Expired
       },
       {
          path: '/forbidden',
          name: "forbidden",
-         component: () => import('../views/ForbiddenView.vue')
+         component: ForbiddenView
       },
       {
          path: '/granted',
-
+         name: 'granted',
+         component: Granted
       },
       {
          path: '/:pathMatch(.*)*',
          name: "not_found",
-         component: () => import('../views/NotFound.vue')
+         component: NotFound
       }
    ],
    scrollBehavior(_to, _from, _savedPosition) {
@@ -69,18 +74,23 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
+   console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
    if (to.path == '/granted') {
-      console.log("GRANTED")
       let jwtStr = VueCookies.get("libra3_jwt")
-      userStore.setJWT(jwtStr)
-      let priorURL = localStorage.getItem('prior_libra3_url')
-      localStorage.removeItem("prior_libra3_url")
-      if ( priorURL && priorURL != "/granted" && priorURL != "/") {
-         console.log("RESTORE "+priorURL)
-         next(priorURL)
+      console.log(`GRANTED [${jwtStr}]`)
+      if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
+         userStore.setJWT(jwtStr)
+         let priorURL = localStorage.getItem('prior_libra3_url')
+         localStorage.removeItem("prior_libra3_url")
+         if ( priorURL && priorURL != "/granted" && priorURL != "/") {
+            console.log("RESTORE "+priorURL)
+            next(priorURL)
+         } else {
+            next("/")
+         }
       } else {
-         next("/")
+         next("/forbidden")
       }
    } else if (to.name !== 'not_found' && to.name !== 'forbidden' && to.name !== "expired") {
       localStorage.setItem("prior_libra3_url", to.fullPath)
