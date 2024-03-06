@@ -55,7 +55,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	}
 
 	log.Printf("INFO: create easystore object")
-	obj := uvaeasystore.NewEasyStoreObject("etd", "")
+	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	fields["depositor"] = etdWork.Author.ComputeID
 	fields["title"] = etdWork.Title
@@ -96,7 +96,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	}
 
 	log.Printf("INFO: create easystore object")
-	obj := uvaeasystore.NewEasyStoreObject("oa", "")
+	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	fields["depositor"] = oaW.Authors[0].ComputeID
 	fields["title"] = oaW.Title

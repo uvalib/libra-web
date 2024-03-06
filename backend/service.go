@@ -28,6 +28,7 @@ type serviceContext struct {
 	UserService userServiceCfg
 	JWTKey      string
 	DevAuthUser string
+	Namespaces  namespaceConfig
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -77,7 +78,9 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{Version: version,
 		JWTKey:      cfg.jwtKey,
 		UserService: cfg.userService,
-		DevAuthUser: cfg.devAuthUser}
+		DevAuthUser: cfg.devAuthUser,
+		Namespaces:  cfg.namespace,
+	}
 
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{

@@ -26,6 +26,10 @@ export const useSearchStore = defineStore('search', {
             system.setError(  err )
             this.working = false
          })
+      },
+      removeDeletedWork( id ) {
+         let idx = this.hits.findIndex( h => h.id == id)
+         this.hits.splice(idx,1)
       }
    }
 })

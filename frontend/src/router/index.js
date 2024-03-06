@@ -4,7 +4,6 @@ import OADashboard from '../views/OADashboard.vue'
 import OAWorkForm from '../views/OAWorkForm.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
-import SignedIn from '../views/SignedIn.vue'
 import Expired from '../views/Expired.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import NotFound from '../views/NotFound.vue'
@@ -18,11 +17,6 @@ const router = createRouter({
          path: '/',
          name: 'home',
          component: HomeView
-      },
-      {
-         path: '/signedin',
-         name: "signedin",
-         component: SignedIn
       },
       {
          path: '/etd',

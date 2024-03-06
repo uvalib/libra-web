@@ -16,7 +16,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	workType := c.Query("type")
 	computeID := c.Query("cid")
 	tgtTitle := c.Query("title")
-	if workType != "oa" && workType != "etd" {
+	if workType != svc.Namespaces.oa && workType != svc.Namespaces.etd {
 		log.Printf("INFO: invalid type [%s] specified", workType)
 		c.String(http.StatusBadRequest, fmt.Sprintf("'%s' is not a valid type", workType))
 		return
@@ -39,7 +39,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	}
 
 	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
-	var resp []versionedOA
+	resp := make([]versionedOA, 0)
 	obj, err := hits.Next()
 	for err == nil {
 		objBytes, objErr := obj.Metadata().Payload()

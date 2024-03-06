@@ -28,7 +28,7 @@ export const useRepositoryStore = defineStore('repository', {
       } ,
       async depositOA( jsonPayload ) {
          this.working = true
-         return axios.post(`/api/oa/${this.depositToken}`, jsonPayload).then(response => {
+         return axios.post(`/api/submit/oa/${this.depositToken}`, jsonPayload).then(response => {
             this.oaWork = response.data
             this.working = false
          }).catch( err => {
@@ -40,7 +40,7 @@ export const useRepositoryStore = defineStore('repository', {
       async depositETD( jsonPayload ) {
          this.working = true
          console.log(jsonPayload)
-         return axios.post(`/api/etd/${this.depositToken}`, jsonPayload).then(response => {
+         return axios.post(`/api/submit/etd/${this.depositToken}`, jsonPayload).then(response => {
             this.etdWork = response.data
             this.working = false
          }).catch( err => {
@@ -48,6 +48,22 @@ export const useRepositoryStore = defineStore('repository', {
             system.setError(  err )
             this.working = false
          })
-      }
+      },
+      async deleteOAWork( id ) {
+         this.working = true
+         return axios.delete(`/api/works/oa/${id}`).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
+      async deleteETDWork( id ) {
+         this.working = true
+         return axios.delete(`/api/works/etd/${id}`).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      } ,
    }
 })

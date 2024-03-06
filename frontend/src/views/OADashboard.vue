@@ -49,15 +49,19 @@ import { onMounted } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
+import { useRepositoryStore } from "@/stores/repository"
 import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import WaitSpinner from "@/components/WaitSpinner.vue"
+import { useConfirm } from "primevue/useconfirm"
 
 const router = useRouter()
 const searchStore = useSearchStore()
 const user = useUserStore()
 const system = useSystemStore()
+const repository =  useRepositoryStore()
+const confirm = useConfirm()
 
 onMounted( () => {
    searchStore.search("oa", user.computeID)
@@ -70,7 +74,18 @@ const previewWorkClicked = ( (id) => {
 
 })
 const deleteWorkClicked = ( (id) => {
-
+   confirm.require({
+      message: "Delete this work? All data will be lost. This cannot be reversed. Are you sure?",
+      header: 'Confirm Work Delete',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: async (  ) => {
+         await repository.deleteOAWork(id)
+         if ( system.showError == false) {
+            searchStore.removeDeletedWork(id)
+         }
+      },
+   })
 })
 
 const createWorkClicked = (() => {
