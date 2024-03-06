@@ -104,6 +104,7 @@ router.beforeEach((to, _from, next) => {
          window.location.href = "/authenticate"
       }
    } else {
+      console.log("NOT A PROTECTED ROUTE")
       next()
    }
 })

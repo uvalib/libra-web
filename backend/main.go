@@ -56,10 +56,10 @@ func main() {
 	// by node/vite and it proxies all requests to the API to the routes above
 	router.Use(static.Serve("/", static.LocalFile("./public", true)))
 
-	// // add a catchall route that renders the index page.
-	// router.NoRoute(func(c *gin.Context) {
-	// 	c.File("./public/index.html")
-	// })
+	// add a catchall route that renders the index page.
+	router.NoRoute(func(c *gin.Context) {
+		c.File("./public/index.html")
+	})
 
 	portStr := fmt.Sprintf(":%d", cfg.port)
 	versionMap := svc.lookupVersion()
