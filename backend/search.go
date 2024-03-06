@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -16,10 +15,11 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	workType := c.Query("type")
 	computeID := c.Query("cid")
 	tgtTitle := c.Query("title")
-	if workType != svc.Namespaces.oa && workType != svc.Namespaces.etd {
-		log.Printf("INFO: invalid type [%s] specified", workType)
-		c.String(http.StatusBadRequest, fmt.Sprintf("'%s' is not a valid type", workType))
-		return
+	namespace := ""
+	if workType == "oa" {
+		namespace = svc.Namespaces.oa
+	} else if workType == "etd" {
+		namespace = svc.Namespaces.etd
 	}
 
 	fields := uvaeasystore.DefaultEasyStoreFields()
@@ -29,8 +29,8 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	if tgtTitle != "" {
 		fields["title"] = tgtTitle
 	}
-	log.Printf("INFO: find %s works with fields %v", workType, fields)
-	hits, err := svc.EasyStore.GetByFields(workType, fields, uvaeasystore.Metadata)
+	log.Printf("INFO: find %s works with fields %v", namespace, fields)
+	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata)
 	if err != nil {
 		log.Printf("ERROR: [%+v]", err)
 		log.Printf("ERROR: search failed: %s", err.Error())
