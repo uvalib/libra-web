@@ -19,6 +19,12 @@ if [ "${ESMODE}" == "postgres" ]; then
    echo "Easystore Postgres config: [${ES_CONFIG}]"
 fi
 
+# S3
+if [ "${ESMODE}" == "s3" ]; then
+   ES_CONFIG="--esmode s3 --esdbhost ${DBHOST} --esdbport ${DBPORT} --esdb ${DBNAME} --esdbuser ${DBUSER} --esdbpass ${DBPASS} --esbucket ${ESBUCKET}"
+   echo "Easystore S3 config: [${ES_CONFIG}]"
+fi
+
 # run application
 cd bin; ./libra-web \
    -jwtkey       ${JWT_KEY} \
