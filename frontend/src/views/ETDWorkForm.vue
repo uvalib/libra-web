@@ -2,7 +2,7 @@
    <div class="scroll-body">
       <div class="form" id="etd-form-layout">
          <div class="sidebar-col">
-            <SavePanel type="etd" mode="edit" :described="workDescribed" :files="data.files.length > 0"
+            <SavePanel type="etd" mode="edit" :described="workDescribed" :files="etdRepo.work.files.length > 0"
                @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked" ref="savepanel"/>
          </div>
 
@@ -11,15 +11,15 @@
                <div class="two-col margin-bottom">
                   <div class="readonly">
                      <label>Degree:</label>
-                     <span>{{ data.degree }}</span>
+                     <span>{{ etdRepo.work.degree }}</span>
                   </div>
                   <div class="readonly">
                      <label>Date Created:</label>
-                     <span>{{ $formatDate(data.dateCreated) }}</span>
+                     <span>{{ $formatDate(etdRepo.work.dateCreated) }}</span>
                   </div>
                </div>
 
-               <FormKit label="Title" type="text" v-model="data.title" validation="required" outer-class="first"/>
+               <FormKit label="Title" type="text" v-model="etdRepo.work.title" validation="required" outer-class="first"/>
 
                <Panel class="sub-panel">
                   <template #header>
@@ -27,7 +27,7 @@
                         <div>Author</div>
                      </span>
                   </template>
-                  <FormKit type="group" v-model="data.author">
+                  <FormKit type="group" v-model="etdRepo.work.author">
                      <div class="author">
                         <div class="two-col">
                            <FormKit type="text" name="firstName" label="First Name" outer-class="first"/>
@@ -48,7 +48,7 @@
                         <Button label="Add Advisor" @click="addAdvisor"/>
                      </span>
                   </template>
-                  <FormKit v-model="data.advisors" type="list" dynamic #default="{ items }">
+                  <FormKit v-model="etdRepo.work.advisors" type="list" dynamic #default="{ items }">
                      <p class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</p>
                      <div class="authors">
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
@@ -60,7 +60,7 @@
                                  </div>
                                  <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove contributor" @click="removeAdvisor(index)"/>
                               </div>
-                              <p v-if="data.advisors[index].msg != ''" class="err">{{ data.advisors[index].msg }}</p>
+                              <p v-if="etdRepo.work.advisors[index].msg != ''" class="err">{{ etdRepo.work.advisors[index].msg }}</p>
                               <div class="two-col">
                                  <FormKit type="text" name="firstName" label="First Name"/>
                                  <FormKit type="text" name="lastName" label="Last Name"/>
@@ -75,9 +75,9 @@
                   </FormKit>
                </Panel>
 
-               <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
+               <FormKit label="Abstract" type="textarea" v-model="etdRepo.work.abstract" rows="10" validation="required"/>
 
-               <FormKit type="select" label="Rights" v-model="data.license"
+               <FormKit type="select" label="Rights" v-model="etdRepo.work.license"
                   placeholder="Select rights"
                   :options="system.etdLicenses" validation="required"
                />
@@ -88,46 +88,46 @@
                   for option details.
                </p>
 
-               <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
+               <FormKit v-model="etdRepo.work.keywords" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
-                     <Button v-if="index > 0 || data.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
+                     <Button v-if="index > 0 || etdRepo.work.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
                   </div>
                   <p class="note">Add one keyword or keyword phrase per line.</p>
                </FormKit>
 
-               <FormKit type="select" label="Language" v-model="data.language"
+               <FormKit type="select" label="Language" v-model="etdRepo.work.language"
                   placeholder="Select a language" :options="system.languages"/>
 
-               <FormKit v-model="data.relatedURLs" type="list" dynamic #default="{ items }">
+               <FormKit v-model="etdRepo.work.relatedURLs" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit :label="inputLabel('Related Link(s)', index)" type="text" :index="index" />
                      </div>
-                     <Button v-if="index > 0 || data.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
+                     <Button v-if="index > 0 || etdRepo.work.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
                   </div>
                   <p class="note">A link to a website or other specific content (audio, video, PDF document) related to the work.</p>
                </FormKit>
 
-               <FormKit v-model="data.sponsors" type="list" dynamic #default="{ items }">
+               <FormKit v-model="etdRepo.work.sponsors" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
                      </div>
-                     <Button v-if="index > 0 || data.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
+                     <Button v-if="index > 0 || etdRepo.work.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
                   </div>
                </FormKit>
 
-               <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
+               <FormKit label="Notes" type="textarea" v-model="etdRepo.work.notes" rows="10"/>
 
                <label class="libra-form-label">Files</label>
-               <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
-                  @upload="filesUploaded($event)" @before-send="uploadRequested($event)"
+               <FileUpload name="file" :url="`/api/upload/${etdRepo.depositToken}`"
+                  @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                   @removeUploadedFile="fileRemoved($event)"
                   :multiple="true" :withCredentials="true" :auto="true"
                   :showUploadButton="false" :showCancelButton="false">
@@ -143,15 +143,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onBeforeMount, computed } from 'vue'
 import SavePanel from "@/components/SavePanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
-import { useRepositoryStore } from "@/stores/repository"
+import { useETDStore } from "@/stores/etd"
 import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
 import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
@@ -174,30 +174,14 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
 }))
 
 const router = useRouter()
+const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
-const repository = useRepositoryStore()
+const etdRepo = useETDStore()
 
 const etdForm = ref(null)
 const savepanel = ref(null)
 const nextURL =  ref("/etd")
-
-const data = ref({
-   title: "title",
-   author: {computeID: "", firstName: "", lastName: "", program: "", institution: ""},
-   advisors: [{computeID: "", firstName: "", lastName: "", department: "", institution: "University of Virginia", msg: ""}],
-   abstract: "ABS",
-   license: "1",
-   language: "English",
-   keywords: ["key1"],
-   relatedURLs: ["fake_url"],
-   sponsors: ["sponsor"],
-   notes: "note text",
-   degree: "MA (Master of Arts)",
-   dateCreated: new Date(),
-   files: [],
-   visibility: ""
-})
 
 const workDescribed = computed( () => {
    if ( etdForm.value ) {
@@ -206,17 +190,18 @@ const workDescribed = computed( () => {
    return false
 })
 
-onMounted( async () => {
-   if ( user.isSignedIn) {
-      data.value.author = {
-         computeID: user.computeID, firstName: user.firstName,
-         lastName: user.lastName, program: "",  // WHERE DOES THIS COME FROM
-         institution: "University of Virginia", msg: ""
-      }
-   } else {
-      data.value.authors.push({computeID: "", firstName: "", lastName: "", program: "", institution: "", msg: ""})
+onBeforeMount( async () => {
+   document.title = "LibraETD"
+   if ( user.isSignedIn == false) {
+      router.push("/forbidden")
+      return
    }
-   await repository.getDepositToken()
+   if ( route.params.id == "new") {
+      etdRepo.initNewSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
+      await etdRepo.getDepositToken()
+   } else {
+      alert("LOAD SUB")
+   }
 })
 
 const uploadRequested = ( (request) => {
@@ -225,10 +210,10 @@ const uploadRequested = ( (request) => {
 })
 
 const fileRemoved = ( event => {
-   repository.removeFile( event.file.name )
+   etdRepo.removeFile( event.file.name )
 })
-const filesUploaded = ( (event) => {
-   event.files.forEach( uf => data.value.files.push( uf.name ))
+const fileUploaded = ( (event) => {
+   etdRepo.addFile( event.files[0].name )
 })
 
 const inputLabel = ( (lbl, idx) => {
@@ -236,56 +221,56 @@ const inputLabel = ( (lbl, idx) => {
    return null
 })
 const addAdvisor = ( () => {
-   data.value.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
 })
 const removeAdvisor = ((idx)=> {
-   data.value.advisors.splice(idx,1)
+   etdRepo.work.advisors.splice(idx,1)
 })
 const checkAdvisorID = ((idx) => {
-   let cID = data.value.advisors[idx].computeID
-   data.value.advisors[idx].msg = ""
+   let cID = etdRepo.work.advisors[idx].computeID
+   etdRepo.work.advisors[idx].msg = ""
    axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
-      data.value.advisors[idx] = auth
+      etdRepo.work.advisors[idx] = auth
    }).catch( () => {
-      data.value.advisors[idx].msg = cID+" is not a valid computing ID"
+      etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
 })
 const removeKeyword = ((idx)=> {
-   data.value.keywords.splice(idx,1)
+   etdRepo.work.keywords.splice(idx,1)
 })
 const addKeyword = ( () => {
-   data.value.keywords.push("")
+   etdRepo.work.keywords.push("")
 })
 const removeURL = ((idx)=> {
-   data.value.relatedURLs.splice(idx,1)
+   etdRepo.work.relatedURLs.splice(idx,1)
 })
 const addURL = ( () => {
-   data.value.relatedURLs.push("")
+   etdRepo.work.relatedURLs.push("")
 })
 const removeAgency = ((idx)=> {
-   data.value.sponsors.splice(idx,1)
+   etdRepo.work.sponsors.splice(idx,1)
 })
 const addAgency = ( () => {
-   data.value.sponsors.push("")
+   etdRepo.work.sponsors.push("")
 })
 
 const saveAndContinueClicked= ( async (visibility) => {
    nextURL.value = "/etd" // TODO go to display form
-   data.value.visibility = visibility
+   etdRepo.work.visibility = visibility
    etdForm.value.node.submit()
 })
 const saveAndExitClicked = ( (visibility) => {
    nextURL.value = "/etd" // back to etd dashboard
-   data.value.visibility = visibility
+   etdRepo.work.visibility = visibility
    etdForm.value.node.submit()
 })
 const submitHandler = ( async () => {
-   await repository.depositETD( data.value )
+   await etdRepo.deposit()
    router.push("/etd")
 })
 const cancelClicked = (() => {
-   repository.cancel()
+   etdRepo.cancel()
    router.push("/etd")
 
 })
@@ -297,7 +282,7 @@ const cancelClicked = (() => {
       padding: 50px;
    }
    .sidebar-col {
-      width: 350px;
+      width: 400px;
       margin-right: 25px;
    }
    .main-form {
@@ -442,4 +427,4 @@ const cancelClicked = (() => {
       padding-top: 5px;
    }
 }
-</style>
+</style>@/stores/oa

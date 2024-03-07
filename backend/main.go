@@ -47,8 +47,10 @@ func main() {
 		api.POST("/submit/etd/:token", svc.etdSubmit)
 
 		// After initial submission, the work is referenced by the permanent ID
+		api.GET("/works/oa/:id", svc.getOAWork)
 		api.PUT("/works/oa/:id", svc.oaUpdate)
 		api.DELETE("/works/oa/:id", svc.deleteOAWork)
+
 		api.PUT("/works/etd/:id", svc.etdUpdate)
 		api.DELETE("/works/etd/:id", svc.deleteETDWork)
 		api.GET("/works/search", svc.searchWorks)

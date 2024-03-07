@@ -31,12 +31,22 @@ const router = createRouter({
          component: ETDWorkForm
       },
       {
+         path: '/etd/:id',
+         name: 'edtworkform',
+         component: ETDWorkForm
+      },
+      {
          path: '/oa',
          name: 'open',
          component: OADashboard
       },
       {
          path: '/oa/new',
+         name: 'openworkform',
+         component: OAWorkForm
+      },
+      {
+         path: '/oa/:id',
          name: 'openworkform',
          component: OAWorkForm
       },

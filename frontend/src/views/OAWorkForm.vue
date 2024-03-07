@@ -2,17 +2,17 @@
    <div class="scroll-body">
       <div class="form" id="oa-form-layout">
          <div class="sidebar-col">
-            <SavePanel type="oa" mode="create" :described="workDescribed" :files="data.files.length > 0"
+            <SavePanel type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0"
                @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"/>
          </div>
 
          <Panel header="Add New Work" class="main-form">
             <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
-               <FormKit type="select" label="Resource Type" v-model="data.resourceType"
+               <FormKit type="select" label="Resource Type" v-model="oaRepo.work.resourceType"
                   placeholder="Select a resource type"  outer-class="first"
                   :options="system.oaResourceTypes" validation="required"
                />
-               <FormKit label="Title" type="text" v-model="data.title" validation="required"/>
+               <FormKit label="Title" type="text" v-model="oaRepo.work.title" validation="required"/>
 
                <Panel class="sub-panel">
                   <template #header>
@@ -21,7 +21,7 @@
                         <Button label="Add Author" @click="addAuthor"/>
                      </span>
                   </template>
-                  <FormKit v-model="data.authors" type="list" dynamic #default="{ items }">
+                  <FormKit v-model="oaRepo.work.authors" type="list" dynamic #default="{ items }">
                      <p class="note">The main researchers involved in producing the work, or the authors of the publication, in priority order.</p>
                      <p class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this person.</p>
                      <div class="authors">
@@ -34,7 +34,7 @@
                                  </div>
                                  <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author" @click="removeAuthor(index)"/>
                               </div>
-                              <p v-if="data.authors[index].msg != ''" class="err">{{ data.authors[index].msg }}</p>
+                              <p v-if="oaRepo.work.authors[index].msg != ''" class="err">{{ oaRepo.work.authors[index].msg }}</p>
                               <div class="two-col">
                                  <FormKit type="text" name="firstName" label="First Name"/>
                                  <FormKit type="text" name="lastName" label="Last Name"/>
@@ -49,9 +49,9 @@
                   </FormKit>
                </Panel>
 
-               <FormKit label="Abstract" type="textarea" v-model="data.abstract" rows="10" validation="required"/>
+               <FormKit label="Abstract" type="textarea" v-model="oaRepo.work.abstract" rows="10" validation="required"/>
 
-               <FormKit type="select" label="Rights" v-model="data.license"
+               <FormKit type="select" label="Rights" v-model="oaRepo.work.license"
                   placeholder="Select rights"
                   :options="system.oaLicenses" validation="required"
                />
@@ -62,26 +62,26 @@
                   for option details.
                </p>
 
-               <FormKit v-model="data.languages" type="list" dynamic #default="{ items }">
+               <FormKit v-model="oaRepo.work.languages" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit type="select" :label="inputLabel('Language', index)" :index="index"
                            placeholder="Select a language" :options="system.languages"
                         />
                      </div>
-                     <Button v-if="index > 0 || data.languages.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add language" @click="addLanguage"/>
+                     <Button v-if="index > 0 || oaRepo.work.languages.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add language" @click="addLanguage"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language" @click="removeLanguage(index)"/>
                   </div>
                   <p class="note">The language of the work's content.</p>
                </FormKit>
 
 
-               <FormKit v-model="data.keywords" type="list" dynamic #default="{ items }">
+               <FormKit v-model="oaRepo.work.keywords" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
-                     <Button v-if="index > 0 || data.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
+                     <Button v-if="index > 0 || oaRepo.work.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
                   </div>
                   <p class="note">Add one keyword or keyword phrase per line.</p>
@@ -94,7 +94,7 @@
                         <Button label="Add Contributor" @click="addContributor"/>
                      </span>
                   </template>
-                  <FormKit v-model="data.contributors" type="list" dynamic #default="{ items }">
+                  <FormKit v-model="oaRepo.work.contributors" type="list" dynamic #default="{ items }">
                      <p class="note">The person(s) responsible for contributing to the development of the resource, such as editor or producer (not an author).</p>
                      <div class="authors">
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
@@ -106,7 +106,7 @@
                                  </div>
                                  <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove contributor" @click="removeContributor(index)"/>
                               </div>
-                              <p v-if="data.contributors[index].msg != ''" class="err">{{ data.contributors[index].msg }}</p>
+                              <p v-if="oaRepo.work.contributors[index].msg != ''" class="err">{{ oaRepo.work.contributors[index].msg }}</p>
                               <div class="two-col">
                                  <FormKit type="text" name="firstName" label="First Name"/>
                                  <FormKit type="text" name="lastName" label="Last Name"/>
@@ -121,43 +121,43 @@
                   </FormKit>
                </Panel>
 
-               <FormKit label="Publisher" type="text" v-model="data.publisher" validation="required"/>
+               <FormKit label="Publisher" type="text" v-model="oaRepo.work.publisher" validation="required"/>
                <p class="note">
                   Libra lets you choose an open license when you post your work, and will prominently display the
                   license you choose as part of the record for your work. See
                   <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
                   for option details.
                </p>
-               <FormKit label="Source citation" type="text" v-model="data.citation"/>
+               <FormKit label="Source citation" type="text" v-model="oaRepo.work.citation"/>
                <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
-               <FormKit label="Published date" type="text" v-model="data.pubDate"/>
+               <FormKit label="Published date" type="text" v-model="oaRepo.work.pubDate"/>
 
-               <FormKit v-model="data.relatedURLs" type="list" dynamic #default="{ items }">
+               <FormKit v-model="oaRepo.work.relatedURLs" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
                      </div>
-                     <Button v-if="index > 0 || data.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
+                     <Button v-if="index > 0 || oaRepo.work.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
                   </div>
                   <p class="note">Links to another version, another location with the file, website or other specific content (audio, video, PDF document) related to the work.</p>
                </FormKit>
 
-               <FormKit v-model="data.sponsors" type="list" dynamic #default="{ items }">
+               <FormKit v-model="oaRepo.work.sponsors" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
                      <div class="input-wrap">
                         <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
                      </div>
-                     <Button v-if="index > 0 || data.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
+                     <Button v-if="index > 0 || oaRepo.work.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
                      <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
                   </div>
                </FormKit>
 
-               <FormKit label="Notes" type="textarea" v-model="data.notes" rows="10"/>
+               <FormKit label="Notes" type="textarea" v-model="oaRepo.work.notes" rows="10"/>
 
                <label class="libra-form-label">Files</label>
-               <FileUpload name="file" :url="`/api/upload/${repository.depositToken}`"
-                  @upload="filesUploaded($event)" @before-send="uploadRequested($event)"
+               <FileUpload name="file" :url="`/api/upload/${oaRepo.depositToken}`"
+                  @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                   @removeUploadedFile="fileRemoved($event)"
                   :multiple="true" :withCredentials="true" :auto="true"
                   :showUploadButton="false" :showCancelButton="false">
@@ -173,15 +173,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onBeforeMount, computed } from 'vue'
 import SavePanel from "@/components/SavePanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
-import { useRepositoryStore } from "@/stores/repository"
+import { useOAStore } from "@/stores/oa"
 import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
 import axios from 'axios'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
@@ -204,31 +204,13 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
 }))
 
 const router = useRouter()
+const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
-const repository = useRepositoryStore()
+const oaRepo = useOAStore()
 
 const oaForm = ref(null)
 const savepanel = ref(null)
-
-const data = ref({
-   resourceType: "Book",
-   title: "title",
-   authors: [],
-   abstract: "ABS",
-   license: "1",
-   languages: ["English"],
-   keywords: ["key1"],
-   contributors: [{computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""}],
-   publisher: "University of Virginia",
-   citation: "fake citation",
-   pubDate: "1980",
-   relatedURLs: ["fake_url"],
-   sponsors: ["sponsor"],
-   notes: "note text",
-   files: [],
-   visibility: ""
-})
 
 const workDescribed = computed( () => {
    if ( oaForm.value ) {
@@ -237,16 +219,19 @@ const workDescribed = computed( () => {
    return false
 })
 
-onMounted( async () => {
-   if ( user.isSignedIn) {
-      data.value.authors.push({
-         computeID: user.computeID, firstName: user.firstName,
-         lastName: user.lastName, department: user.department[0], institution: "University of Virginia", msg: ""
-      })
-   } else {
-      data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""})
+onBeforeMount( async () => {
+   document.title = "LibraOpen"
+   if ( user.isSignedIn == false) {
+      router.push("/forbidden")
+      return
    }
-   await repository.getDepositToken()
+
+   if ( route.params.id == "new") {
+      oaRepo.initNewSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
+      await oaRepo.getDepositToken()
+   } else {
+      alert("LOAD SUB")
+   }
 })
 
 const uploadRequested = ( (request) => {
@@ -255,10 +240,10 @@ const uploadRequested = ( (request) => {
 })
 
 const fileRemoved = ( event => {
-   repository.removeFile( event.file.name )
+   oaRepo.removeFile( event.file.name )
 })
-const filesUploaded = ( (event) => {
-   event.files.forEach( uf => data.value.files.push( uf.name ))
+const fileUploaded = ( (event) => {
+   oaRepo.addFile( event.files[0].name )
 })
 
 const inputLabel = ( (lbl, idx) => {
@@ -266,14 +251,14 @@ const inputLabel = ( (lbl, idx) => {
    return null
 })
 const addAuthor = ( () => {
-   data.value.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   oaRepo.work.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
 })
 const removeAuthor = ((idx)=> {
-   data.value.authors.splice(idx,1)
+   oaRepo.work.authors.splice(idx,1)
 })
 const checkAuthorID = ((idx) => {
-   let cID = data.value.authors[idx].computeID
-   data.value.authors[idx].msg = ""
+   let cID = oaRepo.work.authors[idx].computeID
+   oaRepo.work.authors[idx].msg = ""
    axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
       data.value.authors[idx] = auth
@@ -282,10 +267,10 @@ const checkAuthorID = ((idx) => {
    })
 })
 const addContributor = ( () => {
-   data.value.contributors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   oaRepo.work.contributors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
 })
 const removeContributor = ((idx)=> {
-   data.value.contributors.splice(idx,1)
+   oaRepo.work.contributors.splice(idx,1)
 })
 const checkContributorID = ((idx) => {
    let cID = data.value.contributors[idx].computeID
@@ -298,41 +283,41 @@ const checkContributorID = ((idx) => {
    })
 })
 const removeKeyword = ((idx)=> {
-   data.value.keywords.splice(idx,1)
+   oaRepo.work.keywords.splice(idx,1)
 })
 const addKeyword = ( () => {
-   data.value.keywords.push("")
+   oaRepo.work.keywords.push("")
 })
 const removeLanguage = ((idx)=> {
-   data.value.languages.splice(idx,1)
+   oaRepo.work.languages.splice(idx,1)
 })
 const addLanguage = ( () => {
-   data.value.languages.push("")
+   oaRepo.work.languages.push("")
 })
 const removeURL = ((idx)=> {
-   data.value.relatedURLs.splice(idx,1)
+   oaRepo.work.relatedURLs.splice(idx,1)
 })
 const addURL = ( () => {
-   data.value.relatedURLs.push("")
+   oaRepo.work.relatedURLs.push("")
 })
 const removeAgency = ((idx)=> {
-   data.value.sponsors.splice(idx,1)
+   oaRepo.work.sponsors.splice(idx,1)
 })
 const addAgency = ( () => {
-   data.value.sponsors.push("")
+   oaRepo.work.sponsors.push("")
 })
 
 const submitClicked = ( (visibility) => {
-   data.value.visibility = visibility
+   oaRepo.work.visibility = visibility
    const node = oaForm.value.node
    node.submit()
 })
 const submitHandler = ( async () => {
-   await repository.depositOA( data.value )
+   await oaRepo.deposit( )
    router.push("/oa")
 })
 const cancelClicked = (() => {
-   repository.cancel()
+   oaRepo.cancel()
    router.push("/oa")
 
 })
@@ -344,7 +329,7 @@ const cancelClicked = (() => {
       padding: 50px;
    }
    .sidebar-col {
-      width: 350px;
+      width: 400px;
       margin-right: 25px;
    }
    .main-form {
@@ -479,4 +464,4 @@ const cancelClicked = (() => {
       padding-top: 5px;
    }
 }
-</style>
+</style>@/stores/oa

@@ -45,11 +45,11 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
-import { useRepositoryStore } from "@/stores/repository"
+import { useOAStore } from "@/stores/oa"
 import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -60,10 +60,11 @@ const router = useRouter()
 const searchStore = useSearchStore()
 const user = useUserStore()
 const system = useSystemStore()
-const repository =  useRepositoryStore()
+const oaRepo = useOAStore()
 const confirm = useConfirm()
 
-onMounted( () => {
+onBeforeMount( () => {
+   document.title = "LibraOpen"
    searchStore.search("oa", user.computeID)
 })
 
@@ -80,7 +81,7 @@ const deleteWorkClicked = ( (id) => {
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
       accept: async (  ) => {
-         await repository.deleteOAWork(id)
+         await oaRepo.deleteWork(id)
          if ( system.showError == false) {
             searchStore.removeDeletedWork(id)
          }
