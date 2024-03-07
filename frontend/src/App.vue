@@ -11,7 +11,7 @@
          </div>
          <div class="site-link">
             <router-link v-if="isLibraOpen" to="/oa"><img src="@/assets/LibraOpen.svg"/></router-link>
-            <router-link v-else-if="isLibraETD" to="/etd"><img src="@/assets/LibraOpen.svg"/></router-link>
+            <router-link v-else-if="isLibraETD" to="/etd"><img src="@/assets/LibraETD.svg"/></router-link>
             <router-link v-else to="/"><img src="@/assets/Libra.svg"/></router-link>
             <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
