@@ -3,7 +3,7 @@
       <div class="form" id="oa-form-layout">
          <div class="sidebar-col">
             <SavePanel v-if="oaRepo.working==false"
-               type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0"
+               type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
                @submit="submitClicked" @cancel="cancelClicked" ref="savepanel" :visibility="oaRepo.work.visibility"/>
          </div>
 
@@ -265,9 +265,9 @@ const checkAuthorID = ((idx) => {
    oaRepo.work.authors[idx].msg = ""
    axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
-      data.value.authors[idx] = auth
+      oaRepo.work.authors[idx] = auth
    }).catch( () => {
-      data.value.authors[idx].msg = cID+" is not a valid computing ID"
+      oaRepo.work.authors[idx].msg = cID+" is not a valid computing ID"
    })
 })
 const addContributor = ( () => {
@@ -277,13 +277,13 @@ const removeContributor = ((idx)=> {
    oaRepo.work.contributors.splice(idx,1)
 })
 const checkContributorID = ((idx) => {
-   let cID = data.value.contributors[idx].computeID
-   data.value.contributors[idx].msg = ""
+   let cID = oaRepo.work.contributors[idx].computeID
+   oaRepo.work.contributors[idx].msg = ""
    axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
-      data.value.contributors[idx] = auth
+      oaRepo.work.contributors[idx] = auth
    }).catch( () => {
-      data.value.contributors[idx].msg = cID+" is not a valid computing ID"
+      oaRepo.work.contributors[idx].msg = cID+" is not a valid computing ID"
    })
 })
 const removeKeyword = ((idx)=> {
