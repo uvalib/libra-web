@@ -128,6 +128,10 @@ const canSubmit = computed(() =>{
    }
    .visibility-opt {
       margin: 5px 0;
+      div.visibility {
+         padding: 0;
+         margin-left: 0;
+      }
    }
    .agree {
       margin: 25px 0;
