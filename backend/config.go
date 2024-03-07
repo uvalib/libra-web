@@ -10,7 +10,7 @@ type userServiceCfg struct {
 	JWT string
 }
 
-type easytStoreConfig struct {
+type easyStoreConfig struct {
 	mode   string // none, sqlite, postgres
 	dbDir  string
 	dbFile string
@@ -31,7 +31,7 @@ type configData struct {
 	userService     userServiceCfg
 	devAuthUser     string
 	jwtKey          string
-	easyStore       easytStoreConfig
+	easyStore       easyStoreConfig
 	namespace       namespaceConfig
 	busName         string
 	eventSourceName string
