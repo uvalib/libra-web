@@ -19,7 +19,6 @@ export const useSearchStore = defineStore('search', {
          }
          axios.get(url).then(response => {
             this.hits = response.data
-            console.log(this.hits)
             this.working = false
          }).catch( err => {
             const system = useSystemStore()

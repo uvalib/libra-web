@@ -2,12 +2,14 @@
    <div class="scroll-body">
       <div class="form" id="oa-form-layout">
          <div class="sidebar-col">
-            <SavePanel type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0"
-               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"/>
+            <SavePanel v-if="oaRepo.working==false"
+               type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0"
+               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel" :visibility="oaRepo.work.visibility"/>
          </div>
 
-         <Panel header="Add New Work" class="main-form">
-            <FormKit ref="oaForm" type="form" :actions="false" @submit="submitHandler">
+         <Panel :header="panelTitle" class="main-form">
+            <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
+            <FormKit v-else ref="oaForm" type="form" :actions="false" @submit="submitHandler">
                <FormKit type="select" label="Resource Type" v-model="oaRepo.work.resourceType"
                   placeholder="Select a resource type"  outer-class="first"
                   :options="system.oaResourceTypes" validation="required"
@@ -183,6 +185,7 @@ import Panel from 'primevue/panel'
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
+import WaitSpinner from "@/components/WaitSpinner.vue"
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
    const formEle = document.getElementById("oa-form-layout")
@@ -211,6 +214,7 @@ const oaRepo = useOAStore()
 
 const oaForm = ref(null)
 const savepanel = ref(null)
+const panelTitle = ref("Add New Work")
 
 const workDescribed = computed( () => {
    if ( oaForm.value ) {
@@ -226,11 +230,11 @@ onBeforeMount( async () => {
       return
    }
 
-   if ( route.params.id == "new") {
-      oaRepo.initNewSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
-      await oaRepo.getDepositToken()
-   } else {
-      alert("LOAD SUB")
+   oaRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
+   await oaRepo.getDepositToken()
+   if ( route.params.id != "new") {
+      panelTitle.value = "Edit Work"
+      await oaRepo.getWork( route.params.id )
    }
 })
 

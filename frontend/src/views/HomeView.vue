@@ -58,15 +58,35 @@ const etdClicked = (() => {
 </script>
 
 <style lang="scss" scoped>
+@media only screen and (min-width: 768px) {
+   .info {
+      width: 75%;
+      margin: 10px auto 50px auto;
+      font-size: 1.15em;
+   }
+   .submissions {
+      width: 75%;
+   }
+}
+@media only screen and (max-width: 768px) {
+   .info {
+      width: 95%;
+      font-size: 1em;
+   }
+   .submissions {
+      width: 95%;
+   }
+}
 .info {
-   width: 70%;
-   margin: 10px auto 50px auto;
-   font-size: 1.15em;
+   margin: 10px auto 30px auto;
+}
+h2 {
+   padding:0;
+   margin: 0;
 }
 
 .submissions {
-   width: 70%;
-   margin: 50px auto;
+   margin: 30px auto;
    min-height: 100px;
    display: flex;
    flex-flow: row wrap;

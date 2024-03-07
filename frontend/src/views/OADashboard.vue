@@ -69,7 +69,8 @@ onBeforeMount( () => {
 })
 
 const editWorkClicked = ( (id) => {
-
+   let url = `/oa/${id}`
+   router.push(url)
 })
 const previewWorkClicked = ( (id) => {
 

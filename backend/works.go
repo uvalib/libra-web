@@ -34,6 +34,13 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	}
 
 	resp := versionedOA{ID: tgtObj.Id(), Version: tgtObj.VTag(), OAWork: parsedOAWork, CreatedAt: tgtObj.Created(), ModifiedAt: tgtObj.Modified()}
+	resp.Files = make([]string, 0)
+
+	for _, oaFile := range tgtObj.Files() {
+		log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())
+		resp.Files = append(resp.Files, oaFile.Name())
+	}
+
 	c.JSON(http.StatusOK, resp)
 
 }

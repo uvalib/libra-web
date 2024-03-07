@@ -20,6 +20,7 @@ type versionedOA struct {
 	Version    string    `json:"version"`
 	CreatedAt  time.Time `json:"createdAt"`
 	ModifiedAt time.Time `json:"modifiedAt"`
+	Files      []string  `json:"files"`
 	*librametadata.OAWork
 }
 type versionedETD struct {
@@ -27,6 +28,7 @@ type versionedETD struct {
 	Version    string    `json:"version"`
 	CreatedAt  time.Time `json:"createdAt"`
 	ModifiedAt time.Time `json:"modifiedAt"`
+	Files      []string  `json:"files"`
 	*librametadata.ETDWork
 }
 

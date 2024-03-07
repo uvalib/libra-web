@@ -55,6 +55,17 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
+      async getWork(id) {
+         this.working = true
+         return axios.get(`/api/works/etd/${id}`).then(response => {
+            this.work = response.data
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
       async deleteWork( id ) {
          this.working = true
          return axios.delete(`/api/works/etd/${id}`).catch( err => {

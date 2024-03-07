@@ -9,24 +9,24 @@ export const useOAStore = defineStore('oa', {
       work: {},
    }),
    actions: {
-      initNewSubmission(compID, firstName, lastName, department) {
+      initSubmission(compID, firstName, lastName, department) {
          this.work.resourceType = "Book"
-         this.work.title = "title"
+         this.work.title = ""
          this.work.authors = [{
             computeID: compID, firstName: firstName, lastName: lastName,
             department: department, institution: "University of Virginia", msg: ""}
          ]
-         this.work.abstract = "ABS"
-         this.work.license = "1"
-         this.work.languages = ["English"]
-         this.work.keywords = ["key1"]
+         this.work.abstract = ""
+         this.work.license = ""
+         this.work.languages = [""]
+         this.work.keywords = [""]
          this.work.contributors = [{computeID: "", firstName: "", lastName: "", department: "", institution: "", msg: ""}]
          this.work.publisher = "University of Virginia"
-         this.work.citation = "fake citation"
-         this.work.pubDate = "1980"
-         this.work.relatedURLs = ["fake_url"]
-         this.work.sponsors = ["sponsor"]
-         this.work.notes = "note text"
+         this.work.citation = ""
+         this.work.pubDate = ""
+         this.work.relatedURLs = []
+         this.work.sponsors = []
+         this.work.notes = ""
          this.work.files = []
          this.work.visibility = ""
       },
@@ -60,8 +60,16 @@ export const useOAStore = defineStore('oa', {
             this.working = false
          })
       },
-      getWork(id) {
-
+      async getWork(id) {
+         this.working = true
+         return axios.get(`/api/works/oa/${id}`).then(response => {
+            this.work = response.data
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
       },
       async deleteWork( id ) {
          this.working = true

@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Checkbox from 'primevue/checkbox'
 import Fieldset from 'primevue/fieldset'
 import RadioButton from 'primevue/radiobutton'
@@ -77,6 +77,10 @@ const props = defineProps({
       type: Boolean,
       required: true
    },
+   visibility: {
+      type: String,
+      required: true
+   },
    described: {
       type: Boolean,
       required: true
@@ -84,8 +88,12 @@ const props = defineProps({
 })
 
 const system = useSystemStore()
-const visibility = ref("")
+const visibility = ref(props.visibility)
 const agree = ref(false)
+
+onMounted( () => {
+   visibility.value = props.visibility
+})
 
 const visibilityOptions = computed( () => {
    if ( props.type == 'oa') {
