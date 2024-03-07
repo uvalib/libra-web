@@ -15,6 +15,12 @@ import (
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
+type oaWorkRequest struct {
+	Work     librametadata.OAWork `json:"work"`
+	AddFiles []string             `json:"addFiles"`
+	DelFiles []string             `json:"deliles"`
+}
+
 type versionedOA struct {
 	ID         string    `json:"id"`
 	Version    string    `json:"version"`
@@ -82,8 +88,8 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received oa deposit request for %s", token)
-	var oaW librametadata.OAWork
-	err := c.ShouldBindJSON(&oaW)
+	var oaSub oaWorkRequest
+	err := c.ShouldBindJSON(&oaSub)
 	if err != nil {
 		log.Printf("ERROR: bad payload in oa deposit request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
@@ -98,6 +104,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	}
 
 	log.Printf("INFO: create easystore object")
+	oaW := oaSub.Work
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	fields["depositor"] = oaW.Authors[0].ComputeID

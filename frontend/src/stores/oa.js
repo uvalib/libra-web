@@ -7,6 +7,8 @@ export const useOAStore = defineStore('oa', {
       working: false,
       depositToken: "",
       work: {},
+      pendingFileAdd: [],
+      pendingFileDel: []
    }),
    actions: {
       initSubmission(compID, firstName, lastName, department) {
@@ -29,6 +31,8 @@ export const useOAStore = defineStore('oa', {
          this.work.notes = ""
          this.work.files = []
          this.work.visibility = ""
+         this.pendingFileAdd = []
+         this.pendingFileDel = []
       },
       async getDepositToken() {
          this.depositToken = ""
@@ -44,14 +48,32 @@ export const useOAStore = defineStore('oa', {
          this.depositToken = ""
       },
       addFile( file ) {
-         this.work.files.push( file )
+         this.pendingFileAdd.push( file )
       },
       removeFile( file) {
-         axios.delete(`/api/${this.depositToken}/${file}`)
+         let pendingIdx = this.pendingFileAdd.findIndex( f => f == file )
+         if ( pendingIdx > -1) {
+            // this file has not been attached to a work in easystore; just remove
+            // if from the pending add list and delete the version that was uploaded to temp storage
+            this.pendingFileAdd.splice(pendingIdx, 1)
+            axios.delete(`/api/${this.depositToken}/${file}`)
+         } else {
+            // This file has already been submitted. remove it from the files
+            // list and added to a pending delete list. When the update is submitted
+            // the files on the pending delete list will be removed from the store.
+            // this allows file deletions to be canceled,
+            let idx = this.work.files.findIndex( f => f == file)
+            if ( idx > -1) {
+               this.work.files.splice(idx, 1)
+               this.pendingFileDel.push(file)
+            }
+         }
+
       } ,
       async deposit( ) {
          this.working = true
-         return axios.post(`/api/submit/oa/${this.depositToken}`, this.work).then(response => {
+         let payload = {work: this.work, addFiles: this.pendingFileAdd}
+         return axios.post(`/api/submit/oa/${this.depositToken}`, payload).then(response => {
             this.work = response.data
             this.working = false
          }).catch( err => {

@@ -84,6 +84,13 @@ func (svc *serviceContext) deleteWork(namespace string, id string) error {
 func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: request to update oa work %s", workID)
+	var oaSub oaWorkRequest
+	err := c.ShouldBindJSON(&oaSub)
+	if err != nil {
+		log.Printf("ERROR: bad payload in oa update request: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
 
 	c.String(http.StatusNotImplemented, "not implemented")
 }

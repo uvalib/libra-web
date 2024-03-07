@@ -114,6 +114,8 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		config := uvaeasystore.DatastoreSqliteConfig{
 			DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
 			Log:        log.Default(),
+			BusName:    cfg.busName,
+			SourceName: cfg.eventSourceName,
 		}
 		es, err := uvaeasystore.NewEasyStore(config)
 		if err != nil {
