@@ -82,6 +82,11 @@ export const useOAStore = defineStore('oa', {
             this.working = false
          })
       },
+      async update( ) {
+         const system = useSystemStore()
+         system.setError(  "not yet implemented" )
+         this.working = false
+      },
       async getWork(id) {
          this.working = true
          return axios.get(`/api/works/oa/${id}`).then(response => {

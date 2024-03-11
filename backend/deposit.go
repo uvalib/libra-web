@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +20,12 @@ type oaWorkRequest struct {
 	DelFiles []string             `json:"deliles"`
 }
 
+type etdWorkRequest struct {
+	Work     librametadata.ETDWork `json:"work"`
+	AddFiles []string              `json:"addFiles"`
+	DelFiles []string              `json:"deliles"`
+}
+
 type versionedOA struct {
 	ID         string    `json:"id"`
 	Version    string    `json:"version"`
@@ -29,6 +34,7 @@ type versionedOA struct {
 	Files      []string  `json:"files"`
 	*librametadata.OAWork
 }
+
 type versionedETD struct {
 	ID         string    `json:"id"`
 	Version    string    `json:"version"`
@@ -47,8 +53,8 @@ func (svc *serviceContext) getDepositToken(c *gin.Context) {
 func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received etd deposit request for %s", token)
-	var etdWork librametadata.ETDWork
-	err := c.ShouldBindJSON(&etdWork)
+	var etdSub etdWorkRequest
+	err := c.ShouldBindJSON(&etdSub)
 	if err != nil {
 		log.Printf("ERROR: bad payload in etd deposit request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
@@ -56,7 +62,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	}
 
 	uploadDir := path.Join("/tmp", token)
-	esFiles, err := getSubmittedFiles(uploadDir)
+	esFiles, err := getSubmittedFiles(uploadDir, etdSub.AddFiles)
 	if err != nil {
 		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -65,9 +71,9 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = etdWork.Author.ComputeID
-	fields["title"] = etdWork.Title
-	obj.SetMetadata(etdWork)
+	fields["depositor"] = etdSub.Work.Author.ComputeID
+	fields["title"] = etdSub.Work.Title
+	obj.SetMetadata(etdSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
 
@@ -82,7 +88,9 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	c.JSON(http.StatusOK, versionedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: &etdWork})
+	resp := versionedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: &etdSub.Work,
+		Files: etdSub.AddFiles, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	c.JSON(http.StatusOK, resp)
 }
 
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
@@ -97,21 +105,20 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	}
 
 	uploadDir := path.Join("/tmp", token)
-	esFiles, err := getSubmittedFiles(uploadDir)
+	esFiles, err := getSubmittedFiles(uploadDir, oaSub.AddFiles)
 	if err != nil {
 		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	log.Printf("INFO: create easystore object")
-	oaW := oaSub.Work
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = oaW.Authors[0].ComputeID
-	fields["title"] = oaW.Title
-	fields["publisher"] = oaW.Publisher
-	fields["resourceType"] = oaW.ResourceType
-	obj.SetMetadata(oaW)
+	fields["depositor"] = oaSub.Work.Authors[0].ComputeID
+	fields["title"] = oaSub.Work.Title
+	fields["publisher"] = oaSub.Work.Publisher
+	fields["resourceType"] = oaSub.Work.ResourceType
+	obj.SetMetadata(oaSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
 
@@ -126,34 +133,24 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	c.JSON(http.StatusOK, versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: &oaW})
+	resp := versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: &oaSub.Work,
+		Files: oaSub.AddFiles, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	c.JSON(http.StatusOK, resp)
 }
 
-func getSubmittedFiles(uploadDir string) ([]uvaeasystore.EasyStoreBlob, error) {
-	log.Printf("INFO: get files associated with submission from location %s", uploadDir)
+func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.EasyStoreBlob, error) {
+	log.Printf("INFO: get files [%v] associated with submission from location %s", fileList, uploadDir)
 	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
-	err := filepath.Walk(uploadDir, func(fullPath string, f os.FileInfo, err error) error {
-		if err != nil {
-			log.Printf("ERROR: directory %s traverse failed: %s", uploadDir, err.Error())
-			return nil
-		}
-		if f.IsDir() {
-			log.Printf("INFO: directory %s", f.Name())
-			return nil
-		}
-
+	for _, fn := range fileList {
+		fullPath := path.Join(uploadDir, fn)
 		log.Printf("INFO: add %s", fullPath)
 		fileBytes, fileErr := os.ReadFile(fullPath)
 		if fileErr != nil {
-			return fileErr
+			return nil, fileErr
 		}
 		mimeType := http.DetectContentType(fileBytes)
-		esBlob := uvaeasystore.NewEasyStoreBlob(f.Name(), mimeType, fileBytes)
+		esBlob := uvaeasystore.NewEasyStoreBlob(fn, mimeType, fileBytes)
 		esFiles = append(esFiles, esBlob)
-		return nil
-	})
-	if err != nil {
-		return make([]uvaeasystore.EasyStoreBlob, 0), err
 	}
 	return esFiles, nil
 }
@@ -195,14 +192,6 @@ func (svc *serviceContext) uploadSubmissionFiles(c *gin.Context) {
 	}
 
 	uploadDir := path.Join("/tmp", token)
-	if pathExists(uploadDir) {
-		log.Printf("INFO; upload dir %s already exists; cleaning up", uploadDir)
-		err = os.RemoveAll(uploadDir)
-		if err != nil {
-			log.Printf("ERROR: unable to remove %s: %s", uploadDir, err.Error())
-		}
-	}
-
 	for _, sf := range files.File["file"] {
 		destFile := path.Join(uploadDir, sf.Filename)
 		log.Printf("INFO: receive submission to %s", destFile)

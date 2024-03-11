@@ -317,7 +317,11 @@ const submitClicked = ( (visibility) => {
    node.submit()
 })
 const submitHandler = ( async () => {
-   await oaRepo.deposit( )
+   if ( route.params.id == "new") {
+      await oaRepo.deposit( )
+   } else {
+      await oaRepo.update( )
+   }
    router.push("/oa")
 })
 const cancelClicked = (() => {
