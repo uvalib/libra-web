@@ -182,6 +182,45 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (svc *serviceContext) downloadOAFile(c *gin.Context) {
+	workID := c.Param("id")
+	tgtFile := c.Param("name")
+	log.Printf("INFO: request to download file %s from oa work %s", tgtFile, workID)
+
+	log.Printf("INFO: load  oa work %s file info", workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.oa, workID, uvaeasystore.Files)
+	if err != nil {
+		log.Printf("ERROR: get oa work %s for update failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var dlFile uvaeasystore.EasyStoreBlob
+	for _, oaFile := range tgtObj.Files() {
+		if oaFile.Name() == tgtFile {
+			dlFile = oaFile
+		}
+	}
+
+	if dlFile == nil {
+		log.Printf("INFO: file %s not found in oa work %s", tgtFile, workID)
+		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", tgtFile))
+		return
+	}
+
+	bodyBytes, err := dlFile.Payload()
+	if err != nil {
+		log.Printf("ERROR: unable to get opayload for file %s: %s", tgtFile, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	log.Printf("INFO: set %s with mime type %s to client", tgtFile, dlFile.MimeType())
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Disposition", "attachment; filename="+tgtFile)
+	c.Data(http.StatusOK, dlFile.MimeType(), bodyBytes)
+}
+
 func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: request to update etd work %s", workID)

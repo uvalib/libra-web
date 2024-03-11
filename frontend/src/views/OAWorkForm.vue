@@ -174,6 +174,7 @@
                      <Column  header="Actions" >
                         <template #body="slotProps">
                            <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" text @click="deleteFileClicked(slotProps.data.name)"/>
+                           <Button class="action" icon="pi pi-cloud-download" label="Download" severity="secondary" text @click="downloadFileClicked(slotProps.data.name)"/>
                         </template>
                      </Column>
                   </DataTable>
@@ -356,6 +357,9 @@ const deleteFileClicked = ( (name) => {
       },
    })
 })
+const downloadFileClicked = ( (name) => {
+   oaRepo.downloadFile(name)
+})
 const submitClicked = ( (visibility) => {
    oaRepo.work.visibility = visibility
    const node = oaForm.value.node
@@ -421,6 +425,10 @@ const cancelClicked = (() => {
 .scroll-body {
    display: block;
    position: relative;
+}
+
+.action {
+   margin-right: 15px;
 }
 
 .form {

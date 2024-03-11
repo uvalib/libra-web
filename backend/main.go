@@ -48,6 +48,7 @@ func main() {
 
 		// After initial submission, the work is referenced by the permanent ID
 		api.GET("/works/oa/:id", svc.getOAWork)
+		api.GET("/works/oa/:id/files/:name", svc.downloadOAFile)
 		api.PUT("/works/oa/:id", svc.oaUpdate)
 		api.DELETE("/works/oa/:id", svc.deleteOAWork)
 

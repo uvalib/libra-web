@@ -68,7 +68,24 @@ export const useOAStore = defineStore('oa', {
             }
          }
 
-      } ,
+      },
+      async downloadFile( name ) {
+         return axios.get(`/api/works/oa/${this.work.id}/files/${name}`).then((response) => {
+            const fileURL = window.URL.createObjectURL(new Blob([response.data]));
+            const fileLink = document.createElement('a');
+
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', response.headers["content-disposition"].split("filename=")[1])
+            document.body.appendChild(fileLink);
+
+            fileLink.click();
+            window.URL.revokeObjectURL(fileURL);
+
+         }).catch((error) => {
+            const system = useSystemStore()
+            system.setError( error)
+         })
+      },
       async deposit( ) {
          this.working = true
          let payload = {work: this.work, addFiles: this.pendingFileAdd}
