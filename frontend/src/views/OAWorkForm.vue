@@ -157,8 +157,29 @@
 
                <FormKit label="Notes" type="textarea" v-model="oaRepo.work.notes" rows="10"/>
 
+               <template v-if="isNewSubmission==false">
+                  <label class="libra-form-label">Previously Uploaded Files</label>
+                  <DataTable :value="oaRepo.work.files" ref="oaFiles" dataKey="id"
+                        stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+                        :lazy="false" :paginator="true" :alwaysShowPaginator="false"
+                        :rows="30" :totalRecords="oaRepo.work.files.length"
+                        paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+                        :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
+                        currentPageReportTemplate="{first} - {last} of {totalRecords}"
+                     >
+                     <Column field="name" header="Name" />
+                     <Column field="createdAt" header="Date Uploaded" >
+                        <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+                     </Column>
+                     <Column  header="Actions" >
+                        <template #body="slotProps">
+                           <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" text @click="deleteFileClicked(slotProps.data.name)"/>
+                        </template>
+                     </Column>
+                  </DataTable>
+               </template>
                <label class="libra-form-label">Files</label>
-               <FileUpload name="file" :url="`/api/upload/${oaRepo.depositToken}`"
+               <FileUpload name="file" :url="`/api/upload/${uploadToken}`"
                   @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                   @removeUploadedFile="fileRemoved($event)"
                   :multiple="true" :withCredentials="true" :auto="true"
@@ -186,6 +207,9 @@ import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
 import WaitSpinner from "@/components/WaitSpinner.vue"
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import { useConfirm } from "primevue/useconfirm"
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
    const formEle = document.getElementById("oa-form-layout")
@@ -206,6 +230,7 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
    }
 }))
 
+const confirm = useConfirm()
 const router = useRouter()
 const route = useRoute()
 const system = useSystemStore()
@@ -222,6 +247,15 @@ const workDescribed = computed( () => {
    }
    return false
 })
+const isNewSubmission = computed(() => {
+   return route.params.id == "new"
+})
+const uploadToken = computed( () => {
+   if ( isNewSubmission.value) {
+      return oaRepo.depositToken
+   }
+   return oaRepo.work.id
+})
 
 onBeforeMount( async () => {
    document.title = "LibraOpen"
@@ -231,10 +265,11 @@ onBeforeMount( async () => {
    }
 
    oaRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
-   await oaRepo.getDepositToken()
-   if ( route.params.id != "new") {
+   if ( isNewSubmission.value == false) {
       panelTitle.value = "Edit Work"
       await oaRepo.getWork( route.params.id )
+   } else {
+      await oaRepo.getDepositToken()
    }
 })
 
@@ -310,19 +345,31 @@ const removeAgency = ((idx)=> {
 const addAgency = ( () => {
    oaRepo.work.sponsors.push("")
 })
-
+const deleteFileClicked = ( (name) => {
+   confirm.require({
+      message: `Delete file ${name}?`,
+      header: 'Confirm Delete',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: (  ) => {
+         oaRepo.removeFile(name)
+      },
+   })
+})
 const submitClicked = ( (visibility) => {
    oaRepo.work.visibility = visibility
    const node = oaForm.value.node
    node.submit()
 })
 const submitHandler = ( async () => {
-   if ( route.params.id == "new") {
+   if ( isNewSubmission.value ) {
       await oaRepo.deposit( )
    } else {
       await oaRepo.update( )
    }
-   router.push("/oa")
+   if ( system.showError == false ) {
+      router.push("/oa")
+   }
 })
 const cancelClicked = (() => {
    oaRepo.cancel()

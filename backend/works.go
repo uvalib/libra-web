@@ -4,11 +4,46 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path"
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 )
+
+func (svc *serviceContext) getETDWork(c *gin.Context) {
+	workID := c.Param("id")
+	log.Printf("INFO: get etd work %s", workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.etd, workID, uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespaces.etd, workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	mdBytes, err := tgtObj.Metadata().Payload()
+	if err != nil {
+		log.Printf("ERROR: unable to get metadata paload from respose: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	parsedETDWork, err := librametadata.ETDWorkFromBytes(mdBytes)
+	if err != nil {
+		log.Printf("ERROR: unable to process paypad from work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	resp := versionedETD{ID: tgtObj.Id(), Version: tgtObj.VTag(), ETDWork: parsedETDWork, CreatedAt: tgtObj.Created(), ModifiedAt: tgtObj.Modified()}
+	for _, etdFile := range tgtObj.Files() {
+		log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
+		resp.Files = append(resp.Files, librametadata.FileData{Name: etdFile.Name(), MimeType: etdFile.MimeType(), CreatedAt: etdFile.Created()})
+	}
+
+	c.JSON(http.StatusOK, resp)
+
+}
 
 func (svc *serviceContext) getOAWork(c *gin.Context) {
 	workID := c.Param("id")
@@ -34,11 +69,9 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	}
 
 	resp := versionedOA{ID: tgtObj.Id(), Version: tgtObj.VTag(), OAWork: parsedOAWork, CreatedAt: tgtObj.Created(), ModifiedAt: tgtObj.Modified()}
-	resp.Files = make([]string, 0)
-
 	for _, oaFile := range tgtObj.Files() {
 		log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())
-		resp.Files = append(resp.Files, oaFile.Name())
+		resp.Files = append(resp.Files, librametadata.FileData{Name: oaFile.Name(), MimeType: oaFile.MimeType(), CreatedAt: oaFile.Created()})
 	}
 
 	c.JSON(http.StatusOK, resp)
@@ -92,7 +125,61 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 		return
 	}
 
-	c.String(http.StatusNotImplemented, "not implemented")
+	log.Printf("INFO: load existing oa work %s", workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.oa, workID, uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: get oa work %s for update failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// update the metadata with newly submitted info
+	tgtObj.SetMetadata(oaSub.Work)
+
+	// get a list of the files currently  attached to the work and remove those that have been deleted
+	esFiles := tgtObj.Files()
+	for _, fn := range oaSub.DelFiles {
+		for fIdx, origF := range esFiles {
+			if origF.Name() == fn {
+				log.Printf("INFO: remove file %s from oa work %s", fn, workID)
+				esFiles = append(esFiles[:fIdx], esFiles[fIdx+1:]...)
+				break
+			}
+		}
+	}
+
+	// newly uploaded files are in a tmp dir named by the ID of the OA work
+	if len(oaSub.AddFiles) > 0 {
+		log.Printf("INFO: adding %v to oa work %s", oaSub.AddFiles, workID)
+		uploadDir := path.Join("/tmp", workID)
+		addedFiles, err := getSubmittedFiles(uploadDir, oaSub.AddFiles)
+		if err != nil {
+			log.Printf("ERROR: unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		esFiles = append(esFiles, addedFiles...)
+		log.Printf("INFO: updated files %+v", esFiles)
+		tgtObj.SetFiles(esFiles)
+		log.Printf("INFO: cleanup upload directory %s", uploadDir)
+		os.RemoveAll(uploadDir)
+	}
+
+	// update fields
+	fields := tgtObj.Fields()
+	fields["depositor"] = oaSub.Work.Authors[0].ComputeID
+	fields["title"] = oaSub.Work.Title
+	fields["publisher"] = oaSub.Work.Publisher
+	fields["resourceType"] = oaSub.Work.ResourceType
+	tgtObj.SetFields(fields)
+
+	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
+
+	resp := versionedOA{ID: tgtObj.Id(), Version: updatedObj.VTag(), OAWork: &oaSub.Work, CreatedAt: updatedObj.Created(), ModifiedAt: updatedObj.Modified()}
+	for _, file := range updatedObj.Files() {
+		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
+	}
+	c.JSON(http.StatusOK, resp)
 }
 
 func (svc *serviceContext) etdUpdate(c *gin.Context) {

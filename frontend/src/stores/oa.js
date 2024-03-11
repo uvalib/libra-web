@@ -8,7 +8,7 @@ export const useOAStore = defineStore('oa', {
       depositToken: "",
       work: {},
       pendingFileAdd: [],
-      pendingFileDel: []
+      pendingFileDel: [],
    }),
    actions: {
       initSubmission(compID, firstName, lastName, department) {
@@ -58,11 +58,10 @@ export const useOAStore = defineStore('oa', {
             this.pendingFileAdd.splice(pendingIdx, 1)
             axios.delete(`/api/${this.depositToken}/${file}`)
          } else {
+            console.log("delete previously added file "+file)
             // This file has already been submitted. remove it from the files
-            // list and added to a pending delete list. When the update is submitted
-            // the files on the pending delete list will be removed from the store.
-            // this allows file deletions to be canceled,
-            let idx = this.work.files.findIndex( f => f == file)
+            // list. When the update is submitted the files will be replaced with those in the file list
+            let idx = this.work.files.findIndex( f => f.name == file)
             if ( idx > -1) {
                this.work.files.splice(idx, 1)
                this.pendingFileDel.push(file)
@@ -83,9 +82,16 @@ export const useOAStore = defineStore('oa', {
          })
       },
       async update( ) {
-         const system = useSystemStore()
-         system.setError(  "not yet implemented" )
-         this.working = false
+         this.working = true
+         let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel}
+         return axios.put(`/api/works/oa/${this.work.id}`, payload).then(response => {
+            this.work = response.data
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
       },
       async getWork(id) {
          this.working = true

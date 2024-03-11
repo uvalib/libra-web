@@ -9,8 +9,8 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/xid v1.5.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240307124950-986a43361622
-	github.com/uvalib/libra-metadata v0.0.0-20240307162128-01094600c83a
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240311165238-30328f89b5e5
+	github.com/uvalib/libra-metadata v0.0.0-20240311172233-268a6cd72638
 )
 
 require (

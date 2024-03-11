@@ -17,30 +17,30 @@ import (
 type oaWorkRequest struct {
 	Work     librametadata.OAWork `json:"work"`
 	AddFiles []string             `json:"addFiles"`
-	DelFiles []string             `json:"deliles"`
+	DelFiles []string             `json:"delFiles"`
 }
 
 type etdWorkRequest struct {
 	Work     librametadata.ETDWork `json:"work"`
 	AddFiles []string              `json:"addFiles"`
-	DelFiles []string              `json:"deliles"`
+	DelFiles []string              `json:"delFiles"`
 }
 
 type versionedOA struct {
-	ID         string    `json:"id"`
-	Version    string    `json:"version"`
-	CreatedAt  time.Time `json:"createdAt"`
-	ModifiedAt time.Time `json:"modifiedAt"`
-	Files      []string  `json:"files"`
+	ID         string                   `json:"id"`
+	Version    string                   `json:"version"`
+	CreatedAt  time.Time                `json:"createdAt"`
+	ModifiedAt time.Time                `json:"modifiedAt"`
+	Files      []librametadata.FileData `json:"files"`
 	*librametadata.OAWork
 }
 
 type versionedETD struct {
-	ID         string    `json:"id"`
-	Version    string    `json:"version"`
-	CreatedAt  time.Time `json:"createdAt"`
-	ModifiedAt time.Time `json:"modifiedAt"`
-	Files      []string  `json:"files"`
+	ID         string                   `json:"id"`
+	Version    string                   `json:"version"`
+	CreatedAt  time.Time                `json:"createdAt"`
+	ModifiedAt time.Time                `json:"modifiedAt"`
+	Files      []librametadata.FileData `json:"files"`
 	*librametadata.ETDWork
 }
 
@@ -88,8 +88,10 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := versionedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: &etdSub.Work,
-		Files: etdSub.AddFiles, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	resp := versionedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: &etdSub.Work, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	for _, file := range obj.Files() {
+		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
+	}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -133,8 +135,10 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: &oaSub.Work,
-		Files: oaSub.AddFiles, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	resp := versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: &oaSub.Work, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	for _, file := range obj.Files() {
+		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
+	}
 	c.JSON(http.StatusOK, resp)
 }
 
