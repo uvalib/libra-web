@@ -57,7 +57,8 @@ onMounted( () => {
 })
 
 const editWorkClicked = ( (id) => {
-
+   let url = `/etd/${id}`
+   router.push(url)
 })
 
 const hackWorkClicked = (() => {

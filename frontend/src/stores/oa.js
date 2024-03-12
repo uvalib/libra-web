@@ -67,12 +67,12 @@ export const useOAStore = defineStore('oa', {
                this.pendingFileDel.push(file)
             }
          }
-
       },
       async downloadFile( name ) {
-         return axios.get(`/api/works/oa/${this.work.id}/files/${name}`).then((response) => {
-            const fileURL = window.URL.createObjectURL(new Blob([response.data]));
-            const fileLink = document.createElement('a');
+         return axios.get(`/api/works/oa/${this.work.id}/files/${name}`,{responseType: "blob"}).then((response) => {
+            let ct = response.headers["content-type"]
+            const fileURL = window.URL.createObjectURL(new Blob([response.data], {type: ct}))
+            const fileLink = document.createElement('a')
 
             fileLink.href = fileURL;
             fileLink.setAttribute('download', response.headers["content-disposition"].split("filename=")[1])
@@ -96,6 +96,8 @@ export const useOAStore = defineStore('oa', {
             const system = useSystemStore()
             system.setError(  err )
             this.working = false
+            this.pendingFileAdd = []
+            this.pendingFileDel = []
          })
       },
       async update( ) {
@@ -104,6 +106,8 @@ export const useOAStore = defineStore('oa', {
          return axios.put(`/api/works/oa/${this.work.id}`, payload).then(response => {
             this.work = response.data
             this.working = false
+            this.pendingFileAdd = []
+            this.pendingFileDel = []
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

@@ -7,23 +7,27 @@ export const useETDStore = defineStore('etd', {
       working: false,
       depositToken: "",
       work: {},
+      pendingFileAdd: [],
+      pendingFileDel: [],
    }),
    actions: {
-      initNewSubmission(compID, firstName, lastName, program) {
-         this.work.title = "ETDTitle",
+      initSubmission(compID, firstName, lastName, program) {
+         this.work.title = "",
          this.work.author = {computeID: compID, firstName: firstName, lastName: lastName, program: program, institution: "University of Virginia"},
          this.work.advisors = [{computeID: "", firstName: "", lastName: "", department: "", institution: "University of Virginia", msg: ""}]
-         this.work.abstract = "ABS"
-         this.work.license = "1"
-         this.work.language = "English"
-         this.work.keywords = ["key1"]
-         this.work.relatedURLs = ["fake_url"]
-         this.work.sponsors = ["sponsor"]
-         this.work.notes = "note text"
+         this.work.abstract = ""
+         this.work.license = ""
+         this.work.language = ""
+         this.work.keywords = []
+         this.work.relatedURLs = []
+         this.work.sponsors = []
+         this.work.notes = ""
          this.work.degree = "MA (Master of Arts)"
          this.work.dateCreated = new Date()
          this.work.files = []
          this.work.visibility = ""
+         this.pendingFileAdd = []
+         this.pendingFileDel = []
       },
       async getDepositToken() {
          this.depositToken = ""
@@ -39,16 +43,68 @@ export const useETDStore = defineStore('etd', {
          this.depositToken = ""
       },
       addFile( file ) {
-         this.work.files.push( file )
+         this.pendingFileAdd.push( file )
       },
       removeFile( file) {
-         axios.delete(`/api/${this.depositToken}/${file}`)
-      } ,
+         let pendingIdx = this.pendingFileAdd.findIndex( f => f == file )
+         if ( pendingIdx > -1) {
+            // this file has not been attached to a work in easystore; just remove
+            // if from the pending add list and delete the version that was uploaded to temp storage
+            this.pendingFileAdd.splice(pendingIdx, 1)
+            axios.delete(`/api/${this.depositToken}/${file}`)
+         } else {
+            console.log("delete previously added file "+file)
+            // This file has already been submitted. remove it from the files
+            // list. When the update is submitted the files will be replaced with those in the file list
+            let idx = this.work.files.findIndex( f => f.name == file)
+            if ( idx > -1) {
+               this.work.files.splice(idx, 1)
+               this.pendingFileDel.push(file)
+            }
+         }
+      },
+      async downloadFile( name ) {
+         return axios.get(`/api/works/etd/${this.work.id}/files/${name}`,{responseType: "blob"}).then((response) => {
+            let ct = response.headers["content-type"]
+            const fileURL = window.URL.createObjectURL(new Blob([response.data], {type: ct}))
+            const fileLink = document.createElement('a')
+
+            fileLink.href = fileURL;
+            fileLink.setAttribute('download', response.headers["content-disposition"].split("filename=")[1])
+            document.body.appendChild(fileLink);
+
+            fileLink.click();
+            window.URL.revokeObjectURL(fileURL);
+
+         }).catch((error) => {
+            const system = useSystemStore()
+            system.setError( error)
+         })
+      },
       async deposit( ) {
          this.working = true
-         return axios.post(`/api/submit/etd/${this.depositToken}`, this.work).then(response => {
+         let payload = {work: this.work, addFiles: this.pendingFileAdd}
+         return axios.post(`/api/submit/etd/${this.depositToken}`, payload).then(response => {
             this.work = response.data
             this.working = false
+            this.pendingFileAdd = []
+            this.pendingFileDel = []
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
+      async update( ) {
+         this.working = true
+         let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel}
+         let url = `/api/works/etd/${this.work.id}`
+         console.log(url)
+         return axios.put(url, payload).then(response => {
+            this.work = response.data
+            this.working = false
+            this.pendingFileAdd = []
+            this.pendingFileDel = []
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

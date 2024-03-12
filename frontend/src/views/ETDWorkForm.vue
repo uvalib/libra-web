@@ -2,12 +2,15 @@
    <div class="scroll-body">
       <div class="form" id="etd-form-layout">
          <div class="sidebar-col">
-            <SavePanel type="etd" mode="edit" :described="workDescribed" :files="etdRepo.work.files.length > 0"
-               @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked" ref="savepanel"/>
+            <SavePanel v-if="etdRepo.working==false"
+               type="etd" mode="edit" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
+               @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked"
+               ref="savepanel"  :visibility="etdRepo.work.visibility"/>/>
          </div>
 
-         <Panel header="Edit Work" class="main-form">
-            <FormKit ref="etdForm" type="form" :actions="false" @submit="submitHandler">
+         <Panel :header="panelTitle" class="main-form">
+            <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
+            <FormKit v-else ref="etdForm" type="form" :actions="false" @submit="submitHandler">
                <div class="two-col margin-bottom">
                   <div class="readonly">
                      <label>Degree:</label>
@@ -125,6 +128,28 @@
 
                <FormKit label="Notes" type="textarea" v-model="etdRepo.work.notes" rows="10"/>
 
+               <template v-if="isNewSubmission==false">
+                  <label class="libra-form-label">Previously Uploaded Files</label>
+                  <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
+                        stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+                        :lazy="false" :paginator="true" :alwaysShowPaginator="false"
+                        :rows="30" :totalRecords="etdRepo.work.files.length"
+                        paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+                        :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
+                        currentPageReportTemplate="{first} - {last} of {totalRecords}"
+                     >
+                     <Column field="name" header="Name" />
+                     <Column field="createdAt" header="Date Uploaded" >
+                        <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+                     </Column>
+                     <Column  header="Actions" >
+                        <template #body="slotProps">
+                           <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" text @click="deleteFileClicked(slotProps.data.name)"/>
+                           <Button class="action" icon="pi pi-cloud-download" label="Download" severity="secondary" text @click="downloadFileClicked(slotProps.data.name)"/>
+                        </template>
+                     </Column>
+                  </DataTable>
+               </template>
                <label class="libra-form-label">Files</label>
                <FileUpload name="file" :url="`/api/upload/${etdRepo.depositToken}`"
                   @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
@@ -150,6 +175,10 @@ import { useUserStore } from "@/stores/user"
 import { useETDStore } from "@/stores/etd"
 import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
+import WaitSpinner from "@/components/WaitSpinner.vue"
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import { useConfirm } from "primevue/useconfirm"
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
@@ -173,12 +202,13 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
    }
 }))
 
+const confirm = useConfirm()
 const router = useRouter()
 const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
 const etdRepo = useETDStore()
-
+const panelTitle = ref("Add New Work")
 const etdForm = ref(null)
 const savepanel = ref(null)
 const nextURL =  ref("/etd")
@@ -189,6 +219,9 @@ const workDescribed = computed( () => {
    }
    return false
 })
+const isNewSubmission = computed(() => {
+   return route.params.id == "new"
+})
 
 onBeforeMount( async () => {
    document.title = "LibraETD"
@@ -196,11 +229,13 @@ onBeforeMount( async () => {
       router.push("/forbidden")
       return
    }
-   if ( route.params.id == "new") {
-      etdRepo.initNewSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
-      await etdRepo.getDepositToken()
+
+   etdRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
+   if ( isNewSubmission.value == false) {
+      panelTitle.value = "Edit Work"
+      await etdRepo.getWork( route.params.id )
    } else {
-      alert("LOAD SUB")
+      await etdRepo.getDepositToken()
    }
 })
 
@@ -254,7 +289,20 @@ const removeAgency = ((idx)=> {
 const addAgency = ( () => {
    etdRepo.work.sponsors.push("")
 })
-
+const deleteFileClicked = ( (name) => {
+   confirm.require({
+      message: `Delete file ${name}?`,
+      header: 'Confirm Delete',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: (  ) => {
+         etdRepo.removeFile(name)
+      },
+   })
+})
+const downloadFileClicked = ( (name) => {
+   etdRepo.downloadFile(name)
+})
 const saveAndContinueClicked= ( async (visibility) => {
    nextURL.value = "/etd" // TODO go to display form
    etdRepo.work.visibility = visibility
@@ -266,8 +314,14 @@ const saveAndExitClicked = ( (visibility) => {
    etdForm.value.node.submit()
 })
 const submitHandler = ( async () => {
-   await etdRepo.deposit()
-   router.push("/etd")
+   if ( isNewSubmission.value ) {
+      await etdRepo.deposit( )
+   } else {
+      await etdRepo.update( )
+   }
+   if ( system.showError == false ) {
+      router.push("/etd")
+   }
 })
 const cancelClicked = (() => {
    etdRepo.cancel()
@@ -319,6 +373,10 @@ const cancelClicked = (() => {
 .scroll-body {
    display: block;
    position: relative;
+}
+
+.action {
+   margin-right: 15px;
 }
 
 .form {

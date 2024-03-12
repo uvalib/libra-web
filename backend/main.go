@@ -52,7 +52,8 @@ func main() {
 		api.PUT("/works/oa/:id", svc.oaUpdate)
 		api.DELETE("/works/oa/:id", svc.deleteOAWork)
 
-		api.GET("/works/eid/:id", svc.getETDWork)
+		api.GET("/works/etd/:id", svc.getETDWork)
+		api.GET("/works/etd/:id/files/:name", svc.downloadETDFile)
 		api.PUT("/works/etd/:id", svc.etdUpdate)
 		api.DELETE("/works/etd/:id", svc.deleteETDWork)
 		api.GET("/works/search", svc.searchWorks)
