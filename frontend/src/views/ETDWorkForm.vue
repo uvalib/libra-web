@@ -151,7 +151,7 @@
                   </DataTable>
                </template>
                <label class="libra-form-label">Files</label>
-               <FileUpload name="file" :url="`/api/upload/${etdRepo.depositToken}`"
+               <FileUpload name="file" :url="`/api/upload/${uploadToken}`"
                   @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                   @removeUploadedFile="fileRemoved($event)"
                   :multiple="true" :withCredentials="true" :auto="true"
@@ -221,6 +221,12 @@ const workDescribed = computed( () => {
 })
 const isNewSubmission = computed(() => {
    return route.params.id == "new"
+})
+const uploadToken = computed( () => {
+   if ( isNewSubmission.value) {
+      return etdRepo.depositToken
+   }
+   return etdRepo.work.id
 })
 
 onBeforeMount( async () => {
