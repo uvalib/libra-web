@@ -14,7 +14,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	//    type=oa|etd, cid=compute_id, title=title
 	workType := c.Query("type")
 	computeID := c.Query("cid")
-	tgtTitle := c.Query("title")
+	//tgtTitle := c.Query("title")
 	namespace := ""
 	if workType == "oa" {
 		namespace = svc.Namespaces.oa
@@ -26,9 +26,9 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	if computeID != "" {
 		fields["depositor"] = computeID
 	}
-	if tgtTitle != "" {
-		fields["title"] = tgtTitle
-	}
+	//if tgtTitle != "" {
+	//	fields["title"] = tgtTitle
+	//}
 	log.Printf("INFO: find %s works with fields %v", namespace, fields)
 	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata)
 	if err != nil {
