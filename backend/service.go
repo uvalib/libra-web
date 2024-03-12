@@ -132,6 +132,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			DbTimeout:  30, // sorry, fix me later
 			BusName:    cfg.busName,
 			SourceName: cfg.eventSourceName,
+			Log:        log.Default(),
 		}
 		es, err := uvaeasystore.NewEasyStore(config)
 		if err != nil {

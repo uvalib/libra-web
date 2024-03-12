@@ -77,7 +77,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
 
-	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Id(), obj.Namespace())
+	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Namespace(), obj.Id())
 	_, err = svc.EasyStore.Create(obj)
 	if err != nil {
 		log.Printf("ERROR: easystore save failed: %s", err.Error())
@@ -124,7 +124,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
 
-	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Id(), obj.Namespace())
+	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Namespace(), obj.Id())
 	_, err = svc.EasyStore.Create(obj)
 	if err != nil {
 		log.Printf("ERROR: easystore save failed: %s", err.Error())
