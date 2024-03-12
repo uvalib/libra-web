@@ -71,8 +71,12 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
+
+	// TODO: need to add to this
+	fields["author"] = etdSub.Work.Author.ComputeID
 	fields["depositor"] = etdSub.Work.Author.ComputeID
-	fields["title"] = etdSub.Work.Title
+	fields["visibility"] = etdSub.Work.Visibility
+
 	obj.SetMetadata(etdSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
