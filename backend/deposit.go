@@ -15,15 +15,17 @@ import (
 )
 
 type oaWorkRequest struct {
-	Work     librametadata.OAWork `json:"work"`
-	AddFiles []string             `json:"addFiles"`
-	DelFiles []string             `json:"delFiles"`
+	Work      librametadata.OAWork `json:"work"`
+	AddFiles  []string             `json:"addFiles"`
+	DelFiles  []string             `json:"delFiles"`
+	Depositor string               `json:"depositor"`
 }
 
 type etdWorkRequest struct {
-	Work     librametadata.ETDWork `json:"work"`
-	AddFiles []string              `json:"addFiles"`
-	DelFiles []string              `json:"delFiles"`
+	Work      librametadata.ETDWork `json:"work"`
+	AddFiles  []string              `json:"addFiles"`
+	DelFiles  []string              `json:"delFiles"`
+	Depositor string                `json:"depositor"`
 }
 
 type versionedOA struct {
@@ -73,10 +75,10 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	fields := uvaeasystore.DefaultEasyStoreFields()
 
 	// TODO: need to add to this
+	fields["depositor"] = etdSub.Depositor
 	fields["author"] = etdSub.Work.Author.ComputeID
-	fields["depositor"] = etdSub.Work.Author.ComputeID
 	fields["visibility"] = etdSub.Work.Visibility
-
+	fields["create-date"] = time.Now().Format(time.RFC3339)
 	obj.SetMetadata(etdSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
@@ -120,10 +122,11 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = oaSub.Work.Authors[0].ComputeID
-	fields["title"] = oaSub.Work.Title
-	fields["publisher"] = oaSub.Work.Publisher
-	fields["resourceType"] = oaSub.Work.ResourceType
+	fields["depositor"] = oaSub.Depositor
+	fields["author"] = oaSub.Work.Authors[0].ComputeID
+	fields["resource-type"] = oaSub.Work.ResourceType
+	fields["visibility"] = oaSub.Work.Visibility
+	fields["create-date"] = time.Now().Format(time.RFC3339)
 	obj.SetMetadata(oaSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)

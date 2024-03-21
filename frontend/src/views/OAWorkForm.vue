@@ -367,7 +367,7 @@ const submitClicked = ( (visibility) => {
 })
 const submitHandler = ( async () => {
    if ( isNewSubmission.value ) {
-      await oaRepo.deposit( )
+      await oaRepo.deposit( user.computeID )
    } else {
       await oaRepo.update( )
    }

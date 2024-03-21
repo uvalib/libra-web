@@ -321,7 +321,7 @@ const saveAndExitClicked = ( (visibility) => {
 })
 const submitHandler = ( async () => {
    if ( isNewSubmission.value ) {
-      await etdRepo.deposit( )
+      await etdRepo.deposit( user.computeID )
    } else {
       await etdRepo.update( )
    }
