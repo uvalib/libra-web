@@ -73,7 +73,8 @@ const editWorkClicked = ( (id) => {
    router.push(url)
 })
 const previewWorkClicked = ( (id) => {
-
+   let url = `/public/oa/${id}`
+   router.push(url)
 })
 const deleteWorkClicked = ( (id) => {
    confirm.require({

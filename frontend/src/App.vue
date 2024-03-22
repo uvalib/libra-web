@@ -16,13 +16,12 @@
             <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
       </div>
-      <div class="user-header">
+      <div class="user-header" v-if="user.isSignedIn">
          <template v-if="route.path != '/'">
             <span class="dashboard" v-if="isDashboard">Dashboard</span>
             <router-link class="dashboard" v-else :to="dashboardLink">Dashboard</router-link>
          </template>
-         <span v-if="user.isSignedIn">{{ user.displayName }}</span>
-         <span v-else>Not signed in</span>
+         <span>{{ user.displayName }}</span>
       </div>
    </header>
 

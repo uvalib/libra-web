@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import OADashboard from '../views/OADashboard.vue'
 import OAWorkForm from '../views/OAWorkForm.vue'
+import OAPublicView from '../views/OAPublicView.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
 import Expired from '../views/Expired.vue'
@@ -51,6 +52,11 @@ const router = createRouter({
          component: OAWorkForm
       },
       {
+         path: '/public/oa/:id',
+         name: 'oapublic',
+         component: OAPublicView
+      },
+      {
          path: '/expired',
          name: "expired",
          component: Expired
@@ -70,7 +76,9 @@ const router = createRouter({
       return new Promise(resolve => {
          setTimeout( () => {
             let bar = document.getElementsByClassName("user-header")[0]
-            bar.classList.remove("sticky")
+            if ( bar ) {
+               bar.classList.remove("sticky")
+            }
             resolve({left: 0, top: 0})
          }, 100)
       })
@@ -78,7 +86,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to, _from, next) => {
-   console.log("BEFORE ROUTE "+to.path)
+   console.log("BEFORE ROUTE "+to.path+": "+to.name)
    const userStore = useUserStore()
    if (to.path == '/signedin') {
       let jwtStr = VueCookies.get("libra3_jwt")
@@ -96,7 +104,9 @@ router.beforeEach((to, _from, next) => {
       } else {
          next("/forbidden")
       }
-   } else if (to.name !== 'not_found' && to.name !== 'forbidden' && to.name !== "expired") {
+   } else if (
+      to.name !== 'not_found' && to.name !== 'forbidden' &&
+      to.name !== "expired" && to.name != "home" /*&& to.name != "oapublic"*/ ) {
       localStorage.setItem("prior_libra3_url", to.fullPath)
       let jwtStr = localStorage.getItem('libra3_jwt')
       console.log(`GOT JWT [${jwtStr}]`)

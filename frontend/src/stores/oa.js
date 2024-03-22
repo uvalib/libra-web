@@ -26,8 +26,8 @@ export const useOAStore = defineStore('oa', {
          this.work.publisher = "University of Virginia"
          this.work.citation = ""
          this.work.pubDate = ""
-         this.work.relatedURLs = []
-         this.work.sponsors = []
+         this.work.relatedURLs = [""]
+         this.work.sponsors = [""]
          this.work.notes = ""
          this.work.files = []
          this.work.visibility = ""
@@ -115,10 +115,12 @@ export const useOAStore = defineStore('oa', {
          })
       },
       async getWork(id) {
+         console.log("get...")
          this.working = true
          return axios.get(`/api/works/oa/${id}`).then(response => {
             this.work = response.data
             this.working = false
+            console.log("GOT WORK")
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

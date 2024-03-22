@@ -37,6 +37,15 @@ export const useSystemStore = defineStore('system', {
       etdResourceTypes: state => {
          return state.resourceTypes.filter( rt => rt.etd == true)
       },
+      licenseDetail: state => {
+         return (mode, id) => {
+            if ( mode == "oa") {
+               return state.licenses.filter( l => l.oa == true).find( oa => oa.value == id)
+            } else {
+               return state.licenses.filter( l => l.etd == true).find( oa => oa.value == id)
+            }
+         }
+      },
       oaLicenses: state => {
          return state.licenses.filter( rt => rt.oa == true)
       },
