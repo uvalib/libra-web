@@ -167,10 +167,9 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 
 	// update fields
 	fields := tgtObj.Fields()
-	fields["depositor"] = oaSub.Work.Authors[0].ComputeID
-	fields["title"] = oaSub.Work.Title
-	fields["publisher"] = oaSub.Work.Publisher
-	fields["resourceType"] = oaSub.Work.ResourceType
+	fields["author"] = oaSub.Work.Authors[0].ComputeID
+	fields["resource-type"] = oaSub.Work.ResourceType
+	fields["visibility"] = oaSub.Work.Visibility
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
@@ -285,8 +284,8 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 
 	// update fields
 	fields := tgtObj.Fields()
-	fields["depositor"] = etdReq.Work.Author.ComputeID
-	fields["title"] = etdReq.Work.Title
+	fields["author"] = etdReq.Work.Author.ComputeID
+	fields["visibility"] = etdReq.Work.Visibility
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)

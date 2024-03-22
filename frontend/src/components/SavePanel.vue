@@ -142,9 +142,12 @@ const canSubmit = computed(() =>{
       }
    }
    .agree {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
       margin: 25px 0;
       label {
-         margin-left: 10px;
+         margin-left: 15px;
       }
    }
    .button-bar {

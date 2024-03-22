@@ -5,7 +5,7 @@
             <SavePanel v-if="etdRepo.working==false"
                type="etd" mode="edit" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked"
-               ref="savepanel"  :visibility="etdRepo.work.visibility"/>/>
+               ref="savepanel"  :visibility="etdRepo.work.visibility"/>
          </div>
 
          <Panel :header="panelTitle" class="main-form">
@@ -208,7 +208,7 @@ const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
 const etdRepo = useETDStore()
-const panelTitle = ref("Add New Work")
+const panelTitle = ref("Add New LibraETD Work")
 const etdForm = ref(null)
 const savepanel = ref(null)
 const nextURL =  ref("/etd")
@@ -238,7 +238,7 @@ onBeforeMount( async () => {
 
    etdRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
    if ( isNewSubmission.value == false) {
-      panelTitle.value = "Edit Work"
+      panelTitle.value = "Edit LibraETD Work"
       await etdRepo.getWork( route.params.id )
    } else {
       await etdRepo.getDepositToken()

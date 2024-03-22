@@ -20,7 +20,9 @@
                   <template #header>
                      <span class="hdr">
                         <div>Authors</div>
-                        <Button label="Add Author" @click="addAuthor"/>
+                        <span>
+                           <Button label="Add Author" @click="addAuthor"/>
+                        </span>
                      </span>
                   </template>
                   <FormKit v-model="oaRepo.work.authors" type="list" dynamic #default="{ items }">
@@ -29,21 +31,37 @@
                      <div class="authors">
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
                            <div class="author">
-                              <div class="id-field">
-                                 <div class="search-field">
-                                    <FormKit type="text" name="computeID" label="Computing ID"/>
-                                    <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAuthorID(index)"/>
+                              <div class="titlebar">
+                                 <span>Author {{ index+1 }}</span>
+                                 <span class="buttons">
+                                    <Button :disabled="isMoveDisabled(index, 'down')" icon="pi pi-angle-down"
+                                    severity="secondary" aria-label="author down" @click="moveAuthor(index, 'down')"/>
+                                    <Button :disabled="isMoveDisabled(index, 'down')" icon="pi pi-angle-double-down"
+                                       severity="secondary" aria-label="author last" @click="moveAuthor(index, 'last')"/>
+                                    <Button :disabled="isMoveDisabled(index, 'up')" icon="pi pi-angle-up"
+                                       severity="secondary" aria-label="author up" @click="moveAuthor(index, 'up')"/>
+                                    <Button :disabled="isMoveDisabled(index, 'up')" icon="pi pi-angle-double-up"
+                                       severity="secondary" aria-label="author first" @click="moveAuthor(index, 'first')"/>
+                                    <Button :disabled="oaRepo.work.authors.length==1" icon="pi pi-trash"
+                                       severity="danger" aria-label="remove author" @click="removeAuthor(index)"/>
+                                 </span>
+                              </div>
+                              <div class="fields">
+                                 <div class="id-field">
+                                    <div class="search-field">
+                                       <FormKit type="text" name="computeID" label="Computing ID" outer-class="first"/>
+                                       <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAuthorID(index)"/>
+                                    </div>
                                  </div>
-                                 <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove author" @click="removeAuthor(index)"/>
-                              </div>
-                              <p v-if="oaRepo.work.authors[index].msg != ''" class="err">{{ oaRepo.work.authors[index].msg }}</p>
-                              <div class="two-col">
-                                 <FormKit type="text" name="firstName" label="First Name"/>
-                                 <FormKit type="text" name="lastName" label="Last Name"/>
-                              </div>
-                              <div class="two-col">
-                                 <FormKit type="text" name="department" label="Department"/>
-                                 <FormKit type="text" name="institution" label="Institution"/>
+                                 <p v-if="oaRepo.work.authors[index].msg != ''" class="err">{{ oaRepo.work.authors[index].msg }}</p>
+                                 <div class="two-col">
+                                    <FormKit type="text" name="firstName" label="First Name"/>
+                                    <FormKit type="text" name="lastName" label="Last Name"/>
+                                 </div>
+                                 <div class="two-col">
+                                    <FormKit type="text" name="department" label="Department"/>
+                                    <FormKit type="text" name="institution" label="Institution"/>
+                                 </div>
                               </div>
                            </div>
                         </FormKit>
@@ -98,7 +116,7 @@
                   </template>
                   <FormKit v-model="oaRepo.work.contributors" type="list" dynamic #default="{ items }">
                      <p class="note">The person(s) responsible for contributing to the development of the resource, such as editor or producer (not an author).</p>
-                     <div class="authors">
+                     <div class="contributors">
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
                            <div class="author">
                               <div class="id-field">
@@ -240,7 +258,7 @@ const oaRepo = useOAStore()
 
 const oaForm = ref(null)
 const savepanel = ref(null)
-const panelTitle = ref("Add New Work")
+const panelTitle = ref("Add New LibraOpen Work")
 
 const workDescribed = computed( () => {
    if ( oaForm.value ) {
@@ -267,10 +285,36 @@ onBeforeMount( async () => {
 
    oaRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
    if ( isNewSubmission.value == false) {
-      panelTitle.value = "Edit Work"
+      panelTitle.value = "Edit LibraOpen Work"
       await oaRepo.getWork( route.params.id )
    } else {
       await oaRepo.getDepositToken()
+   }
+})
+
+const isMoveDisabled = ( (index, direction) => {
+   let authCnt = oaRepo.work.authors.length
+   if ( authCnt == 1 ) return true
+   if ( index == 0 && direction == "up") return true
+   if ( index == (authCnt-1) && direction == "down") return true
+   return false
+})
+const moveAuthor = ( (index, direction) => {
+   let tgtAuth = oaRepo.work.authors[index]
+   if (direction == "down" ) {
+      let auth2 =  oaRepo.work.authors[index+1]
+      oaRepo.work.authors[index] = auth2
+      oaRepo.work.authors[index+1] = tgtAuth
+   } else if (direction == "last" ) {
+      oaRepo.work.authors.splice(index,1)
+      oaRepo.work.authors.push(tgtAuth)
+   } else if (direction == "up" ) {
+      let auth2 =  oaRepo.work.authors[index-1]
+      oaRepo.work.authors[index] = auth2
+      oaRepo.work.authors[index-1] = tgtAuth
+   } else if (direction == "first" ) {
+       oaRepo.work.authors.splice(index,1)
+      oaRepo.work.authors.unshift(tgtAuth)
    }
 })
 
@@ -459,14 +503,42 @@ const cancelClicked = (() => {
          button {
             font-size: 0.8em;
             padding: 5px 10px;
+            margin-right: 5px;
+         }
+      }
+      .contributors {
+         padding: 0;
+         .author {
+            position: relative;
+            border-top: 1px solid var(--uvalib-grey-light);
+            margin-top: 20px;
          }
       }
       .authors {
          padding: 0;
          .author {
             position: relative;
-            border-top: 1px solid var(--uvalib-grey-light);
+            border: 1px solid var(--uvalib-grey-light);
+            border-radius: 5px;
             margin-top: 20px;
+            .titlebar {
+               margin: 0;
+               background: #fcfcfc;
+               padding: 4px 8px;
+               border-radius: 5px 5px 0 0;
+               border-bottom: 1px solid var(--uvalib-grey-light);
+               display: flex;
+               flex-flow: row wrap;
+               justify-content: space-between;
+               align-items: center;
+               button {
+                  margin-left: 5px;
+                  border-radius: 20px;
+               }
+            }
+            .fields {
+               padding: 10px;
+            }
          }
       }
    }
