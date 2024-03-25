@@ -2,68 +2,75 @@
    <div class="work-bkg"></div>
    <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
    <div v-else class="public-work">
-      <div class="files">
-         <Fieldset legend="Files">
-            <div class="file" v-for="file in oaRepo.work.files">
-               <div>{{ file.name }}</div>
-               <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
-            </div>
-         </Fieldset>
+      <div v-if="oaRepo.error" class="error">
+         <h2>System Error</h2>
+         <p>Sorry, a system error has occurred!</p>
+         <p>{{ oaRepo.error }}</p>
       </div>
-      <div class="details">
-         <div class="title" role="heading">{{ oaRepo.work.title }}</div>
-         <Fieldset class="author-fieldset">
-            <template #legend>
-               <div class="author-header">
-                  <span class="legend">Authors:</span>
-                  <span class="type">{{ oaRepo.work.resourceType }}</span>
+      <template v-else>
+         <div class="files">
+            <Fieldset legend="Files">
+               <div class="file" v-for="file in oaRepo.work.files">
+                  <div>{{ file.name }}</div>
+                  <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
                </div>
-            </template>
-            <div v-for="author in  oaRepo.work.authors" class="author">
-               <p>{{ authorDisplay(author) }}</p>
-               <p>{{ author.institution }}</p>
-            </div>
-         </Fieldset>
-         <Fieldset legend="Abstract:">{{  oaRepo.work.abstract }}</Fieldset>
-         <Fieldset v-if="oaRepo.hasKeywords" legend="Keywords:">
-            {{ oaRepo.work.keywords.join(", ") }}
-         </Fieldset>
-         <Fieldset legend="Rights:">
-            <a :href="system.licenseDetail('oa', oaRepo.work.license).url" target="_blank">
-               {{ system.licenseDetail("oa", oaRepo.work.license).label }}
-            </a>
-         </Fieldset>
-         <Fieldset v-if="oaRepo.hasContributors" legend="Contributors:">
-            <div v-for="contributor in  oaRepo.work.contributors" class="author">
-               <p>{{ authorDisplay(contributor) }}</p>
-               <p>{{ contributor.institution }}</p>
-            </div>
-         </Fieldset>
-         <Fieldset v-if="oaRepo.hasLanguages" legend="Languages:">
-            {{ oaRepo.work.languages.join(", ") }}
-         </Fieldset>
-         <Fieldset v-if="oaRepo.work.citation" legend="Source Citation::">
-            {{ oaRepo.work.citation }}
-         </Fieldset>
-         <Fieldset legend="Publisher:">{{  oaRepo.work.publisher }}</Fieldset>
-         <Fieldset v-if="oaRepo.work.pubDate" legend="Published Date:">{{  oaRepo.work.pubDate }}</Fieldset>
-         <Fieldset v-if="oaRepo.hasRelatedURLs" legend="Related Links:">
-            <ul>
-               <li v-for="url in oaRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
-            </ul>
-         </Fieldset>
-         <Fieldset v-if="oaRepo.hasSponsors" legend="Sponsoring Agency:">
-            <div v-for="s in oaRepo.work.sponsors">{{ s }}</div>
-         </Fieldset>
-         <Fieldset v-if="oaRepo.work.notes" legend="Notes:">{{  oaRepo.work.notes }}</Fieldset>
-         <!--
-         <%= display_doi_link( @work ) %> -->
-      </div>
+            </Fieldset>
+         </div>
+         <div class="details">
+            <div class="title" role="heading">{{ oaRepo.work.title }}</div>
+            <Fieldset class="author-fieldset">
+               <template #legend>
+                  <div class="author-header">
+                     <span class="legend">Authors:</span>
+                     <span class="type">{{ oaRepo.work.resourceType }}</span>
+                  </div>
+               </template>
+               <div v-for="author in  oaRepo.work.authors" class="author">
+                  <p>{{ authorDisplay(author) }}</p>
+                  <p>{{ author.institution }}</p>
+               </div>
+            </Fieldset>
+            <Fieldset legend="Abstract:">{{  oaRepo.work.abstract }}</Fieldset>
+            <Fieldset v-if="oaRepo.hasKeywords" legend="Keywords:">
+               {{ oaRepo.work.keywords.join(", ") }}
+            </Fieldset>
+            <Fieldset legend="Rights:">
+               <a :href="system.licenseDetail('oa', oaRepo.work.license).url" target="_blank">
+                  {{ system.licenseDetail("oa", oaRepo.work.license).label }}
+               </a>
+            </Fieldset>
+            <Fieldset v-if="oaRepo.hasContributors" legend="Contributors:">
+               <div v-for="contributor in  oaRepo.work.contributors" class="author">
+                  <p>{{ authorDisplay(contributor) }}</p>
+                  <p>{{ contributor.institution }}</p>
+               </div>
+            </Fieldset>
+            <Fieldset v-if="oaRepo.hasLanguages" legend="Languages:">
+               {{ oaRepo.work.languages.join(", ") }}
+            </Fieldset>
+            <Fieldset v-if="oaRepo.work.citation" legend="Source Citation::">
+               {{ oaRepo.work.citation }}
+            </Fieldset>
+            <Fieldset legend="Publisher:">{{  oaRepo.work.publisher }}</Fieldset>
+            <Fieldset v-if="oaRepo.work.pubDate" legend="Published Date:">{{  oaRepo.work.pubDate }}</Fieldset>
+            <Fieldset v-if="oaRepo.hasRelatedURLs" legend="Related Links:">
+               <ul>
+                  <li v-for="url in oaRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
+               </ul>
+            </Fieldset>
+            <Fieldset v-if="oaRepo.hasSponsors" legend="Sponsoring Agency:">
+               <div v-for="s in oaRepo.work.sponsors">{{ s }}</div>
+            </Fieldset>
+            <Fieldset v-if="oaRepo.work.notes" legend="Notes:">{{  oaRepo.work.notes }}</Fieldset>
+            <!--
+            <%= display_doi_link( @work ) %> -->
+         </div>
+      </template>
    </div>
 </template>
 
 <script setup>
-import { ref, onBeforeMount, computed } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useOAStore } from "@/stores/oa"
@@ -92,6 +99,11 @@ onBeforeMount( async () => {
       flex-flow: row nowrap;
       justify-content: center;
       align-items: flex-start;
+      div.error {
+         max-width: 60%;
+         margin: 50px auto 0 auto;
+         box-shadow: 0 0 15px 5px black;
+      }
       div.details {
          max-width: 640px;
          padding: 30px;
@@ -119,6 +131,10 @@ onBeforeMount( async () => {
    div.public-work {
       display: flex;
       flex-direction: column-reverse;
+      div.error {
+         max-width: 100%;
+         margin: 5px;
+      }
       div.details {
          max-width: none;
          padding: 20px;
@@ -157,6 +173,20 @@ div.work-bkg {
 div.public-work {
    position: relative;
    min-height: 300px;
+
+   div.error {
+      border-radius: 5px;
+      background-color: white;
+      border: 5px solid var(--uvalib-red-dark);
+      padding: 25px;
+      p {
+         text-align: left;
+      }
+      h2 {
+         margin: 0 0 15px 0 !important;
+         padding: 0;
+      }
+   }
 
    fieldset.p-fieldset {
       border: none;

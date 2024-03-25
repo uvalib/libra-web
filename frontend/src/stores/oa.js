@@ -5,6 +5,7 @@ import { useSystemStore } from './system'
 export const useOAStore = defineStore('oa', {
    state: () => ({
       working: false,
+      error: "",
       depositToken: "",
       work: {},
       pendingFileAdd: [],
@@ -34,7 +35,27 @@ export const useOAStore = defineStore('oa', {
       },
    },
    actions: {
+      async getWork(id) {
+         this.error = ""
+         this.working = true
+         return axios.get(`/api/works/oa/${id}`).then(response => {
+            this.work = response.data
+            if ( this.work.keywords.length == 0) this.work.keywords.push("")
+            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
+            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
+            this.working = false
+         }).catch( err => {
+            if (err.response.status == 404) {
+               this.router.push("/not_found")
+               this.working = false
+            } else {
+               this.error = err
+               this.working = false
+            }
+         })
+      },
       initSubmission(compID, firstName, lastName, department) {
+         this.error = ""
          this.work.resourceType = "Book"
          this.work.title = ""
          this.work.authors = [{
@@ -134,21 +155,6 @@ export const useOAStore = defineStore('oa', {
             this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []
-         }).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
-            this.working = false
-         })
-      },
-      async getWork(id) {
-         console.log("get...")
-         this.working = true
-         return axios.get(`/api/works/oa/${id}`).then(response => {
-            this.work = response.data
-            if ( this.work.keywords.length == 0) this.work.keywords.push("")
-            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
-            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
-            this.working = false
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

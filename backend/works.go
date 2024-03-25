@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
@@ -51,7 +52,11 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.oa, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespaces.oa, workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
+		if strings.Contains(err.Error(), "not exist") {
+			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
+		} else {
+			c.String(http.StatusInternalServerError, err.Error())
+		}
 		return
 	}
 
