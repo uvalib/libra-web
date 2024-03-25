@@ -86,6 +86,64 @@ onBeforeMount( async () => {
 </script>
 
 <style lang="scss" scoped>
+@media only screen and (min-width: 768px) {
+   div.public-work {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: center;
+      align-items: flex-start;
+      div.details {
+         max-width: 640px;
+         padding: 30px;
+         margin: 20px;
+         border: 1px solid var(--uvalib-grey-light);
+         box-shadow: 0 0 2px #b9b9b9;
+         .author-header {
+            .type {
+               font-size: 0.85em;
+               font-weight: normal;
+               padding: 4px 10px;
+            }
+         }
+      }
+      div.files {
+         width: 250px;
+         margin-top: 320px;
+      }
+   }
+}
+@media only screen and (max-width: 768px) {
+   div.work-bkg {
+      display: none;
+   }
+   div.public-work {
+      display: flex;
+      flex-direction: column-reverse;
+      div.details {
+         max-width: none;
+         padding: 20px;
+         border-radius: 3px;
+         margin: 10px;
+         .author-header {
+            .type {
+               font-size: 0.75em;
+               font-weight: bold;
+               padding: 2px 8px;
+            }
+         }
+         ul {
+            margin: 0;
+            padding: 0 0 0 15px;
+         }
+      }
+      div.files {
+         width: 100%;
+         margin-top: 10px;
+         border-top: 1px solid var(--uvalib-grey-light);
+         padding: 20px;
+      }
+   }
+}
 div.work-bkg {
    background-image: url('@/assets/header.jpg');
    background-position: center center;
@@ -97,10 +155,6 @@ div.work-bkg {
    right: 0;
 }
 div.public-work {
-   display: flex;
-   flex-flow: row nowrap;
-   justify-content: center;
-   align-items: flex-start;
    position: relative;
    min-height: 300px;
 
@@ -120,8 +174,6 @@ div.public-work {
       font-family: 'Open Sans', sans-serif;
       background: white;
       text-align: left;
-      width: 250px;
-      margin-top: 320px;
       .file {
          margin-left: 10px;
          div {
@@ -138,12 +190,7 @@ div.public-work {
       font-family: 'Open Sans', sans-serif;
       background: white;
       text-align: left;
-      border: 1px solid var(--uvalib-grey-light);
-      box-shadow: 0 0 2px #b9b9b9;
-      max-width: 640px;
-      padding: 30px;
       border-radius: 3px;
-      margin: 20px;
 
       .author-fieldset {
          :deep(legend.p-fieldset-legend) {
@@ -157,12 +204,9 @@ div.public-work {
                font-weight: bold;
             }
             .type {
-               font-weight: normal;
-               font-size: 0.85em;
                border-radius: 5px;
                background-color: var(--uvalib-grey-dark);
                color: white;
-               padding: 4px 10px;
             }
          }
       }
