@@ -9,31 +9,51 @@
       </div>
       <div class="details">
          <div class="title" role="heading">{{ oaRepo.work.title }}</div>
-         <Fieldset legend="Authors:">
+         <Fieldset class="author-fieldset">
+            <template #legend>
+               <div class="author-header">
+                  <span class="legend">Authors:</span>
+                  <span class="type">{{ oaRepo.work.resourceType }}</span>
+               </div>
+            </template>
             <div v-for="author in  oaRepo.work.authors" class="author">
                <p>{{ authorDisplay(author) }}</p>
                <p>{{ author.institution }}</p>
             </div>
          </Fieldset>
          <Fieldset legend="Abstract:">{{  oaRepo.work.abstract }}</Fieldset>
+         <Fieldset v-if="oaRepo.hasKeywords" legend="Keywords:">
+            {{ oaRepo.work.keywords.join(", ") }}
+         </Fieldset>
          <Fieldset legend="Rights:">
             <a :href="system.licenseDetail('oa', oaRepo.work.license).url" target="_blank">
                {{ system.licenseDetail("oa", oaRepo.work.license).label }}
             </a>
          </Fieldset>
-         <!-- <% display_resource_type @work %>
-         <% display_authors( Author.sort(@work.authors) ) %>
-         <%= display_abstract(@work.abstract) %>
-         <%= display_keywords( @work ) %>
-         <%= display_rights(@work.rights_ids) %>
-         <% display_contributors( Contributor.sort(@work.contributors )) %>
-         <%= display_language( @work.language ) %>
-         <%= display_source_citation( @work.source_citation ) %>
-         <%= display_generic( 'Publisher', @work.publisher) %>
-         <%= display_generic_date( 'Published Date', date_formatter( @work.published_date ) ) %>
-         <%= display_related_links( @work.related_url ) %>
-         <%= display_sponsoring_agency( @work.sponsoring_agency) %>
-         <%= display_notes( @work.notes ) %>
+         <Fieldset v-if="oaRepo.hasContributors" legend="Contributors:">
+            <div v-for="contributor in  oaRepo.work.contributors" class="author">
+               <p>{{ authorDisplay(contributor) }}</p>
+               <p>{{ contributor.institution }}</p>
+            </div>
+         </Fieldset>
+         <Fieldset v-if="oaRepo.hasLanguages" legend="Languages:">
+            {{ oaRepo.work.languages.join(", ") }}
+         </Fieldset>
+         <Fieldset v-if="oaRepo.work.citation" legend="Source Citation::">
+            {{ oaRepo.work.citation }}
+         </Fieldset>
+         <Fieldset legend="Publisher:">{{  oaRepo.work.publisher }}</Fieldset>
+         <Fieldset v-if="oaRepo.work.pubDate" legend="Published Date:">{{  oaRepo.work.pubDate }}</Fieldset>
+         <Fieldset v-if="oaRepo.hasRelatedURLs" legend="Related Links:">
+            <ul>
+               <li v-for="url in oaRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
+            </ul>
+         </Fieldset>
+         <Fieldset v-if="oaRepo.hasSponsors" legend="Sponsoring Agency:">
+            <div v-for="s in oaRepo.work.sponsors">{{ s }}</div>
+         </Fieldset>
+         <Fieldset v-if="oaRepo.work.notes" legend="Notes:">{{  oaRepo.work.notes }}</Fieldset>
+         <!--
          <%= display_doi_link( @work ) %> -->
       </div>
    </div>
@@ -112,6 +132,28 @@ div.public-work {
       padding: 30px;
       border-radius: 3px;
       margin: 20px;
+
+      .author-fieldset {
+         :deep(legend.p-fieldset-legend) {
+            width: 100%;
+         }
+         .author-header {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: space-between;
+            .legend {
+               font-weight: bold;
+            }
+            .type {
+               font-weight: normal;
+               font-size: 0.85em;
+               border-radius: 5px;
+               background-color: var(--uvalib-grey-dark);
+               color: white;
+               padding: 4px 10px;
+            }
+         }
+      }
 
       .title {
          color: var(--uvalib-text);

@@ -4,12 +4,12 @@ go 1.21.7
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/gin-contrib/cors v1.7.0
-	github.com/gin-contrib/gzip v0.0.6
+	github.com/gin-contrib/cors v1.7.1
+	github.com/gin-contrib/gzip v1.0.0
 	github.com/gin-gonic/contrib v0.0.0-20221130124618-7e01895a63f2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/xid v1.5.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240322120923-cf2c6fa0adcb
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240325171428-3cd21e36ef4f
 	github.com/uvalib/libra-metadata v0.0.0-20240315170823-7a62819ea523
 )
 
@@ -46,6 +46,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
+	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
@@ -55,10 +56,10 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240320135050-911bc823e589 // indirect
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240325152856-57ba633b6d1b // indirect
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
-	golang.org/x/exp v0.0.0-20240318143956-a85f2c67cd81 // indirect
+	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

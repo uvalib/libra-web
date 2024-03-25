@@ -10,6 +10,28 @@ export const useOAStore = defineStore('oa', {
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
+   getters: {
+      hasKeywords: state => {
+         if ( state.work.keywords.length > 1) return true
+         return state.work.keywords[0] != ""
+      },
+      hasContributors: state => {
+         if ( state.work.contributors.length > 1) return true
+         return state.work.contributors[0].computeID != ""
+      },
+      hasLanguages: state => {
+         if ( state.work.languages.length > 1) return true
+         return state.work.languages[0] != ""
+      },
+      hasRelatedURLs: state => {
+         if ( state.work.relatedURLs.length > 1) return true
+         return state.work.relatedURLs[0] != ""
+      },
+      hasSponsors: state => {
+         if ( state.work.sponsors.length > 1) return true
+         return state.work.sponsors[0] != ""
+      },
+   },
    actions: {
       initSubmission(compID, firstName, lastName, department) {
          this.work.resourceType = "Book"
@@ -91,6 +113,9 @@ export const useOAStore = defineStore('oa', {
          let payload = {work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID}
          return axios.post(`/api/submit/oa/${this.depositToken}`, payload).then(response => {
             this.work = response.data
+            if ( this.work.keywords.length == 0) this.work.keywords.push("")
+            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
+            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
             this.working = false
          }).catch( err => {
             const system = useSystemStore()
@@ -119,8 +144,10 @@ export const useOAStore = defineStore('oa', {
          this.working = true
          return axios.get(`/api/works/oa/${id}`).then(response => {
             this.work = response.data
+            if ( this.work.keywords.length == 0) this.work.keywords.push("")
+            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
+            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
             this.working = false
-            console.log("GOT WORK")
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
