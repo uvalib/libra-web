@@ -16,6 +16,7 @@ export const useOAStore = defineStore('oa', {
          return state.work.keywords[0] != ""
       },
       hasContributors: state => {
+         if ( state.work.contributors.length == 0) return false
          if ( state.work.contributors.length > 1) return true
          return state.work.contributors[0].computeID != ""
       },
