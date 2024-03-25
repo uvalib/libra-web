@@ -4,7 +4,10 @@
    <div v-else class="public-work">
       <div class="files">
          <Fieldset legend="Files">
-
+            <div class="file" v-for="file in oaRepo.work.files">
+               <div>{{ file.name }}</div>
+               <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+            </div>
          </Fieldset>
       </div>
       <div class="details">
@@ -77,7 +80,6 @@ const authorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${a.department}`
 })
 onBeforeMount( async () => {
-   console.log("BEFORE MOUNT")
    document.title = "LibraOpen"
    await oaRepo.getWork( route.params.id )
 })
@@ -120,6 +122,16 @@ div.public-work {
       text-align: left;
       width: 250px;
       margin-top: 320px;
+      .file {
+         margin-left: 10px;
+         div {
+            margin-bottom: 5px;
+         }
+         label {
+            font-weight: bold;
+            margin-right: 5px;
+         }
+      }
    }
 
    div.details {

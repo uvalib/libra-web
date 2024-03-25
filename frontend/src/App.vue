@@ -31,6 +31,7 @@
    </main>
 
    <LibraryFooter />
+   <ScrollToTop />
 
    <Dialog v-model:visible="systemStore.showError" :modal="true" header="System Error" @hide="errorClosed()" class="error">
       {{systemStore.error}}
@@ -43,6 +44,7 @@
 
 <script setup>
 import { onBeforeMount, ref, watch, computed } from 'vue'
+import ScrollToTop from "@/components/ScrollToTop.vue"
 import UvaLibraryLogo from "@/components/UvaLibraryLogo.vue"
 import LibraryFooter from "@/components/LibraryFooter.vue"
 import { RouterView } from 'vue-router'
