@@ -47,11 +47,12 @@ export const useOAStore = defineStore('oa', {
          }).catch( err => {
             if (err.response.status == 404) {
                this.router.push("/not_found")
-               this.working = false
+            } else if (err.response.status == 403) {
+               this.router.push("/forbidden")
             } else {
                this.error = err
-               this.working = false
             }
+            this.working = false
          })
       },
       initSubmission(compID, firstName, lastName, department) {

@@ -41,6 +41,11 @@ type userServiceResp struct {
 	User    UserDetails `json:"user"`
 }
 
+type authInfo struct {
+	tokenString string
+	jwt         *jwtClaims
+}
+
 func (svc *serviceContext) authenticate(c *gin.Context) {
 	log.Printf("Checking authentication headers...")
 	log.Printf("Dump all request headers ==================================")
@@ -108,21 +113,43 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/signedin")
 }
 
-// AuthMiddleware is middleware that checks for a user auth token in the
-// Authorization header. For now, it does nothing but ensure token presence.
+// AuthMiddleware is middleware that checks for a user auth token in the Authorization header
+// the requests for public work metadata do not require authorization, but will accepot and use it if present
 func (svc *serviceContext) authMiddleware(c *gin.Context) {
-	log.Printf("Authorize access to %s", c.Request.URL)
-	tokenStr, err := getBearerToken(c.Request.Header.Get("Authorization"))
+	jwtRequired := true
+	if strings.Contains(c.Request.URL.Path, "/api/works/oa") || strings.Contains(c.Request.URL.Path, "/api/works/etd") {
+		log.Printf("INFO: public metadata request for %s; jwt not required", c.Request.URL.Path)
+		jwtRequired = false
+	} else {
+		log.Printf("Authorize access to %s", c.Request.URL.Path)
+	}
+
+	auth, err := svc.getAuthFromHeader(c.Request.Header.Get("Authorization"))
 	if err != nil {
-		log.Printf("WARNING: authentication failed: [%s]", err.Error())
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
+		if jwtRequired {
+			log.Printf("WARNING: authentication failed: %s", err.Error())
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+	}
+
+	if jwtRequired {
+		log.Printf("INFO: got valid bearer token: [%s] for %s", auth.tokenString, auth.jwt.ComputeID)
+		c.Set("claims", auth.jwt)
+	} else {
+		log.Printf("INFO: no auth info present in request for public metadata %s", c.Request.URL.Path)
+	}
+	c.Next()
+}
+
+func (svc *serviceContext) getAuthFromHeader(authHeader string) (*authInfo, error) {
+	tokenStr, err := getBearerToken(authHeader)
+	if err != nil {
+		return nil, err
 	}
 
 	if tokenStr == "undefined" {
-		log.Printf("WARNING: authentication failed; bearer token is undefined")
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
+		return nil, fmt.Errorf("bearer token is undefined")
 	}
 
 	log.Printf("INFO: validating JWT auth token...")
@@ -131,15 +158,16 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 		return []byte(svc.JWTKey), nil
 	})
 	if jwtErr != nil {
-		log.Printf("WARNING: authentication failed; token validation failed: %+v", jwtErr)
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
+		return nil, fmt.Errorf("token validation failed: %+v", jwtErr)
 	}
 
-	log.Printf("INFO: got valid bearer token: [%s] for %s", tokenStr, jwtClaims.ComputeID)
-	c.Set("jwt", tokenStr)
-	c.Set("claims", jwtClaims)
-	c.Next()
+	auth := authInfo{tokenString: tokenStr, jwt: jwtClaims}
+	return &auth, nil
+}
+
+func isSignedIn(c *gin.Context) bool {
+	_, signedIn := c.Get("claims")
+	return signedIn
 }
 
 func getJWTClaims(c *gin.Context) *jwtClaims {
@@ -155,12 +183,10 @@ func getJWTClaims(c *gin.Context) *jwtClaims {
 }
 
 func getBearerToken(authorization string) (string, error) {
-	components := strings.Split(strings.Join(strings.Fields(authorization), " "), " ")
-
 	// must have two components, the first of which is "Bearer", and the second a non-empty token
+	components := strings.Split(strings.Join(strings.Fields(authorization), " "), " ")
 	if len(components) != 2 || components[0] != "Bearer" || components[1] == "" {
-		return "", fmt.Errorf("Invalid Authorization header: [%s]", authorization)
+		return "", fmt.Errorf("invalid authorization header: [%s]", authorization)
 	}
-
 	return components[1], nil
 }

@@ -105,7 +105,8 @@ onBeforeMount( async () => {
          box-shadow: 0 0 15px 5px black;
       }
       div.details {
-         max-width: 640px;
+         max-width: 60%;
+         min-width: 525px;
          padding: 30px;
          margin: 20px;
          border: 1px solid var(--uvalib-grey-light);

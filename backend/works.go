@@ -73,6 +73,37 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 		return
 	}
 
+	// enforce work visibility;
+	//   values: open (anyone), authenticated (UVA only), restricted (private; owner only), embargo (owner only)
+	if isSignedIn(c) {
+		jwt := getJWTClaims(c)
+		accessOK := false
+		if parsedOAWork.Visibility == "open" {
+			accessOK = true
+		} else if parsedOAWork.Visibility == "restricted" || parsedOAWork.Visibility == "embargo" {
+			for _, auth := range parsedOAWork.Authors {
+				if auth.ComputeID == jwt.ComputeID {
+					accessOK = true
+					break
+				}
+			}
+		} else if parsedOAWork.Visibility == "authenticated" {
+			// FIXME
+			accessOK = false
+		}
+		if accessOK == false {
+			log.Printf("INFO: authenticated request by %s to restricted content %s", jwt.ComputeID, workID)
+			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+			return
+		}
+	} else {
+		if parsedOAWork.Visibility != "open" {
+			log.Printf("INFO: non-authenticated request to restricted content %s", workID)
+			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+			return
+		}
+	}
+
 	resp := versionedOA{ID: tgtObj.Id(), Version: tgtObj.VTag(), OAWork: parsedOAWork, CreatedAt: tgtObj.Created(), ModifiedAt: tgtObj.Modified()}
 	for _, oaFile := range tgtObj.Files() {
 		log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())

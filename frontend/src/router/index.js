@@ -88,6 +88,9 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
    console.log("BEFORE ROUTE "+to.path+": "+to.name)
    const userStore = useUserStore()
+
+   // the /signedin endpoint called after authorization. it has no page itself; it just
+   // processes the authorization response and redirects to the next page
    if (to.path == '/signedin') {
       let jwtStr = VueCookies.get("libra3_jwt")
       console.log(`GRANTED [${jwtStr}]`)
@@ -104,22 +107,42 @@ router.beforeEach((to, _from, next) => {
       } else {
          next("/forbidden")
       }
-   } else if (
-      to.name !== 'not_found' && to.name !== 'forbidden' &&
-      to.name !== "expired" && to.name != "home" /*&& to.name != "oapublic"*/ ) {
-      localStorage.setItem("prior_libra3_url", to.fullPath)
+      return
+   }
+
+   // request for home page or public work metadata. authorization is not required, but if it is present, it will be used
+   if (to.name == "oapublic" || to.name == "etdpublic" ||  to.name != "home") {
+      console.log("PUBLIC REQUEST; AUTH OPTIONAL")
       let jwtStr = localStorage.getItem('libra3_jwt')
-      console.log(`GOT JWT [${jwtStr}]`)
       if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
+         console.log("    AUTH PRESENT")
          userStore.setJWT(jwtStr)
-         next()
       } else {
-         console.log("AUTHENTICATE")
-         window.location.href = "/authenticate"
+         console.log("    NO AUTH PRESENT")
       }
-   } else {
+      next()
+      return
+   }
+
+   // some routes are accessible by all. do not check auth and just proceed to the route
+   let publicRoutes = ["not_found", "forbidden", "expired"]
+   if ( publicRoutes.includes(to.name)) {
       console.log("NOT A PROTECTED ROUTE")
       next()
+      return
+   }
+
+   // all other routes require jwt authorization
+   console.log("AUTH REQUIRED")
+   localStorage.setItem("prior_libra3_url", to.fullPath)
+   let jwtStr = localStorage.getItem('libra3_jwt')
+   console.log(`GOT JWT [${jwtStr}]`)
+   if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
+      userStore.setJWT(jwtStr)
+      next()
+   } else {
+      console.log("AUTHENTICATE")
+      window.location.href = "/authenticate"
    }
 })
 
