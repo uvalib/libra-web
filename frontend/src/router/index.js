@@ -111,7 +111,7 @@ router.beforeEach((to, _from, next) => {
    }
 
    // request for home page or public work metadata. authorization is not required, but if it is present, it will be used
-   if (to.name == "oapublic" || to.name == "etdpublic" ||  to.name != "home") {
+   if (to.name == "oapublic" || to.name == "etdpublic" ||  to.name == "home") {
       console.log("PUBLIC REQUEST; AUTH OPTIONAL")
       let jwtStr = localStorage.getItem('libra3_jwt')
       if (jwtStr != null && jwtStr != "" && jwtStr != "null") {

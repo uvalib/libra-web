@@ -133,16 +133,14 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 		}
 	}
 
-	if jwtRequired {
-		log.Printf("INFO: got valid bearer token: [%s] for %s", auth.tokenString, auth.jwt.ComputeID)
-		c.Set("claims", auth.jwt)
-	} else {
-		log.Printf("INFO: no auth info present in request for public metadata %s", c.Request.URL.Path)
-	}
+	log.Printf("INFO: got valid bearer token: [%s] for %s", auth.tokenString, auth.jwt.ComputeID)
+	c.Set("claims", auth.jwt)
+
 	c.Next()
 }
 
 func (svc *serviceContext) getAuthFromHeader(authHeader string) (*authInfo, error) {
+	log.Printf("INFO: extract auth token from authorization header")
 	tokenStr, err := getBearerToken(authHeader)
 	if err != nil {
 		return nil, err
@@ -152,7 +150,7 @@ func (svc *serviceContext) getAuthFromHeader(authHeader string) (*authInfo, erro
 		return nil, fmt.Errorf("bearer token is undefined")
 	}
 
-	log.Printf("INFO: validating JWT auth token...")
+	log.Printf("INFO: validating JWT auth token")
 	jwtClaims := &jwtClaims{}
 	_, jwtErr := jwt.ParseWithClaims(tokenStr, jwtClaims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(svc.JWTKey), nil

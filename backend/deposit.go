@@ -79,6 +79,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	fields["author"] = etdSub.Work.Author.ComputeID
 	fields["visibility"] = etdSub.Work.Visibility
 	fields["create-date"] = time.Now().Format(time.RFC3339)
+	fields["draft"] = "true"
 	obj.SetMetadata(etdSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
@@ -127,6 +128,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["visibility"] = oaSub.Work.Visibility
 	fields["create-date"] = time.Now().Format(time.RFC3339)
+	fields["draft"] = "true"
 	obj.SetMetadata(oaSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)

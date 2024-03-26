@@ -22,13 +22,14 @@ import (
 
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
-	Version     string
-	HTTPClient  *http.Client
-	EasyStore   uvaeasystore.EasyStore
-	UserService userServiceCfg
-	JWTKey      string
-	DevAuthUser string
-	Namespaces  namespaceConfig
+	Version      string
+	HTTPClient   *http.Client
+	EasyStore    uvaeasystore.EasyStore
+	UserService  userServiceCfg
+	JWTKey       string
+	DevAuthUser  string
+	Namespaces   namespaceConfig
+	UVAWhiteList []string
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -82,6 +83,19 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		Namespaces:  cfg.namespace,
 	}
 
+	log.Printf("INFO: initialize uva ip whitelist")
+	wlBytes, err := os.ReadFile("./data/ipwhitelist.txt")
+	if err != nil {
+		log.Fatalf("read ipwhitelist failed: %s", err.Error())
+	}
+	for _, ip := range strings.Split(string(wlBytes), "\n") {
+		cleanIP := strings.TrimSpace(ip)
+		if cleanIP != "" {
+			ctx.UVAWhiteList = append(ctx.UVAWhiteList, cleanIP)
+		}
+	}
+	log.Printf("INFO: uva ip whitelist: %v", ctx.UVAWhiteList)
+
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -102,7 +116,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: HTTP Client created")
 
-	err := ctx.checkUserServiceJWT()
+	err = ctx.checkUserServiceJWT()
 	if err != nil {
 		log.Fatal(fmt.Sprintf("unable to generate user service jwt: %s", err.Error()))
 	}
