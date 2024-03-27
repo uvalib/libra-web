@@ -20,7 +20,7 @@
             >
                <Column field="title" header="Title" />
                <Column field="createdAt" header="Date Uploaded" >
-                  <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+                  <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
                </Column>
                <Column header="ORCID Status"/>
                <Column field="visibility" header="Visibility" >

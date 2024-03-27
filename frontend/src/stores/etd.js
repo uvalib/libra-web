@@ -5,14 +5,31 @@ import { useSystemStore } from './system'
 export const useETDStore = defineStore('etd', {
    state: () => ({
       working: false,
+      error: "",
       depositToken: "",
       work: {},
       visibility: "",
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
+   getters: {
+      hasKeywords: state => {
+         if ( state.work.keywords.length == 0 ) return false
+         if ( state.work.keywords.length > 1) return true
+         return state.work.keywords[0] != ""
+      },
+      hasRelatedURLs: state => {
+         if ( state.work.relatedURLs.length > 1) return true
+         return state.work.relatedURLs[0] != ""
+      },
+      hasSponsors: state => {
+         if ( state.work.sponsors.length > 1) return true
+         return state.work.sponsors[0] != ""
+      },
+   },
    actions: {
       async getWork(id) {
+         this.error = ""
          this.working = true
          this.pendingFileAdd = []
          this.pendingFileDel = []
@@ -20,10 +37,18 @@ export const useETDStore = defineStore('etd', {
             this.visibility = response.data.visibility
             delete response.data.visibility
             this.work = response.data
+            if ( this.work.keywords.length == 0) this.work.keywords.push("")
+            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
+            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
             this.working = false
          }).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
+            if (err.response.status == 404) {
+               this.router.push("/not_found")
+            } else if (err.response.status == 403) {
+               this.router.push("/forbidden")
+            } else {
+               this.error = err
+            }
             this.working = false
          })
       },

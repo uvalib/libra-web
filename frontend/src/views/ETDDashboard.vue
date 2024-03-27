@@ -14,7 +14,7 @@
             >
                <Column field="title" header="Title" />
                <Column field="createdAt" header="Date Uploaded" >
-                  <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+                  <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
                </Column>
                <Column header="ORCID Status"/>
                <Column field="visibility" header="Visibility" >
@@ -26,6 +26,7 @@
                   <template #body="slotProps">
                      <div  class="acts">
                         <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" text @click="editWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
                      </div>
                   </template>
                </Column>
@@ -58,6 +59,11 @@ onMounted( () => {
 
 const editWorkClicked = ( (id) => {
    let url = `/etd/${id}`
+   router.push(url)
+})
+
+const previewWorkClicked = ( (id) => {
+   let url = `/public/etd/${id}`
    router.push(url)
 })
 

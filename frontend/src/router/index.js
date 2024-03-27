@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import OADashboard from '../views/OADashboard.vue'
 import OAWorkForm from '../views/OAWorkForm.vue'
 import OAPublicView from '../views/OAPublicView.vue'
+import ETDPublicView from '../views/ETDPublicView.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
 import Expired from '../views/Expired.vue'
@@ -55,6 +56,11 @@ const router = createRouter({
          path: '/public/oa/:id',
          name: 'oapublic',
          component: OAPublicView
+      },
+      {
+         path: '/public/etd/:id',
+         name: 'etdpublic',
+         component: ETDPublicView
       },
       {
          path: '/expired',

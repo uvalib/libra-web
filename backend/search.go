@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -47,21 +48,15 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	resp := make([]*searchHit, 0)
 	obj, err := hits.Next()
 	for err == nil {
-		objBytes, objErr := obj.Metadata().Payload()
-		if objErr != nil {
-			log.Printf("ERROR: unable to get object %s paylpoad: %s", obj.Id(), objErr.Error())
-			break
-		}
-
 		var hit *searchHit
 		if obj.Namespace() == svc.Namespaces.oa {
-			hit, err = svc.parseOASearchHit(obj.Id(), objBytes, obj.Fields())
+			hit, err = svc.parseOASearchHit(obj)
 			if err != nil {
 				log.Printf("ERROR: unable to parse oa search result %s: %s", obj.Id(), err.Error())
 				continue
 			}
 		} else if obj.Namespace() == svc.Namespaces.etd {
-			hit, err = svc.parseETDSearchHit(obj.Id(), objBytes, obj.Fields())
+			hit, err = svc.parseETDSearchHit(obj)
 			if err != nil {
 				log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
 				continue
@@ -77,35 +72,47 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (svc *serviceContext) parseOASearchHit(id string, oaWorkBytes []byte, fields uvaeasystore.EasyStoreObjectFields) (*searchHit, error) {
+func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) (*searchHit, error) {
+	oaWorkBytes, objErr := esObj.Metadata().Payload()
+	if objErr != nil {
+		return nil, fmt.Errorf("unable to get object %s payload: %s", esObj.Id(), objErr.Error())
+	}
+
 	oaWork, objErr := librametadata.OAWorkFromBytes(oaWorkBytes)
 	if objErr != nil {
 		return nil, objErr
 	}
-	visibility := fields["default-visibility"]
+	visibility := esObj.Fields()["default-visibility"]
 	if visibility == "embargo" {
-		visibility = calculateVisibility(fields)
+		visibility = calculateVisibility(esObj.Fields())
 	}
 
-	hit := searchHit{ID: id,
+	hit := searchHit{
+		ID:          esObj.Id(),
 		Namespace:   svc.Namespaces.oa,
 		Title:       oaWork.Title,
 		Visibility:  visibility,
-		DateCreated: oaWork.Created(),
+		DateCreated: esObj.Created(),
 	}
 	return &hit, nil
 }
 
-func (svc *serviceContext) parseETDSearchHit(id string, etdWorkBytes []byte, fields uvaeasystore.EasyStoreObjectFields) (*searchHit, error) {
+func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject) (*searchHit, error) {
+	etdWorkBytes, objErr := esObj.Metadata().Payload()
+	if objErr != nil {
+		return nil, fmt.Errorf("unable to get object %s payload: %s", esObj.Id(), objErr.Error())
+	}
+
 	etdWork, objErr := librametadata.ETDWorkFromBytes(etdWorkBytes)
 	if objErr != nil {
 		return nil, objErr
 	}
-	hit := searchHit{ID: id,
+	hit := searchHit{
+		ID:          esObj.Id(),
 		Namespace:   svc.Namespaces.oa,
 		Title:       etdWork.Title,
-		Visibility:  fields["default-visibility"],
-		DateCreated: etdWork.Created(),
+		Visibility:  esObj.Fields()["default-visibility"],
+		DateCreated: esObj.Created(),
 	}
 	return &hit, nil
 }

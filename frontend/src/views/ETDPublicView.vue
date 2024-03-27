@@ -1,67 +1,51 @@
 <template>
    <div class="work-bkg"></div>
-   <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
+   <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Thesis</p>" />
    <div v-else class="public-work">
-      <div v-if="oaRepo.error" class="error">
+      <div v-if="etdRepo.error" class="error">
          <h2>System Error</h2>
          <p>Sorry, a system error has occurred!</p>
-         <p>{{ oaRepo.error }}</p>
+         <p>{{ etdRepo.error }}</p>
       </div>
       <template v-else>
          <div class="files">
             <Fieldset legend="Files">
-               <div class="file" v-for="file in oaRepo.work.files">
+               <div class="file" v-for="file in etdRepo.work.files">
                   <div>{{ file.name }}</div>
                   <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
                </div>
             </Fieldset>
          </div>
          <div class="details">
-            <div class="title" role="heading">{{ oaRepo.work.title }}</div>
-            <Fieldset class="author-fieldset">
-               <template #legend>
-                  <div class="author-header">
-                     <span class="legend">Authors:</span>
-                     <span class="type">{{ oaRepo.work.resourceType }}</span>
-                  </div>
-               </template>
-               <div v-for="author in  oaRepo.work.authors" class="author">
-                  <p>{{ authorDisplay(author) }}</p>
-                  <p>{{ author.institution }}</p>
+            <div class="title" role="heading">{{ etdRepo.work.title }}</div>
+            <Fieldset legend="Author:">{{  authorDisplay(etdRepo.work.author) }}</Fieldset>
+            <Fieldset legend="Advisors:">
+               <div v-for="advisor in  etdRepo.work.advisors" class="author">
+                  <p>{{ advisorDisplay(advisor) }}</p>
+                  <p>{{ advisor.institution }}</p>
                </div>
             </Fieldset>
-            <Fieldset legend="Abstract:">{{  oaRepo.work.abstract }}</Fieldset>
-            <Fieldset v-if="oaRepo.hasKeywords" legend="Keywords:">
-               {{ oaRepo.work.keywords.join(", ") }}
+            <Fieldset legend="Abstract:">{{  etdRepo.work.abstract }}</Fieldset>
+            <Fieldset legend="Degree:">{{  etdRepo.work.degree }}</Fieldset>
+            <Fieldset v-if="etdRepo.hasKeywords" legend="Keywords:">
+               {{ etdRepo.work.keywords.join(", ") }}
             </Fieldset>
-            <Fieldset legend="Rights:">
-               <a :href="system.licenseDetail('oa', oaRepo.work.license).url" target="_blank">
-                  {{ system.licenseDetail("oa", oaRepo.work.license).label }}
-               </a>
+            <Fieldset v-if="etdRepo.hasSponsors" legend="Sponsoring Agency:">
+               <div v-for="s in etdRepo.work.sponsors">{{ s }}</div>
             </Fieldset>
-            <Fieldset v-if="oaRepo.hasContributors" legend="Contributors:">
-               <div v-for="contributor in  oaRepo.work.contributors" class="author">
-                  <p>{{ authorDisplay(contributor) }}</p>
-                  <p>{{ contributor.institution }}</p>
-               </div>
-            </Fieldset>
-            <Fieldset v-if="oaRepo.hasLanguages" legend="Languages:">
-               {{ oaRepo.work.languages.join(", ") }}
-            </Fieldset>
-            <Fieldset v-if="oaRepo.work.citation" legend="Source Citation::">
-               {{ oaRepo.work.citation }}
-            </Fieldset>
-            <Fieldset legend="Publisher:">{{  oaRepo.work.publisher }}</Fieldset>
-            <Fieldset v-if="oaRepo.work.pubDate" legend="Published Date:">{{  oaRepo.work.pubDate }}</Fieldset>
-            <Fieldset v-if="oaRepo.hasRelatedURLs" legend="Related Links:">
+            <Fieldset v-if="etdRepo.hasRelatedURLs" legend="Related Links:">
                <ul>
-                  <li v-for="url in oaRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
+                  <li v-for="url in etdRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
                </ul>
             </Fieldset>
-            <Fieldset v-if="oaRepo.hasSponsors" legend="Sponsoring Agency:">
-               <div v-for="s in oaRepo.work.sponsors">{{ s }}</div>
+            <Fieldset v-if="etdRepo.work.notes" legend="Notes:">{{  etdRepo.work.notes }}</Fieldset>
+            <Fieldset v-if="etdRepo.work.language" legend="Labguage:">{{  etdRepo.work.language }}</Fieldset>
+            <Fieldset legend="Rights:">
+               <a :href="system.licenseDetail('oa', etdRepo.work.license).url" target="_blank">
+                  {{ system.licenseDetail("oa", etdRepo.work.license).label }}
+               </a>
             </Fieldset>
-            <Fieldset v-if="oaRepo.work.notes" legend="Notes:">{{  oaRepo.work.notes }}</Fieldset>
+            <Fieldset v-if="etdRepo.work.pubDate" legend="Publication Date:">{{  etdRepo.work.pubDate }}</Fieldset>
             <!--
             <%= display_doi_link( @work ) %> -->
          </div>
@@ -72,21 +56,24 @@
 <script setup>
 import { onBeforeMount } from 'vue'
 import { useSystemStore } from "@/stores/system"
-import { useOAStore } from "@/stores/oa"
+import { useETDStore } from "@/stores/etd"
 import { useRoute } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 
 const system = useSystemStore()
-const oaRepo = useOAStore()
+const etdRepo = useETDStore()
 const route = useRoute()
 
 const authorDisplay = ((a) => {
+   return `${a.lastName}, ${a.firstName}, ${a.program}, ${a.institution}`
+})
+const advisorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${a.department}`
 })
 onBeforeMount( async () => {
-   document.title = "LibraOpen"
-   await oaRepo.getWork( route.params.id )
+   document.title = "LibraETD"
+   await etdRepo.getWork( route.params.id )
 })
 </script>
 
@@ -221,7 +208,7 @@ div.public-work {
       text-align: left;
       border-radius: 3px;
 
-      .author-fieldset {
+      .advisor-fieldset {
          :deep(legend.p-fieldset-legend) {
             width: 100%;
          }
