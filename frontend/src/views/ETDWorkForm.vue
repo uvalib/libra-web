@@ -5,7 +5,7 @@
             <SavePanel v-if="etdRepo.working==false"
                type="etd" mode="edit" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked"
-               ref="savepanel"  :visibility="etdRepo.work.visibility"/>
+               ref="savepanel"  :visibility="etdRepo.visibility"/>
          </div>
 
          <Panel :header="panelTitle" class="main-form">
@@ -311,12 +311,12 @@ const downloadFileClicked = ( (name) => {
 })
 const saveAndContinueClicked= ( async (visibility) => {
    nextURL.value = "/etd" // TODO go to display form
-   etdRepo.work.visibility = visibility
+   etdRepo.visibility = visibility
    etdForm.value.node.submit()
 })
 const saveAndExitClicked = ( (visibility) => {
    nextURL.value = "/etd" // back to etd dashboard
-   etdRepo.work.visibility = visibility
+   etdRepo.visibility = visibility
    etdForm.value.node.submit()
 })
 const submitHandler = ( async () => {

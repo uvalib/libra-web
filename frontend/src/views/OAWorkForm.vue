@@ -4,7 +4,7 @@
          <div class="sidebar-col">
             <SavePanel v-if="oaRepo.working==false"
                type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
-               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel" :visibility="oaRepo.work.visibility"/>
+               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel" :visibility="oaRepo.visibility"/>
          </div>
 
          <Panel :header="panelTitle" class="main-form">
@@ -405,7 +405,7 @@ const downloadFileClicked = ( (name) => {
    oaRepo.downloadFile(name)
 })
 const submitClicked = ( (visibility) => {
-   oaRepo.work.visibility = visibility
+   oaRepo.visibility = visibility
    const node = oaForm.value.node
    node.submit()
 })

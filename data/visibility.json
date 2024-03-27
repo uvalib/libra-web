@@ -1,8 +1,8 @@
 [
    {"value": "open", "label": "Public Access", "oa": false, "etd": true},
-   {"value": "authenticated", "label": "Limited Access", "oa": false, "etd": true},
+   {"value": "uva", "label": "Limited Access", "oa": false, "etd": true},
    {"value": "open", "label": "Visible Worldwide", "oa": true, "etd": false},
-   {"value": "authenticated", "label": "Restricted to UVa Only", "oa": true, "etd": false},
+   {"value": "uva", "label": "Restricted to UVa Only", "oa": true, "etd": false},
    {"value": "embargo", "label": "Embargo", "oa": true, "etd": false},
    {"value": "restricted", "label": "Private", "oa": true, "etd": false}
 ]

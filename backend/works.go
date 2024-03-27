@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
@@ -29,14 +31,61 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	parsedETDWork, err := librametadata.ETDWorkFromBytes(mdBytes)
+	etdWork, err := librametadata.ETDWorkFromBytes(mdBytes)
 	if err != nil {
 		log.Printf("ERROR: unable to process paypad from work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	resp := versionedETD{ID: tgtObj.Id(), Version: tgtObj.VTag(), ETDWork: parsedETDWork, CreatedAt: tgtObj.Created(), ModifiedAt: tgtObj.Modified()}
+	// enforce work visibility;
+	//   values: open (anyone), uva (UVA only), draft: authors only
+	visibility := tgtObj.Fields()["default-visibility"]
+	depositor := tgtObj.Fields()["depositor"]
+	isDraft, err := strconv.ParseBool(tgtObj.Fields()["draft"])
+	if err != nil {
+		log.Printf("ERROR: unable to parse draft field for etd work %s; default to true: %s", workID, err.Error())
+		isDraft = true
+	}
+	if isSignedIn(c) {
+		jwt := getJWTClaims(c)
+		accessOK := false
+		if isDraft {
+			accessOK = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+		} else {
+			if visibility == "open" || etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID {
+				accessOK = true
+			} else if visibility == "uva" {
+				accessOK = svc.isFromUVA(c)
+			}
+		}
+		if accessOK == false {
+			log.Printf("INFO: authenticated request by %s to restricted content %s", jwt.ComputeID, workID)
+			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+			return
+		}
+	} else {
+		if isDraft {
+			log.Printf("INFO: non-authenticated request to draft content %s", workID)
+			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+			return
+		}
+		if visibility == "uva" {
+			if svc.isFromUVA(c) == false {
+				log.Printf("INFO: non-authenticated request to restricted etd content %s", workID)
+				c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+				return
+			}
+		}
+	}
+
+	resp := etdWorkDetails{
+		ID:         tgtObj.Id(),
+		Version:    tgtObj.VTag(),
+		ETDWork:    etdWork,
+		Visibility: tgtObj.Fields()["default-visibility"],
+		CreatedAt:  tgtObj.Created(),
+		ModifiedAt: tgtObj.Modified()}
 	for _, etdFile := range tgtObj.Files() {
 		log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
 		resp.Files = append(resp.Files, librametadata.FileData{Name: etdFile.Name(), MimeType: etdFile.MimeType(), CreatedAt: etdFile.Created()})
@@ -66,7 +115,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	parsedOAWork, err := librametadata.OAWorkFromBytes(mdBytes)
+	oaWork, err := librametadata.OAWorkFromBytes(mdBytes)
 	if err != nil {
 		log.Printf("ERROR: unable to process paypad from work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -75,36 +124,47 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 
 	// enforce work visibility;
 	//   values: open (anyone), authenticated (UVA only), restricted (private; owner only), embargo (owner only)
+	visibility := calculateVisibility(tgtObj.Fields())
+	depositor := tgtObj.Fields()["depositor"]
+	log.Printf("INFO: enforce access to %s with visibility %s", workID, visibility)
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		accessOK := false
-		if parsedOAWork.Visibility == "open" {
+		if visibility == "open" || oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID {
 			accessOK = true
-		} else if parsedOAWork.Visibility == "restricted" || parsedOAWork.Visibility == "embargo" {
-			for _, auth := range parsedOAWork.Authors {
-				if auth.ComputeID == jwt.ComputeID {
-					accessOK = true
-					break
-				}
-			}
-		} else if parsedOAWork.Visibility == "authenticated" {
-			// FIXME
-			accessOK = false
+		} else if visibility == "uva" {
+			accessOK = svc.isFromUVA(c)
 		}
 		if accessOK == false {
-			log.Printf("INFO: authenticated request by %s to restricted content %s", jwt.ComputeID, workID)
+			log.Printf("INFO: authenticated request by %s to restricted oa content %s", jwt.ComputeID, workID)
 			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
 			return
 		}
 	} else {
-		if parsedOAWork.Visibility != "open" {
-			log.Printf("INFO: non-authenticated request to restricted content %s", workID)
+		log.Printf("INFO: access is from a non-authenticated user")
+		if visibility == "uva" {
+			if svc.isFromUVA(c) == false {
+				log.Printf("INFO: non-authenticated request to restricted oa content %s", workID)
+				c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+				return
+			}
+		} else if visibility == "restricted" {
+			log.Printf("INFO: non-authenticated request to restricted oa content %s", workID)
 			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
 			return
 		}
 	}
 
-	resp := versionedOA{ID: tgtObj.Id(), Version: tgtObj.VTag(), OAWork: parsedOAWork, CreatedAt: tgtObj.Created(), ModifiedAt: tgtObj.Modified()}
+	resp := oaWorkDetails{ID: tgtObj.Id(),
+		Version:    tgtObj.VTag(),
+		Visibility: visibility,
+		OAWork:     oaWork,
+		CreatedAt:  tgtObj.Created(),
+		ModifiedAt: tgtObj.Modified()}
+	if visibility == "embargo" {
+		embInfo := embargoData{ReleaseDate: tgtObj.Fields()["embargo-release-date"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibilty"]}
+		resp.Embargo = &embInfo
+	}
 	for _, oaFile := range tgtObj.Files() {
 		log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())
 		resp.Files = append(resp.Files, librametadata.FileData{Name: oaFile.Name(), MimeType: oaFile.MimeType(), CreatedAt: oaFile.Created()})
@@ -112,6 +172,36 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 
+}
+func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
+	fromUVA := false
+	fwdIP := c.Request.Header.Get("X-Forwarded-For")
+	log.Printf("INFO: check if request is from uva: remote ip: [%s], x-forwarded-for [%s]", c.RemoteIP(), fwdIP)
+	for _, ip := range svc.UVAWhiteList {
+		if ip == fwdIP || ip == c.RemoteIP() {
+			fromUVA = true
+			break
+		}
+	}
+	return fromUVA
+}
+
+func calculateVisibility(fields uvaeasystore.EasyStoreObjectFields) string {
+	visibility := fields["default-visibility"]
+	if visibility != "embargo" {
+		return visibility
+	}
+	releaseDateStr := fields["embargo-release"]
+	releaseDate, err := time.Parse("2006-01-02", releaseDateStr)
+	if err != nil {
+		log.Printf("ERROR: unable to parse embardo release date %s: %s", releaseDateStr, err.Error())
+		return visibility
+	}
+
+	if time.Now().After(releaseDate) {
+		return fields["embargo-release-visibility"]
+	}
+	return visibility
 }
 
 func (svc *serviceContext) deleteOAWork(c *gin.Context) {
@@ -202,15 +292,29 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	// update fields
+	log.Printf("INFO: visibility [%s]", oaSub.Visibility)
 	fields := tgtObj.Fields()
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
-	fields["visibility"] = oaSub.Work.Visibility
+	fields["default-visibility"] = oaSub.Visibility
+	if oaSub.Visibility == "embargo" {
+		fields["embargo-release"] = oaSub.EmbargoReleaseDate
+		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
+	}
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
 
-	resp := versionedOA{ID: tgtObj.Id(), Version: updatedObj.VTag(), OAWork: &oaSub.Work, CreatedAt: updatedObj.Created(), ModifiedAt: updatedObj.Modified()}
+	resp := oaWorkDetails{ID: tgtObj.Id(),
+		Visibility: oaSub.Visibility,
+		Version:    updatedObj.VTag(),
+		OAWork:     &oaSub.Work,
+		CreatedAt:  updatedObj.Created(),
+		ModifiedAt: updatedObj.Modified()}
+	if oaSub.Visibility == "embargo" {
+		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}
+		resp.Embargo = &embInfo
+	}
 	for _, file := range updatedObj.Files() {
 		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
 	}
@@ -321,12 +425,17 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	// update fields
 	fields := tgtObj.Fields()
 	fields["author"] = etdReq.Work.Author.ComputeID
-	fields["visibility"] = etdReq.Work.Visibility
+	fields["default-visibility"] = etdReq.Visibility
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
 
-	resp := versionedETD{ID: tgtObj.Id(), Version: updatedObj.VTag(), ETDWork: &etdReq.Work, CreatedAt: updatedObj.Created(), ModifiedAt: updatedObj.Modified()}
+	resp := etdWorkDetails{ID: tgtObj.Id(),
+		Version:    updatedObj.VTag(),
+		Visibility: etdReq.Visibility,
+		ETDWork:    &etdReq.Work,
+		CreatedAt:  updatedObj.Created(),
+		ModifiedAt: updatedObj.Modified()}
 	for _, file := range updatedObj.Files() {
 		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
 	}

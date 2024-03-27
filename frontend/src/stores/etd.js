@@ -7,10 +7,26 @@ export const useETDStore = defineStore('etd', {
       working: false,
       depositToken: "",
       work: {},
+      visibility: "",
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
    actions: {
+      async getWork(id) {
+         this.working = true
+         this.pendingFileAdd = []
+         this.pendingFileDel = []
+         return axios.get(`/api/works/etd/${id}`).then(response => {
+            this.visibility = response.data.visibility
+            delete response.data.visibility
+            this.work = response.data
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
       initSubmission(compID, firstName, lastName, program) {
          this.work.title = "",
          this.work.author = {computeID: compID, firstName: firstName, lastName: lastName, program: program, institution: "University of Virginia"},
@@ -25,7 +41,7 @@ export const useETDStore = defineStore('etd', {
          this.work.degree = "MA (Master of Arts)"
          this.work.dateCreated = new Date()
          this.work.files = []
-         this.work.visibility = ""
+         this.visibility = ""
          this.pendingFileAdd = []
          this.pendingFileDel = []
       },
@@ -83,7 +99,9 @@ export const useETDStore = defineStore('etd', {
       },
       async deposit( depositorComputeID ) {
          this.working = true
-         let payload = {work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID}
+         let payload = {
+            work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID, visibility: this.visibility
+         }
          return axios.post(`/api/submit/etd/${this.depositToken}`, payload).then(response => {
             this.work = response.data
             this.working = false
@@ -97,7 +115,9 @@ export const useETDStore = defineStore('etd', {
       },
       async update( ) {
          this.working = true
-         let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel}
+         let payload = {
+            work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility
+         }
          let url = `/api/works/etd/${this.work.id}`
          console.log(url)
          return axios.put(url, payload).then(response => {
@@ -105,17 +125,6 @@ export const useETDStore = defineStore('etd', {
             this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []
-         }).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
-            this.working = false
-         })
-      },
-      async getWork(id) {
-         this.working = true
-         return axios.get(`/api/works/etd/${id}`).then(response => {
-            this.work = response.data
-            this.working = false
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

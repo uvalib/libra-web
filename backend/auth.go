@@ -131,10 +131,11 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+		log.Printf("INFO: optional auth is not present")
+	} else {
+		log.Printf("INFO: got valid bearer token: [%s] for %s", auth.tokenString, auth.jwt.ComputeID)
+		c.Set("claims", auth.jwt)
 	}
-
-	log.Printf("INFO: got valid bearer token: [%s] for %s", auth.tokenString, auth.jwt.ComputeID)
-	c.Set("claims", auth.jwt)
 
 	c.Next()
 }

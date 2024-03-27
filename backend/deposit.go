@@ -15,34 +15,49 @@ import (
 )
 
 type oaWorkRequest struct {
-	Work      librametadata.OAWork `json:"work"`
-	AddFiles  []string             `json:"addFiles"`
-	DelFiles  []string             `json:"delFiles"`
-	Depositor string               `json:"depositor"`
+	Work                     librametadata.OAWork `json:"work"`
+	Visibility               string               `json:"visibility"`
+	EmbargoReleaseDate       string               `json:"embargoReleaseDate,omitempty"`
+	EmbargoReleaseVisibility string               `json:"embargoReleaseVisibility,omitempty"`
+	AddFiles                 []string             `json:"addFiles"`
+	DelFiles                 []string             `json:"delFiles"`
+	Depositor                string               `json:"depositor"`
 }
 
 type etdWorkRequest struct {
-	Work      librametadata.ETDWork `json:"work"`
-	AddFiles  []string              `json:"addFiles"`
-	DelFiles  []string              `json:"delFiles"`
-	Depositor string                `json:"depositor"`
+	Work       librametadata.ETDWork `json:"work"`
+	Visibility string                `json:"visibility"`
+	AddFiles   []string              `json:"addFiles"`
+	DelFiles   []string              `json:"delFiles"`
+	Depositor  string                `json:"depositor"`
 }
 
-type versionedOA struct {
-	ID         string                   `json:"id"`
-	Version    string                   `json:"version"`
-	CreatedAt  time.Time                `json:"createdAt"`
-	ModifiedAt time.Time                `json:"modifiedAt"`
-	Files      []librametadata.FileData `json:"files"`
+type embargoData struct {
+	ReleaseDate       string `json:"releaseDate"`
+	ReleaseVisibility string `json:"releaseBisibility"`
+}
+
+type oaWorkDetails struct {
+	ID             string                   `json:"id"`
+	Version        string                   `json:"version"`
+	CreatedAt      time.Time                `json:"createdAt"`
+	ModifiedAt     time.Time                `json:"modifiedAt"`
+	Files          []librametadata.FileData `json:"files"`
+	PersistentLink string                   `json:"persistentLink,omitempty"`
+	Visibility     string                   `json:"visibility"`
+	Embargo        *embargoData             `json:"embarbo,omitempty"`
 	*librametadata.OAWork
 }
 
-type versionedETD struct {
-	ID         string                   `json:"id"`
-	Version    string                   `json:"version"`
-	CreatedAt  time.Time                `json:"createdAt"`
-	ModifiedAt time.Time                `json:"modifiedAt"`
-	Files      []librametadata.FileData `json:"files"`
+type etdWorkDetails struct {
+	ID             string                   `json:"id"`
+	Version        string                   `json:"version"`
+	CreatedAt      time.Time                `json:"createdAt"`
+	ModifiedAt     time.Time                `json:"modifiedAt"`
+	Files          []librametadata.FileData `json:"files"`
+	PersistentLink string                   `json:"persistentLink,omitempty"`
+	IsDraft        bool                     `json:"isDraft"`
+	Visibility     string                   `json:"visibility"`
 	*librametadata.ETDWork
 }
 
@@ -77,7 +92,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	// TODO: need to add to this
 	fields["depositor"] = etdSub.Depositor
 	fields["author"] = etdSub.Work.Author.ComputeID
-	fields["visibility"] = etdSub.Work.Visibility
+	fields["default-visibility"] = etdSub.Visibility
 	fields["create-date"] = time.Now().Format(time.RFC3339)
 	fields["draft"] = "true"
 	obj.SetMetadata(etdSub.Work)
@@ -95,7 +110,12 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := versionedETD{ID: obj.Id(), Version: obj.VTag(), ETDWork: &etdSub.Work, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	resp := etdWorkDetails{ID: obj.Id(),
+		Version:    obj.VTag(),
+		Visibility: etdSub.Visibility,
+		ETDWork:    &etdSub.Work,
+		CreatedAt:  obj.Created(),
+		ModifiedAt: obj.Modified()}
 	for _, file := range obj.Files() {
 		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
 	}
@@ -126,9 +146,20 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["depositor"] = oaSub.Depositor
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
-	fields["visibility"] = oaSub.Work.Visibility
 	fields["create-date"] = time.Now().Format(time.RFC3339)
-	fields["draft"] = "true"
+	fields["draft"] = "false"
+
+	// visibility rules:
+	//   fields["default-visibility"] : visibility set from form
+	//   fields["embargo-release"] : set when embarg; the release data
+	//   fields["embargo-release-visibility"] : visibility after embargo-release
+	log.Printf("INFO: submitted visibility [%s]", oaSub.Visibility)
+	fields["default-visibility"] = oaSub.Visibility
+	if oaSub.Visibility == "embargo" {
+		fields["embargo-release"] = oaSub.EmbargoReleaseDate
+		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
+	}
+
 	obj.SetMetadata(oaSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
@@ -144,7 +175,16 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := versionedOA{ID: obj.Id(), Version: obj.VTag(), OAWork: &oaSub.Work, CreatedAt: obj.Created(), ModifiedAt: obj.Modified()}
+	resp := oaWorkDetails{ID: obj.Id(),
+		Version:    obj.VTag(),
+		Visibility: oaSub.Visibility,
+		OAWork:     &oaSub.Work,
+		CreatedAt:  obj.Created(),
+		ModifiedAt: obj.Modified()}
+	if oaSub.Visibility == "embargo" {
+		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}
+		resp.Embargo = &embInfo
+	}
 	for _, file := range obj.Files() {
 		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
 	}

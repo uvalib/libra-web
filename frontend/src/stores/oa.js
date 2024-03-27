@@ -8,6 +8,9 @@ export const useOAStore = defineStore('oa', {
       error: "",
       depositToken: "",
       work: {},
+      visibility: "",
+      embargoReleaseDate: "",
+      embargoReleaseVisibility: "",
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -38,7 +41,13 @@ export const useOAStore = defineStore('oa', {
       async getWork(id) {
          this.error = ""
          this.working = true
+         this.pendingFileAdd = []
+         this.pendingFileDel = []
+         this.embargoReleaseDate = ""
+         this.embargoReleaseVisibility = ""
          return axios.get(`/api/works/oa/${id}`).then(response => {
+            this.visibility = response.data.visibility
+            delete response.data.visibility
             this.work = response.data
             if ( this.work.keywords.length == 0) this.work.keywords.push("")
             if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
@@ -75,7 +84,9 @@ export const useOAStore = defineStore('oa', {
          this.work.sponsors = [""]
          this.work.notes = ""
          this.work.files = []
-         this.work.visibility = ""
+         this.visibility = ""
+         this.embargoReleaseDate = ""
+         this.embargoReleaseVisibility = ""
          this.pendingFileAdd = []
          this.pendingFileDel = []
       },
@@ -133,7 +144,10 @@ export const useOAStore = defineStore('oa', {
       },
       async deposit( depositorComputeID ) {
          this.working = true
-         let payload = {work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID}
+         let payload = {
+            work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID, visibility: this.visibility,
+            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
+         }
          return axios.post(`/api/submit/oa/${this.depositToken}`, payload).then(response => {
             this.work = response.data
             if ( this.work.keywords.length == 0) this.work.keywords.push("")
@@ -150,7 +164,10 @@ export const useOAStore = defineStore('oa', {
       },
       async update( ) {
          this.working = true
-         let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel}
+         let payload = {
+            work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility,
+            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
+         }
          return axios.put(`/api/works/oa/${this.work.id}`, payload).then(response => {
             this.work = response.data
             this.working = false
