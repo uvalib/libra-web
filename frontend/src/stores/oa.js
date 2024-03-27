@@ -9,6 +9,7 @@ export const useOAStore = defineStore('oa', {
       depositToken: "",
       work: {},
       visibility: "",
+      persistentLink: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
       pendingFileAdd: [],
@@ -45,9 +46,12 @@ export const useOAStore = defineStore('oa', {
          this.pendingFileDel = []
          this.embargoReleaseDate = ""
          this.embargoReleaseVisibility = ""
+         this.persistentLink = ""
          return axios.get(`/api/works/oa/${id}`).then(response => {
             this.visibility = response.data.visibility
             delete response.data.visibility
+            this.persistentLink = response.data.persistentLink
+            delete response.data.persistentLink
             this.work = response.data
             if ( this.work.keywords.length == 0) this.work.keywords.push("")
             if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")

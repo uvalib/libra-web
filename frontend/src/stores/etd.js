@@ -9,6 +9,7 @@ export const useETDStore = defineStore('etd', {
       depositToken: "",
       work: {},
       visibility: "",
+      persistentLink: "",
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -33,9 +34,12 @@ export const useETDStore = defineStore('etd', {
          this.working = true
          this.pendingFileAdd = []
          this.pendingFileDel = []
+         this.persistentLink = ""
          return axios.get(`/api/works/etd/${id}`).then(response => {
             this.visibility = response.data.visibility
             delete response.data.visibility
+            this.persistentLink = response.data.persistentLink
+            delete response.data.persistentLink
             this.work = response.data
             if ( this.work.keywords.length == 0) this.work.keywords.push("")
             if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
