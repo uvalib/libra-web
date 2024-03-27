@@ -81,12 +81,14 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	}
 
 	resp := etdWorkDetails{
-		ID:         tgtObj.Id(),
-		Version:    tgtObj.VTag(),
-		ETDWork:    etdWork,
-		Visibility: tgtObj.Fields()["default-visibility"],
-		CreatedAt:  tgtObj.Created(),
-		ModifiedAt: tgtObj.Modified()}
+		ID:             tgtObj.Id(),
+		Version:        tgtObj.VTag(),
+		ETDWork:        etdWork,
+		IsDraft:        isDraft,
+		Visibility:     tgtObj.Fields()["default-visibility"],
+		PersistentLink: tgtObj.Fields()["doi"],
+		CreatedAt:      tgtObj.Created(),
+		ModifiedAt:     tgtObj.Modified()}
 	for _, etdFile := range tgtObj.Files() {
 		log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
 		resp.Files = append(resp.Files, librametadata.FileData{Name: etdFile.Name(), MimeType: etdFile.MimeType(), CreatedAt: etdFile.Created()})
@@ -157,11 +159,12 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	}
 
 	resp := oaWorkDetails{ID: tgtObj.Id(),
-		Version:    tgtObj.VTag(),
-		Visibility: visibility,
-		OAWork:     oaWork,
-		CreatedAt:  tgtObj.Created(),
-		ModifiedAt: tgtObj.Modified()}
+		Version:        tgtObj.VTag(),
+		Visibility:     visibility,
+		OAWork:         oaWork,
+		PersistentLink: tgtObj.Fields()["doi"],
+		CreatedAt:      tgtObj.Created(),
+		ModifiedAt:     tgtObj.Modified()}
 	if visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: tgtObj.Fields()["embargo-release-date"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibilty"]}
 		resp.Embargo = &embInfo

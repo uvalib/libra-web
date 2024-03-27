@@ -46,8 +46,10 @@
                </a>
             </Fieldset>
             <Fieldset v-if="etdRepo.work.pubDate" legend="Publication Date:">{{  etdRepo.work.pubDate }}</Fieldset>
-            <!--
-            <%= display_doi_link( @work ) %> -->
+            <Fieldset legend="Persistent Link:">
+               <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
+               <span v-else>Persistent link will appear here after submission.</span>
+            </Fieldset>
          </div>
       </template>
    </div>
