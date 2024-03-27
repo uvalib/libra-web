@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path"
@@ -175,10 +176,11 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 }
 func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 	fromUVA := false
-	fwdIP := c.Request.Header.Get("X-Forwarded-For")
+	fwdIP := net.ParseIP(c.Request.Header.Get("X-Forwarded-For"))
+	remoteIP := net.ParseIP(c.RemoteIP())
 	log.Printf("INFO: check if request is from uva: remote ip: [%s], x-forwarded-for [%s]", c.RemoteIP(), fwdIP)
-	for _, ip := range svc.UVAWhiteList {
-		if ip == fwdIP || ip == c.RemoteIP() {
+	for _, ipNet := range svc.UVAWhiteList {
+		if ipNet.Contains(fwdIP) || ipNet.Contains(remoteIP) {
 			fromUVA = true
 			break
 		}

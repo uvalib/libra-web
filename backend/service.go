@@ -29,7 +29,7 @@ type serviceContext struct {
 	JWTKey       string
 	DevAuthUser  string
 	Namespaces   namespaceConfig
-	UVAWhiteList []string
+	UVAWhiteList []*net.IPNet
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -91,10 +91,13 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	for _, ip := range strings.Split(string(wlBytes), "\n") {
 		cleanIP := strings.TrimSpace(ip)
 		if cleanIP != "" {
-			ctx.UVAWhiteList = append(ctx.UVAWhiteList, cleanIP)
+			_, ipnet, ipErr := net.ParseCIDR(cleanIP)
+			if ipErr != nil {
+				log.Fatalf("unable to parse cidr %s: %s", cleanIP, ipErr.Error())
+			}
+			ctx.UVAWhiteList = append(ctx.UVAWhiteList, ipnet)
 		}
 	}
-	log.Printf("INFO: uva ip whitelist: %v", ctx.UVAWhiteList)
 
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{
