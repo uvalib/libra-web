@@ -3,7 +3,7 @@
       <div class="form" id="oa-form-layout">
          <div class="sidebar-col">
             <SavePanel v-if="oaRepo.working==false"
-               type="oa" mode="create" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
+               type="oa" :create="isNewSubmission" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
                @submit="submitClicked" @cancel="cancelClicked" ref="savepanel" :visibility="oaRepo.visibility"/>
          </div>
 
@@ -71,7 +71,7 @@
 
                <FormKit label="Abstract" type="textarea" v-model="oaRepo.work.abstract" rows="10" validation="required"/>
 
-               <FormKit type="select" label="Rights" v-model="oaRepo.work.license"
+               <FormKit type="select" label="Rights" v-model="oaRepo.licenseID"
                   placeholder="Select rights"
                   :options="system.oaLicenses" validation="required"
                />
@@ -143,10 +143,7 @@
 
                <FormKit label="Publisher" type="text" v-model="oaRepo.work.publisher" validation="required"/>
                <p class="note">
-                  Libra lets you choose an open license when you post your work, and will prominently display the
-                  license you choose as part of the record for your work. See
-                  <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
-                  for option details.
+                  The original publisher of the work. If there is no original publisher, leave "University of Virginia" in this field.
                </p>
                <FormKit label="Source citation" type="text" v-model="oaRepo.work.citation"/>
                <p class="note">The bibliographic citation of the work that reflects where it was originally published.</p>
@@ -405,7 +402,12 @@ const downloadFileClicked = ( (name) => {
    oaRepo.downloadFile(name)
 })
 const submitClicked = ( (visibility) => {
+   // update work submission with other details from items that are not directly part of the metadata record
    oaRepo.visibility = visibility
+   let license = system.licenseDetail("oa", oaRepo.licenseID)
+   oaRepo.work.license = license.label
+   oaRepo.work.licenseURL = license.url
+
    const node = oaForm.value.node
    node.submit()
 })
@@ -420,7 +422,11 @@ const submitHandler = ( async () => {
    }
 })
 const cancelClicked = (() => {
-   oaRepo.cancel()
+   if ( isNewSubmission.value) {
+      oaRepo.cancelCreate()
+   } else {
+      oaRepo.cancelEdit()
+   }
    router.push("/oa")
 
 })

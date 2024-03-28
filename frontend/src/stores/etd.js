@@ -9,6 +9,7 @@ export const useETDStore = defineStore('etd', {
       depositToken: "",
       work: {},
       visibility: "",
+      licenseID: "",
       persistentLink: "",
       pendingFileAdd: [],
       pendingFileDel: [],
@@ -35,15 +36,9 @@ export const useETDStore = defineStore('etd', {
          this.pendingFileAdd = []
          this.pendingFileDel = []
          this.persistentLink = ""
+         this.licenseID = ""
          return axios.get(`/api/works/etd/${id}`).then(response => {
-            this.visibility = response.data.visibility
-            delete response.data.visibility
-            this.persistentLink = response.data.persistentLink
-            delete response.data.persistentLink
-            this.work = response.data
-            if ( this.work.keywords.length == 0) this.work.keywords.push("")
-            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
-            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
+            this.setWorkDetails(response.data)
             this.working = false
          }).catch( err => {
             if (err.response.status == 404) {
@@ -56,12 +51,30 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
+      setWorkDetails( data) {
+         this.visibility = data.visibility
+         delete data.visibility
+         this.persistentLink = data.persistentLink
+         delete data.persistentLink
+         this.work = data
+         if ( this.work.keywords.length == 0) this.work.keywords.push("")
+         if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
+         if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
+
+         // lookup licence ID based on URL
+         const system = useSystemStore()
+         let lic = system.etdLicenses.find( l => l.url == this.work.licenseURL )
+         if (lic) {
+            this.licenseID = lic.value
+         }
+      },
       initSubmission(compID, firstName, lastName, program) {
          this.work.title = "",
          this.work.author = {computeID: compID, firstName: firstName, lastName: lastName, program: program, institution: "University of Virginia"},
          this.work.advisors = [{computeID: "", firstName: "", lastName: "", department: "", institution: "University of Virginia", msg: ""}]
          this.work.abstract = ""
          this.work.license = ""
+         this.work.licenseURL = ""
          this.work.language = ""
          this.work.keywords = []
          this.work.relatedURLs = []
@@ -70,6 +83,8 @@ export const useETDStore = defineStore('etd', {
          this.work.degree = "MA (Master of Arts)"
          this.work.dateCreated = new Date()
          this.work.files = []
+
+         this.licenseID = ""
          this.visibility = ""
          this.pendingFileAdd = []
          this.pendingFileDel = []
@@ -83,9 +98,12 @@ export const useETDStore = defineStore('etd', {
             system.setError(  err )
          })
       },
-      cancel() {
+      cancelCreate() {
          axios.post(`/api/cancel/${this.depositToken}`)
          this.depositToken = ""
+      },
+      cancelEdit() {
+         axios.post(`/api/cancel/${this.work.id}`)
       },
       addFile( file ) {
          this.pendingFileAdd.push( file )

@@ -8,6 +8,7 @@ export const useOAStore = defineStore('oa', {
       error: "",
       depositToken: "",
       work: {},
+      licenseID: "",
       visibility: "",
       persistentLink: "",
       embargoReleaseDate: "",
@@ -47,15 +48,9 @@ export const useOAStore = defineStore('oa', {
          this.embargoReleaseDate = ""
          this.embargoReleaseVisibility = ""
          this.persistentLink = ""
+         this.licenseID = ""
          return axios.get(`/api/works/oa/${id}`).then(response => {
-            this.visibility = response.data.visibility
-            delete response.data.visibility
-            this.persistentLink = response.data.persistentLink
-            delete response.data.persistentLink
-            this.work = response.data
-            if ( this.work.keywords.length == 0) this.work.keywords.push("")
-            if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
-            if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
+            this.setWorkDetails( response.data )
             this.working = false
          }).catch( err => {
             if (err.response.status == 404) {
@@ -68,8 +63,26 @@ export const useOAStore = defineStore('oa', {
             this.working = false
          })
       },
+      setWorkDetails( data) {
+         this.visibility = data.visibility
+         delete data.visibility
+         this.persistentLink = data.persistentLink
+         delete data.persistentLink
+         this.work = data
+         if ( this.work.keywords.length == 0) this.work.keywords.push("")
+         if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
+         if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
+
+         // lookup licence ID based on URL
+         const system = useSystemStore()
+         let lic = system.oaLicenses.find( l => l.url == this.work.licenseURL )
+         if (lic) {
+            this.licenseID = lic.value
+         }
+      },
       initSubmission(compID, firstName, lastName, department) {
          this.error = ""
+
          this.work.resourceType = "Book"
          this.work.title = ""
          this.work.authors = [{
@@ -77,7 +90,6 @@ export const useOAStore = defineStore('oa', {
             department: department, institution: "University of Virginia", msg: ""}
          ]
          this.work.abstract = ""
-         this.work.license = ""
          this.work.languages = [""]
          this.work.keywords = [""]
          this.work.contributors = []
@@ -88,6 +100,10 @@ export const useOAStore = defineStore('oa', {
          this.work.sponsors = [""]
          this.work.notes = ""
          this.work.files = []
+         this.work.license = ""
+         this.work.licenseURL = ""
+
+         this.licenseID = ""
          this.visibility = ""
          this.embargoReleaseDate = ""
          this.embargoReleaseVisibility = ""
@@ -103,9 +119,12 @@ export const useOAStore = defineStore('oa', {
             system.setError(  err )
          })
       },
-      cancel() {
+      cancelCreate() {
          axios.post(`/api/cancel/${this.depositToken}`)
          this.depositToken = ""
+      },
+      cancelEdit() {
+         axios.post(`/api/cancel/${this.work.id}`)
       },
       addFile( file ) {
          this.pendingFileAdd.push( file )

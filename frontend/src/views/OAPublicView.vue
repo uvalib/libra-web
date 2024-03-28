@@ -35,9 +35,7 @@
                {{ oaRepo.work.keywords.join(", ") }}
             </Fieldset>
             <Fieldset legend="Rights:">
-               <a :href="system.licenseDetail('oa', oaRepo.work.license).url" target="_blank">
-                  {{ system.licenseDetail("oa", oaRepo.work.license).label }}
-               </a>
+               <a :href="oaRepo.work.licenseURL" target="_blank">{{ oaRepo.work.license }}</a>
             </Fieldset>
             <Fieldset v-if="oaRepo.hasContributors" legend="Contributors:">
                <div v-for="contributor in  oaRepo.work.contributors" class="author">
@@ -72,13 +70,11 @@
 
 <script setup>
 import { onBeforeMount } from 'vue'
-import { useSystemStore } from "@/stores/system"
 import { useOAStore } from "@/stores/oa"
 import { useRoute } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 
-const system = useSystemStore()
 const oaRepo = useOAStore()
 const route = useRoute()
 

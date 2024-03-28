@@ -3,7 +3,7 @@
       <div class="form" id="etd-form-layout">
          <div class="sidebar-col">
             <SavePanel v-if="etdRepo.working==false"
-               type="etd" mode="edit" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
+               type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked"
                ref="savepanel"  :visibility="etdRepo.visibility"/>
          </div>
@@ -80,7 +80,7 @@
 
                <FormKit label="Abstract" type="textarea" v-model="etdRepo.work.abstract" rows="10" validation="required"/>
 
-               <FormKit type="select" label="Rights" v-model="etdRepo.work.license"
+               <FormKit type="select" label="Rights" v-model="etdRepo.licenseID"
                   placeholder="Select rights"
                   :options="system.etdLicenses" validation="required"
                />
@@ -311,13 +311,19 @@ const downloadFileClicked = ( (name) => {
 })
 const saveAndContinueClicked= ( async (visibility) => {
    nextURL.value = "/etd" // TODO go to display form
-   etdRepo.visibility = visibility
+   updateWorkModel(visibility)
    etdForm.value.node.submit()
 })
 const saveAndExitClicked = ( (visibility) => {
    nextURL.value = "/etd" // back to etd dashboard
-   etdRepo.visibility = visibility
+   updateWorkModel(visibility)
    etdForm.value.node.submit()
+})
+const updateWorkModel = (( visibility) => {
+   etdRepo.visibility = visibility
+   let license = system.licenseDetail("etd", etdRepo.licenseID)
+   etdRepo.work.license = license.label
+   etdRepo.work.licenseURL = license.url
 })
 const submitHandler = ( async () => {
    if ( isNewSubmission.value ) {
@@ -330,7 +336,11 @@ const submitHandler = ( async () => {
    }
 })
 const cancelClicked = (() => {
-   etdRepo.cancel()
+   if ( isNewSubmission.value) {
+      etdRepo.cancelCreate()
+   } else {
+      etdRepo.cancelEdit()
+   }
    router.push("/etd")
 
 })

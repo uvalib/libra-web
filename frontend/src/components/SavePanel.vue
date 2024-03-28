@@ -23,7 +23,7 @@
          </div>
       </Fieldset>
       <div class="agree">
-         <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
+         <Checkbox inputId="agree-cb" v-model="agree" :binary="true" :disabled="props.create == false" />
          <label v-if="type=='oa'" for="agree-cb">
             By saving this work, I agree to the
             <a href="https://www.library.virginia.edu/libra/open/libra-deposit-license" target="_blank">Libra Deposit Agreement</a>
@@ -33,10 +33,9 @@
             <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
             including discussing my deposit access options with my faculty advisor.
          </label>
-
       </div>
       <div class="button-bar">
-         <template v-if="props.mode=='create'">
+         <template v-if="props.type=='oa'">
             <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
             <Button label="Submit" @click="emit('submit', visibility)" :disabled="!canSubmit"/>
          </template>
@@ -66,12 +65,9 @@ const props = defineProps({
          return ['oa', 'etd'].includes(value)
       },
    },
-   mode: {
-      type: String,
+   create: {
+      type: Boolean,
       required: true,
-      validator(value) {
-         return ['create', 'edit'].includes(value)
-      },
    },
    files: {
       type: Boolean,
@@ -93,6 +89,7 @@ const agree = ref(false)
 
 onMounted( () => {
    visibility.value = props.visibility
+   agree.value = !props.create
 })
 
 const visibilityOptions = computed( () => {

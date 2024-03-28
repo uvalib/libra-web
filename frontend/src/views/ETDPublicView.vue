@@ -41,9 +41,7 @@
             <Fieldset v-if="etdRepo.work.notes" legend="Notes:">{{  etdRepo.work.notes }}</Fieldset>
             <Fieldset v-if="etdRepo.work.language" legend="Labguage:">{{  etdRepo.work.language }}</Fieldset>
             <Fieldset legend="Rights:">
-               <a :href="system.licenseDetail('oa', etdRepo.work.license).url" target="_blank">
-                  {{ system.licenseDetail("oa", etdRepo.work.license).label }}
-               </a>
+               <a :href="etdRepo.work.licenseURL" target="_blank">{{ etdRepo.work.license }}</a>
             </Fieldset>
             <Fieldset v-if="etdRepo.work.pubDate" legend="Publication Date:">{{  etdRepo.work.pubDate }}</Fieldset>
             <Fieldset legend="Persistent Link:">
@@ -57,13 +55,11 @@
 
 <script setup>
 import { onBeforeMount } from 'vue'
-import { useSystemStore } from "@/stores/system"
 import { useETDStore } from "@/stores/etd"
 import { useRoute } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 
-const system = useSystemStore()
 const etdRepo = useETDStore()
 const route = useRoute()
 
