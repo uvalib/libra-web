@@ -44,10 +44,14 @@ type language struct {
 }
 
 type visibility struct {
-	Value string `json:"value"`
-	Label string `json:"label"`
-	ETD   bool   `json:"etd"`
-	OA    bool   `json:"oa"`
+	Value   string `json:"value"`
+	Label   string `json:"label"`
+	ETD     bool   `json:"etd"`
+	OA      bool   `json:"oa"`
+	License *struct {
+		URL   string `json:"url"`
+		Label string `json:"label"`
+	} `json:"license,omitempty"`
 }
 
 type license struct {

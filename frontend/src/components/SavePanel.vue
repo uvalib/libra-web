@@ -20,6 +20,9 @@
          <div v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
             <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility"/>
             <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+            <div v-if="showLicense(v)" class="license">
+               <a :href="v.license.url">{{ v.license.label }}</a>
+            </div>
          </div>
       </Fieldset>
       <div class="agree">
@@ -103,6 +106,13 @@ const canSubmit = computed(() =>{
    if (props.described == false ) return false
    return agree.value == true && visibility.value != "" && props.files
 })
+
+const showLicense = ( (vis) => {
+   if (vis.license) {
+      return visibility.value == vis.value
+   }
+   return false
+})
 </script>
 
 <style lang="scss" scoped>
@@ -136,6 +146,10 @@ const canSubmit = computed(() =>{
       div.visibility {
          padding: 0;
          margin-left: 0;
+      }
+      .license {
+         font-size: 0.8em;
+         margin: 7px 0px 10px 35px;
       }
    }
    .agree {

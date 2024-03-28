@@ -1,8 +1,46 @@
 [
-   {"value": "open", "label": "Public Access", "oa": false, "etd": true},
-   {"value": "uva", "label": "Limited Access", "oa": false, "etd": true},
-   {"value": "open", "label": "Visible Worldwide", "oa": true, "etd": false},
-   {"value": "uva", "label": "Restricted to UVa Only", "oa": true, "etd": false},
-   {"value": "embargo", "label": "Embargo", "oa": true, "etd": false},
-   {"value": "restricted", "label": "Private", "oa": true, "etd": false}
+   {
+      "label": "Public Access",
+      "value": "open",
+      "oa": false,
+      "etd": true
+   },
+   {
+      "label": "Limited Access",
+      "value": "embargo",
+      "oa": false,
+      "etd": true
+   },
+   {
+      "label": "Visible Worldwide",
+      "value": "open",
+      "oa": true,
+      "etd": false,
+      "license": {
+         "url": "https://libraopendev.lib.virginia.edu/uva-public-license",
+         "label": "Libra Public Deposit License"
+      }
+   },
+   {
+      "label": "Restricted to UVa Only",
+      "value": "uva",
+      "oa": true,
+      "etd": false,
+      "license": {
+         "url": "https://libraopendev.lib.virginia.edu/uva-only-license",
+         "label": "Libra UVA-only Deposit License"
+      }
+   },
+   {
+      "label": "Embargo",
+      "value": "embargo",
+      "oa": true,
+      "etd": false
+   },
+   {
+      "label": "Private",
+      "value": "restricted",
+      "oa": true,
+      "etd": false
+   }
 ]
