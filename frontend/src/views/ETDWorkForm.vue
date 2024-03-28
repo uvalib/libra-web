@@ -18,7 +18,7 @@
                   </div>
                   <div class="readonly">
                      <label>Date Created:</label>
-                     <span>{{ $formatDate(etdRepo.work.dateCreated) }}</span>
+                     <span>{{ $formatDate(etdRepo.work.createdAt) }}</span>
                   </div>
                </div>
 

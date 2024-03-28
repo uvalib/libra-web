@@ -81,7 +81,7 @@ export const useETDStore = defineStore('etd', {
          this.work.sponsors = []
          this.work.notes = ""
          this.work.degree = "MA (Master of Arts)"
-         this.work.dateCreated = new Date()
+         this.work.createdAt = new Date()
          this.work.files = []
 
          this.licenseID = ""
