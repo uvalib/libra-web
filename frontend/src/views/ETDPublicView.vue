@@ -49,6 +49,17 @@
                <span v-else>Persistent link will appear here after submission.</span>
             </Fieldset>
          </div>
+         <div class="draft" v-if="etdRepo.work.isDraft">
+            <h2 class="proof">Submission Proof</h2>
+            <p>
+               Before proceeding, we encourage you to review the information in this page.
+               If you experience problems with your submission, please <a href="mailto:libra@virginia.edu">contact</a> us.
+            </p>
+            <div class="buttons">
+               <Button severity="secondary" label="Edit" @click="editThesis()"/>
+               <Button severity="primary" label="Submit Thesis" icon="pi pi-check" @click="submitThesis()"/>
+            </div>
+         </div>
       </template>
    </div>
 </template>
@@ -56,12 +67,13 @@
 <script setup>
 import { onBeforeMount } from 'vue'
 import { useETDStore } from "@/stores/etd"
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 
 const etdRepo = useETDStore()
 const route = useRoute()
+const router = useRouter()
 
 const authorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${a.program}, ${a.institution}`
@@ -72,6 +84,13 @@ const advisorDisplay = ((a) => {
 onBeforeMount( async () => {
    document.title = "LibraETD"
    await etdRepo.getWork( route.params.id )
+})
+const editThesis = (() => {
+   router.push(`/etd/${route.params.id}`)
+
+})
+const submitThesis = (() => {
+   alert("this is not yet supported")
 })
 </script>
 
@@ -86,6 +105,10 @@ onBeforeMount( async () => {
          max-width: 60%;
          margin: 50px auto 0 auto;
          box-shadow: 0 0 15px 5px black;
+      }
+      div.draft {
+         margin: 20px 20px 0 0;
+         max-width: 300px;
       }
       div.details {
          max-width: 60%;
@@ -104,7 +127,7 @@ onBeforeMount( async () => {
       }
       div.files {
          width: 250px;
-         margin-top: 320px;
+         margin: 320px 0 0 15px;
       }
    }
 }
@@ -115,6 +138,10 @@ onBeforeMount( async () => {
    div.public-work {
       display: flex;
       flex-direction: column-reverse;
+      div.draft {
+         margin: 20px auto 0 auto;
+         width: 90%;
+      }
       div.error {
          max-width: 100%;
          margin: 5px;
@@ -157,6 +184,27 @@ div.work-bkg {
 div.public-work {
    position: relative;
    min-height: 300px;
+
+   div.draft {
+      background: var(--uvalib-yellow-light);
+      padding: 0 20px 20px 20px;
+      border: 1px solid var(--uvalib-yellow-dark);
+      border-radius: 4px;
+      h2.proof {
+         padding: 0;
+         margin: 20px 0 10px 0 !important;
+         font-weight: normal !important;
+      }
+      p {
+         text-align: left;
+      }
+      .buttons {
+         button {
+            margin-left: 5px;
+            font-size: 0.9em;
+         }
+      }
+   }
 
    div.error {
       border-radius: 5px;
