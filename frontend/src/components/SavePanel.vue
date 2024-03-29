@@ -23,6 +23,17 @@
             <div v-if="showLicense(v)" class="license">
                <a :href="v.license.url">{{ v.license.label }}</a>
             </div>
+            <div  v-if="showETDEmbargo(v)" class="embargo">
+               <p>Files will be available to UVA only for:</p>
+               <Dropdown v-model="limitedDuration" :options="limitedDurations" optionLabel="label" optionValue="value" />
+               <p>After that, files will be be available worldwide.</p>
+            </div>
+            <div v-if="showOAEmbargo(v)" class="embargo">
+               <p>Files will be unavavilble to others until:</p>
+               <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
+               <p>After that, files will be be available:</p>
+               <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+            </div>
          </div>
       </Fieldset>
       <div class="agree">
@@ -40,12 +51,12 @@
       <div class="button-bar">
          <template v-if="props.type=='oa'">
             <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
-            <Button label="Submit" @click="emit('submit', visibility)" :disabled="!canSubmit"/>
+            <Button label="Submit" @click="oaSubmitClicked()" :disabled="!canSubmit"/>
          </template>
          <template v-else>
             <Button severity="secondary" label="Cancel Edit" @click="emit('cancel')"/>
-            <Button label="Save and Exit" @click="emit('saveExit', visibility)" :disabled="!canSubmit"/>
-            <Button label="Save and Continue" @click="emit('saveContinue', visibility)" :disabled="!canSubmit"/>
+            <Button label="Save and Exit" @click="etdSubmitClicked('saveExit')" :disabled="!canSubmit"/>
+            <Button label="Save and Continue" @click="etdSubmitClicked('saveContinue')" :disabled="!canSubmit"/>
          </template>
       </div>
    </Panel>
@@ -56,8 +67,14 @@ import { ref, computed, onMounted } from 'vue'
 import Checkbox from 'primevue/checkbox'
 import Fieldset from 'primevue/fieldset'
 import RadioButton from 'primevue/radiobutton'
+import Calendar from 'primevue/calendar'
+import Dropdown from 'primevue/dropdown'
 import Panel from 'primevue/panel'
 import { useSystemStore } from "@/stores/system"
+
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 const emit = defineEmits( ['submit', 'cancel', 'saveExit', 'saveContinue'])
 const props = defineProps({
@@ -80,6 +97,14 @@ const props = defineProps({
       type: String,
       required: true
    },
+   releaseDate: {
+      type: String,
+      default: ""
+   },
+   releaseVisibility: {
+      type: String,
+      default: ""
+   },
    described: {
       type: Boolean,
       required: true
@@ -88,10 +113,28 @@ const props = defineProps({
 
 const system = useSystemStore()
 const visibility = ref(props.visibility)
+const releaseVisibility = ref("open")
+const releaseDate = ref(new Date())
+const limitedDuration = ref("6-months")
 const agree = ref(false)
+
+
+const oaVisibilities = ref([
+   {label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}
+])
+const limitedDurations = ref([
+   {label: "6 Months", value: "6-months"}, {label: "1 Year", value: "1-year"},
+   {label: "2 Years", value: "2-years"}, {label: "5 Years", value: "5-years"}
+])
 
 onMounted( () => {
    visibility.value = props.visibility
+   if ( props.releaseDate != "") {
+      releaseDate.value = dayjs(props.releaseDate, "YYYY-MM-DD").toDate()
+   }
+   if ( props.releaseVisibility != "") {
+      releaseVisibility.value = props.releaseVisibility
+   }
    agree.value = !props.create
 })
 
@@ -113,6 +156,34 @@ const showLicense = ( (vis) => {
    }
    return false
 })
+const showETDEmbargo = ((vis) =>{
+   return (vis.value == 'limited' && visibility.value == vis.value)
+})
+const showOAEmbargo = ((vis) =>{
+   return (vis.value == 'embargo' && visibility.value == vis.value)
+})
+
+const oaSubmitClicked = (() => {
+   if ( visibility.value == "embargo") {
+      emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
+   } else {
+      emit('submit', visibility.value)
+   }
+})
+const etdSubmitClicked = ((act) => {
+   if ( visibility.value == "limited") {
+      let endDate = new Date()
+      if ( limitedDuration.value == "6-months") {
+         endDate.setMonth( endDate.getMonth()+6)
+      } else {
+         let numYears = parseInt(limitedDuration.value.split("-")[0], 10)
+         endDate.setFullYear( endDate.getFullYear()+numYears)
+      }
+      emit(act, visibility.value, endDate, "open")
+   } else {
+      emit(act, visibility.value)
+   }
+})
 </script>
 
 <style lang="scss" scoped>
@@ -120,6 +191,21 @@ const showLicense = ( (vis) => {
    .help {
       font-size: 0.9em;
       margin-top:15px;
+   }
+   div.embargo {
+      font-size: 0.9em;
+      margin: 15px 0 30px 30px;
+
+      p {
+         margin: 10px 0 2px 0;
+         padding: 0;
+      }
+      .p-calendar, .p-dropdown {
+         width: 100%;
+         .p-inputtext {
+            margin-bottom: 0;
+         }
+      }
    }
    .requirement {
       display: flex;

@@ -4,7 +4,9 @@
          <div class="sidebar-col">
             <SavePanel v-if="oaRepo.working==false"
                type="oa" :create="isNewSubmission" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
-               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel" :visibility="oaRepo.visibility"/>
+               :visibility="oaRepo.visibility" :releaseDate="oaRepo.embargoReleaseDate" :releaseVisibility="oaRepo.embargoReleaseVisibility"
+               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"
+            />
          </div>
 
          <Panel :header="panelTitle" class="main-form">
@@ -226,6 +228,7 @@ import WaitSpinner from "@/components/WaitSpinner.vue"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { useConfirm } from "primevue/useconfirm"
+import dayjs from 'dayjs'
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
    const formEle = document.getElementById("oa-form-layout")
@@ -401,9 +404,12 @@ const deleteFileClicked = ( (name) => {
 const downloadFileClicked = ( (name) => {
    oaRepo.downloadFile(name)
 })
-const submitClicked = ( (visibility) => {
+const submitClicked = ( (visibility, releaseDate, releaseVisibility ) => {
    // update work submission with other details from items that are not directly part of the metadata record
    oaRepo.visibility = visibility
+   oaRepo.embargoReleaseDate =  dayjs(releaseDate).format("YYYY-MM-DD")
+   oaRepo.embargoReleaseVisibility =  releaseVisibility
+
    let license = system.licenseDetail("oa", oaRepo.licenseID)
    oaRepo.work.license = license.label
    oaRepo.work.licenseURL = license.url

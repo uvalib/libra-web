@@ -14,42 +14,31 @@ import (
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
-type oaWorkRequest struct {
-	Work                     librametadata.OAWork `json:"work"`
-	Visibility               string               `json:"visibility"`
-	EmbargoReleaseDate       string               `json:"embargoReleaseDate,omitempty"`
-	EmbargoReleaseVisibility string               `json:"embargoReleaseVisibility,omitempty"`
-	AddFiles                 []string             `json:"addFiles"`
-	DelFiles                 []string             `json:"delFiles"`
-	Depositor                string               `json:"depositor"`
+type depositSettings struct {
+	Visibility               string   `json:"visibility"`
+	EmbargoReleaseDate       string   `json:"embargoReleaseDate,omitempty"`
+	EmbargoReleaseVisibility string   `json:"embargoReleaseVisibility,omitempty"`
+	AddFiles                 []string `json:"addFiles"`
+	DelFiles                 []string `json:"delFiles"`
+	Depositor                string   `json:"depositor"`
 }
 
-type etdWorkRequest struct {
-	Work       librametadata.ETDWork `json:"work"`
-	Visibility string                `json:"visibility"`
-	AddFiles   []string              `json:"addFiles"`
-	DelFiles   []string              `json:"delFiles"`
-	Depositor  string                `json:"depositor"`
+type oaDepositRequest struct {
+	Work librametadata.OAWork `json:"work"`
+	depositSettings
+}
+
+type etdDepositRequest struct {
+	Work librametadata.ETDWork `json:"work"`
+	depositSettings
 }
 
 type embargoData struct {
 	ReleaseDate       string `json:"releaseDate"`
-	ReleaseVisibility string `json:"releaseBisibility"`
+	ReleaseVisibility string `json:"releaseVisibility"`
 }
 
-type oaWorkDetails struct {
-	ID             string                   `json:"id"`
-	Version        string                   `json:"version"`
-	CreatedAt      time.Time                `json:"createdAt"`
-	ModifiedAt     time.Time                `json:"modifiedAt"`
-	Files          []librametadata.FileData `json:"files"`
-	PersistentLink string                   `json:"persistentLink,omitempty"`
-	Visibility     string                   `json:"visibility"`
-	Embargo        *embargoData             `json:"embarbo,omitempty"`
-	*librametadata.OAWork
-}
-
-type etdWorkDetails struct {
+type baseWorkDetails struct {
 	ID             string                   `json:"id"`
 	Version        string                   `json:"version"`
 	CreatedAt      time.Time                `json:"createdAt"`
@@ -58,6 +47,16 @@ type etdWorkDetails struct {
 	PersistentLink string                   `json:"persistentLink,omitempty"`
 	IsDraft        bool                     `json:"isDraft"`
 	Visibility     string                   `json:"visibility"`
+	Embargo        *embargoData             `json:"embargo,omitempty"`
+}
+
+type oaWorkDetails struct {
+	*baseWorkDetails
+	*librametadata.OAWork
+}
+
+type etdWorkDetails struct {
+	*baseWorkDetails
 	*librametadata.ETDWork
 }
 
@@ -70,7 +69,7 @@ func (svc *serviceContext) getDepositToken(c *gin.Context) {
 func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received etd deposit request for %s", token)
-	var etdSub etdWorkRequest
+	var etdSub etdDepositRequest
 	err := c.ShouldBindJSON(&etdSub)
 	if err != nil {
 		log.Printf("ERROR: bad payload in etd deposit request: %s", err.Error())
@@ -88,13 +87,16 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-
-	// TODO: need to add to this
 	fields["depositor"] = etdSub.Depositor
 	fields["author"] = etdSub.Work.Author.ComputeID
-	fields["default-visibility"] = etdSub.Visibility
 	fields["create-date"] = time.Now().Format(time.RFC3339)
 	fields["draft"] = "true"
+	fields["default-visibility"] = etdSub.Visibility
+	if etdSub.Visibility == "limited" {
+		fields["embargo-release"] = etdSub.EmbargoReleaseDate
+		fields["embargo-release-visibility"] = etdSub.EmbargoReleaseVisibility
+	}
+
 	obj.SetMetadata(etdSub.Work)
 	obj.SetFiles(esFiles)
 	obj.SetFields(fields)
@@ -110,12 +112,20 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := etdWorkDetails{ID: obj.Id(),
-		Version:    obj.VTag(),
-		Visibility: etdSub.Visibility,
-		ETDWork:    &etdSub.Work,
-		CreatedAt:  obj.Created(),
-		ModifiedAt: obj.Modified()}
+	resp := etdWorkDetails{
+		baseWorkDetails: &baseWorkDetails{
+			ID:         obj.Id(),
+			IsDraft:    true,
+			Version:    obj.VTag(),
+			Visibility: etdSub.Visibility,
+			CreatedAt:  obj.Created(),
+			ModifiedAt: obj.Modified(),
+		},
+		ETDWork: &etdSub.Work,
+	}
+	if etdSub.Visibility == "limited" {
+		resp.Embargo = &embargoData{ReleaseDate: etdSub.EmbargoReleaseDate, ReleaseVisibility: etdSub.EmbargoReleaseVisibility}
+	}
 	for _, file := range obj.Files() {
 		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
 	}
@@ -125,7 +135,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received oa deposit request for %s", token)
-	var oaSub oaWorkRequest
+	var oaSub oaDepositRequest
 	err := c.ShouldBindJSON(&oaSub)
 	if err != nil {
 		log.Printf("ERROR: bad payload in oa deposit request: %s", err.Error())
@@ -175,12 +185,17 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := oaWorkDetails{ID: obj.Id(),
-		Version:    obj.VTag(),
-		Visibility: oaSub.Visibility,
-		OAWork:     &oaSub.Work,
-		CreatedAt:  obj.Created(),
-		ModifiedAt: obj.Modified()}
+	resp := oaWorkDetails{
+		baseWorkDetails: &baseWorkDetails{
+			ID:         obj.Id(),
+			IsDraft:    false,
+			Version:    obj.VTag(),
+			Visibility: oaSub.Visibility,
+			CreatedAt:  obj.Created(),
+			ModifiedAt: obj.Modified(),
+		},
+		OAWork: &oaSub.Work,
+	}
 	if oaSub.Visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}
 		resp.Embargo = &embInfo

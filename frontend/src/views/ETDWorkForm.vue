@@ -4,8 +4,10 @@
          <div class="sidebar-col">
             <SavePanel v-if="etdRepo.working==false"
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
+               :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
                @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked"
-               ref="savepanel"  :visibility="etdRepo.visibility"/>
+               ref="savepanel"
+            />
          </div>
 
          <Panel :header="panelTitle" class="main-form">

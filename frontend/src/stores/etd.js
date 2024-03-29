@@ -9,6 +9,8 @@ export const useETDStore = defineStore('etd', {
       depositToken: "",
       work: {},
       visibility: "",
+      embargoReleaseDate: "",
+      embargoReleaseVisibility: "",
       licenseID: "",
       persistentLink: "",
       pendingFileAdd: [],
@@ -36,6 +38,8 @@ export const useETDStore = defineStore('etd', {
          this.pendingFileAdd = []
          this.pendingFileDel = []
          this.persistentLink = ""
+         this.embargoReleaseDate = ""
+         this.embargoReleaseVisibility = ""
          this.licenseID = ""
          return axios.get(`/api/works/etd/${id}`).then(response => {
             this.setWorkDetails(response.data)
@@ -56,6 +60,11 @@ export const useETDStore = defineStore('etd', {
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
+         if ( data.embargo ) {
+            this.embargoReleaseDate = data.embargo.releaseDate
+            this.embargoReleaseVisibility  = data.embargo.releaseVisibility
+            delete data.embargo
+         }
          this.work = data
          if ( this.work.keywords.length == 0) this.work.keywords.push("")
          if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
@@ -86,6 +95,8 @@ export const useETDStore = defineStore('etd', {
 
          this.licenseID = ""
          this.visibility = ""
+         this.embargoReleaseDate = ""
+         this.embargoReleaseVisibility = ""
          this.pendingFileAdd = []
          this.pendingFileDel = []
       },
@@ -147,7 +158,8 @@ export const useETDStore = defineStore('etd', {
       async deposit( depositorComputeID ) {
          this.working = true
          let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID, visibility: this.visibility
+            work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID, visibility: this.visibility,
+            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
          return axios.post(`/api/submit/etd/${this.depositToken}`, payload).then(response => {
             this.work = response.data
@@ -163,7 +175,8 @@ export const useETDStore = defineStore('etd', {
       async update( ) {
          this.working = true
          let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility
+            work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility,
+            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
          let url = `/api/works/etd/${this.work.id}`
          console.log(url)

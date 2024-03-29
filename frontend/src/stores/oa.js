@@ -68,6 +68,11 @@ export const useOAStore = defineStore('oa', {
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
+         if ( data.embargo ) {
+            this.embargoReleaseDate = data.embargo.releaseDate
+            this.embargoReleaseVisibility  = data.embargo.releaseVisibility
+            delete data.embargo
+         }
          this.work = data
          if ( this.work.keywords.length == 0) this.work.keywords.push("")
          if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
