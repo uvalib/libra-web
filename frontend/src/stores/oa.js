@@ -13,6 +13,7 @@ export const useOAStore = defineStore('oa', {
       persistentLink: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
+      disablePrivate: false,
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -49,6 +50,7 @@ export const useOAStore = defineStore('oa', {
          this.embargoReleaseVisibility = ""
          this.persistentLink = ""
          this.licenseID = ""
+         this.disablePrivate = false
          return axios.get(`/api/works/oa/${id}`).then(response => {
             this.setWorkDetails( response.data )
             this.working = false
@@ -68,6 +70,8 @@ export const useOAStore = defineStore('oa', {
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
+         this.disablePrivate = data.disablePrivate
+         delete data.disablePrivate
          if ( data.embargo ) {
             this.embargoReleaseDate = data.embargo.releaseDate
             this.embargoReleaseVisibility  = data.embargo.releaseVisibility

@@ -40,8 +40,7 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	}
 
 	// enforce visibility;
-	//   draft metadata is visible to authors only
-	//   non-draft metadata is accessible to all
+	//   ANYONE CAN ACCESS METADATA - Except draft content
 	//   file visibility:
 	//       open = visible to all;
 	//       limited = only visible to uva
@@ -52,26 +51,23 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		log.Printf("ERROR: unable to parse draft field for etd work %s; default to true: %s", workID, err.Error())
 		isDraft = true
 	}
-
 	canAccessFiles := false
-	canAccessMetadata := false
+	canAccessMetadata := true
+	isAuthor := false
+	if isSignedIn(c) {
+		jwt := getJWTClaims(c)
+		isAuthor = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+	}
+
 	if isDraft {
-		canAccessMetadata = false
-		canAccessFiles = false
-		if isSignedIn(c) == false {
-			log.Printf("INFO: work %s is a draft and is only accessible to the author", workID)
-		} else {
-			jwt := getJWTClaims(c)
-			if etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID {
-				canAccessMetadata = true
-				canAccessFiles = true
-			} else {
-				log.Printf("INFO: work %s is a draft and is only accessible to the author", workID)
-			}
-		}
+		canAccessMetadata = isAuthor
+		canAccessFiles = isAuthor
 	} else {
-		canAccessMetadata = true
-		canAccessFiles = svc.isFromUVA(c)
+		if visibility == "open" {
+			canAccessFiles = true
+		} else {
+			canAccessFiles = svc.isFromUVA(c)
+		}
 	}
 
 	if canAccessMetadata == false {
@@ -135,36 +131,36 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	}
 
 	// enforce work visibility;
-	//   values: open (anyone), authenticated (UVA only), restricted (private; owner only), embargo (owner only)
+	//   ANYONE CAN ACCESS METADATA - Except restricted (private) content
+	//   open: anyone can access files
+	//   uva: uva users can access files
+	//   restricted: only authors can access metadata/files
+	//   embargo: files blocked to all but owner
 	visibility := calculateVisibility(tgtObj.Fields())
+	_, hasPublicDate := tgtObj.Fields()["public-visibility-date"]
 	depositor := tgtObj.Fields()["depositor"]
 	log.Printf("INFO: enforce access to %s with visibility %s", workID, visibility)
+	canAccessFiles := false
+	canAccessMetadata := true
+	fromUVA := svc.isFromUVA(c)
+	isAuthor := false
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		accessOK := false
-		if visibility == "open" || oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID {
-			accessOK = true
-		} else if visibility == "uva" {
-			accessOK = svc.isFromUVA(c)
-		}
-		if accessOK == false {
-			log.Printf("INFO: authenticated request by %s to restricted oa content %s", jwt.ComputeID, workID)
-			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-			return
-		}
-	} else {
-		log.Printf("INFO: access is from a non-authenticated user")
-		if visibility == "uva" {
-			if svc.isFromUVA(c) == false {
-				log.Printf("INFO: non-authenticated request to restricted oa content %s", workID)
-				c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-				return
-			}
-		} else if visibility == "restricted" {
-			log.Printf("INFO: non-authenticated request to restricted oa content %s", workID)
-			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-			return
-		}
+		isAuthor = oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+	}
+	if visibility == "open" {
+		canAccessFiles = true
+	} else if visibility == "uva" {
+		canAccessFiles = fromUVA || isAuthor
+	} else if visibility == "embargo" {
+		canAccessFiles = isAuthor
+	} else if visibility == "restricted" {
+		canAccessFiles = isAuthor
+		canAccessMetadata = isAuthor
+	}
+	if canAccessMetadata == false {
+		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+		return
 	}
 
 	resp := oaWorkDetails{
@@ -177,16 +173,21 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 			CreatedAt:      tgtObj.Created(),
 			ModifiedAt:     tgtObj.Modified(),
 		},
-		OAWork: oaWork,
+		OAWork:          oaWork,
+		PrivateDisabled: hasPublicDate,
 	}
 	if visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
 		resp.Embargo = &embInfo
 	}
 
-	for _, oaFile := range tgtObj.Files() {
-		log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())
-		resp.Files = append(resp.Files, librametadata.FileData{Name: oaFile.Name(), MimeType: oaFile.MimeType(), CreatedAt: oaFile.Created()})
+	if canAccessFiles {
+		for _, oaFile := range tgtObj.Files() {
+			log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())
+			resp.Files = append(resp.Files, librametadata.FileData{Name: oaFile.Name(), MimeType: oaFile.MimeType(), CreatedAt: oaFile.Created()})
+		}
+	} else {
+		log.Printf("INFO: access to files for work %s is restricted", workID)
 	}
 
 	c.JSON(http.StatusOK, resp)
@@ -314,6 +315,8 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	// update fields
 	log.Printf("INFO: visibility [%s]", oaSub.Visibility)
 	fields := tgtObj.Fields()
+	_, hasPublicDate := fields["public-visibility-date"]
+
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["default-visibility"] = oaSub.Visibility
@@ -321,6 +324,13 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
 	}
+
+	visibility := calculateVisibility(tgtObj.Fields())
+	if visibility == "open" && hasPublicDate == false {
+		fields["public-visibility-date"] = time.Now().Format(time.RFC3339)
+		hasPublicDate = true
+	}
+
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
@@ -334,7 +344,8 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 			CreatedAt:      updatedObj.Created(),
 			ModifiedAt:     updatedObj.Modified(),
 		},
-		OAWork: &oaSub.Work,
+		OAWork:          &oaSub.Work,
+		PrivateDisabled: hasPublicDate,
 	}
 	if oaSub.Visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}

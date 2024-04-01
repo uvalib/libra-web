@@ -53,6 +53,7 @@ type baseWorkDetails struct {
 type oaWorkDetails struct {
 	*baseWorkDetails
 	*librametadata.OAWork
+	PrivateDisabled bool `json:"disablePrivate"`
 }
 
 type etdWorkDetails struct {
@@ -164,10 +165,14 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	//   fields["embargo-release"] : set when embarg; the release data
 	//   fields["embargo-release-visibility"] : visibility after embargo-release
 	log.Printf("INFO: submitted visibility [%s]", oaSub.Visibility)
+	disablePrivate := false
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
+	} else if oaSub.Visibility == "open" {
+		fields["public-visibility-date"] = time.Now().Format(time.RFC3339)
+		disablePrivate = true
 	}
 
 	obj.SetMetadata(oaSub.Work)
@@ -194,7 +199,8 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 			CreatedAt:  obj.Created(),
 			ModifiedAt: obj.Modified(),
 		},
-		OAWork: &oaSub.Work,
+		OAWork:          &oaSub.Work,
+		PrivateDisabled: disablePrivate,
 	}
 	if oaSub.Visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}

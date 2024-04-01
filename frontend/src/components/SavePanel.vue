@@ -17,9 +17,21 @@
          </div>
       </Fieldset>
       <Fieldset legend="Visibility">
-         <div v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
-            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility"/>
+         <!-- note; use props.visibility here to capture the visibility when the work was loaded, not when changed during edit -->
+         <div v-if="props.visibility == 'embargo'" class="embargo no-pad">
+            <span class="embargo-note">This work is under embargo.</span>
+            <p>Files will be unavavilble to others until:</p>
+            <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
+            <p>After that, files will be be available:</p>
+            <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+            <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
+         </div>
+         <div v-else v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
+            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" :disabled="v.value=='restricted' && props.disablePrivate" />
             <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+            <div v-if="v.value=='restricted' && props.disablePrivate" class="license">
+               Contact libra@virginia.edu for this visibility change.
+            </div>
             <div v-if="showLicense(v)" class="license">
                <a :href="v.license.url">{{ v.license.label }}</a>
             </div>
@@ -71,11 +83,13 @@ import Calendar from 'primevue/calendar'
 import Dropdown from 'primevue/dropdown'
 import Panel from 'primevue/panel'
 import { useSystemStore } from "@/stores/system"
+import { useConfirm } from "primevue/useconfirm"
 
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
+const confirm = useConfirm()
 const emit = defineEmits( ['submit', 'cancel', 'saveExit', 'saveContinue'])
 const props = defineProps({
    type: {
@@ -104,6 +118,10 @@ const props = defineProps({
    releaseVisibility: {
       type: String,
       default: ""
+   },
+   disablePrivate: {
+      type: Boolean,
+      default: false
    },
    described: {
       type: Boolean,
@@ -150,6 +168,19 @@ const canSubmit = computed(() =>{
    return agree.value == true && visibility.value != "" && props.files
 })
 
+const liftEmbargo = ( () => {
+   confirm.require({
+      message: `Are you sure you want to lift the embargo on this work?`,
+      header: 'Confirm Release Embargo',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: (  ) => {
+         releaseDate.value = new Date()
+         emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
+      },
+   })
+})
+
 const showLicense = ( (vis) => {
    if (vis.license) {
       return visibility.value == vis.value
@@ -192,10 +223,21 @@ const etdSubmitClicked = ((act) => {
       font-size: 0.9em;
       margin-top:15px;
    }
+   div.embargo.no-pad {
+      margin: 0 0 0 0;
+   }
    div.embargo {
       font-size: 0.9em;
       margin: 15px 0 30px 30px;
-
+      .embargo-note {
+         font-style: italic;
+         font-weight: bold;
+         color: #bababa;
+      }
+      button {
+         width: 100%;
+         margin-top: 15px;
+      }
       p {
          margin: 10px 0 2px 0;
          padding: 0;
