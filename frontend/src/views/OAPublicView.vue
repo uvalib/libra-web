@@ -8,7 +8,7 @@
          <p>{{ oaRepo.error }}</p>
       </div>
       <template v-else>
-         <div class="files">
+         <div class="files" v-if="oaRepo.work.files && oaRepo.work.files.length > 0">
             <Fieldset legend="Files">
                <div class="file" v-for="file in oaRepo.work.files">
                   <div>{{ file.name }}</div>

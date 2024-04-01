@@ -70,8 +70,11 @@ export const useOAStore = defineStore('oa', {
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
-         this.disablePrivate = data.disablePrivate
-         delete data.disablePrivate
+         this.disablePrivate = false
+         if ( data.disablePrivate ) {
+            this.disablePrivate = data.disablePrivate
+            delete data.disablePrivate
+         }
          if ( data.embargo ) {
             this.embargoReleaseDate = data.embargo.releaseDate
             this.embargoReleaseVisibility  = data.embargo.releaseVisibility
