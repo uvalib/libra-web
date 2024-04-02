@@ -11,14 +11,16 @@ type userServiceCfg struct {
 }
 
 type easyStoreConfig struct {
-	mode   string // none, sqlite, postgres
-	dbDir  string
-	dbFile string
-	dbHost string
-	dbPort int
-	dbName string
-	dbUser string
-	dbPass string
+	mode      string // sqlite, postgres, s3
+	dbDir     string
+	dbFile    string
+	dbHost    string
+	dbPort    int
+	dbName    string
+	dbUser    string
+	dbPass    string
+	dbTimeout int
+	s3Bucket  string
 }
 
 type namespaceConfig struct {
@@ -53,6 +55,8 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.easyStore.dbName, "esdb", "", "EasyStore psql database name")
 	flag.StringVar(&config.easyStore.dbUser, "esdbuser", "", "EasyStore psql user")
 	flag.StringVar(&config.easyStore.dbPass, "esdbpass", "", "EasyStore psql password")
+	flag.IntVar(&config.easyStore.dbTimeout, "esdbtimeout", 30, "EasyStore psql password")
+	flag.StringVar(&config.easyStore.s3Bucket, "esbucket", "", "EasyStore S3 bucket name for file storage")
 
 	// namespaces
 	flag.StringVar(&config.namespace.oa, "oanamespace", "oa", "Namespace for OA processing")
@@ -64,14 +68,17 @@ func getConfiguration() *configData {
 
 	flag.Parse()
 
-	if config.easyStore.mode != "sqlite" && config.easyStore.mode != "postgres" {
-		log.Fatal("Parameter esmode must be either sqlite or postgres")
+	if config.easyStore.mode != "sqlite" && config.easyStore.mode != "postgres" && config.easyStore.mode != "s3" {
+		log.Fatal("Parameter esmode must be either sqlite, postgres or s3")
 	}
 	if config.jwtKey == "" {
 		log.Fatal("Parameter jwtkey is required")
 	}
 	if config.userService.URL == "" {
 		log.Fatal("Parameter userws is required")
+	}
+	if config.easyStore.mode == "s3" && config.easyStore.s3Bucket == "" {
+		log.Fatal("Parameter esbucket is required for easystore s3 mode")
 	}
 
 	log.Printf("[CONFIG] port          = [%d]", config.port)
@@ -90,6 +97,10 @@ func getConfiguration() *configData {
 		log.Printf("[CONFIG] esdbport      = [%d]", config.easyStore.dbPort)
 		log.Printf("[CONFIG] esdb          = [%s]", config.easyStore.dbName)
 		log.Printf("[CONFIG] esdbuser      = [%s]", config.easyStore.dbUser)
+		log.Printf("[CONFIG] esdbtimeout   = [%d]", config.easyStore.dbTimeout)
+		if config.easyStore.mode == "s3" {
+			log.Printf("[CONFIG] esbucket      = [%s]", config.easyStore.s3Bucket)
+		}
 	}
 	if config.devAuthUser != "" {
 		log.Printf("[CONFIG] devuser       = [%s]", config.devAuthUser)

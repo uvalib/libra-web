@@ -15,13 +15,13 @@ fi
 
 # Postgres
 if [ "${ESMODE}" == "postgres" ]; then
-   ES_CONFIG="--esmode postgres --esdbhost ${DBHOST} --esdbport ${DBPORT} --esdb ${DBNAME} --esdbuser ${DBUSER} --esdbpass ${DBPASS}"
+   ES_CONFIG="--esmode postgres --esdbhost ${DBHOST} --esdbport ${DBPORT} --esdb ${DBNAME} --esdbuser ${DBUSER} --esdbpass ${DBPASS} --esdbtimeout ${DBTIMEOUT}"
    echo "Easystore Postgres config: [${ES_CONFIG}]"
 fi
 
 # S3
 if [ "${ESMODE}" == "s3" ]; then
-   ES_CONFIG="--esmode s3 --esdbhost ${DBHOST} --esdbport ${DBPORT} --esdb ${DBNAME} --esdbuser ${DBUSER} --esdbpass ${DBPASS} --esbucket ${ESBUCKET}"
+   ES_CONFIG="--esmode s3 --esdbhost ${DBHOST} --esdbport ${DBPORT} --esdb ${DBNAME} --esdbuser ${DBUSER} --esdbpass ${DBPASS} --esdbtimeout ${DBTIMEOUT} --esbucket ${ESBUCKET}"
    echo "Easystore S3 config: [${ES_CONFIG}]"
 fi
 

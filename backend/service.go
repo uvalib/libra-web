@@ -18,6 +18,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
+	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
 // serviceContext contains common data used by all handlers
@@ -25,6 +26,7 @@ type serviceContext struct {
 	Version      string
 	HTTPClient   *http.Client
 	EasyStore    uvaeasystore.EasyStore
+	EventBus     uvalibrabus.UvaBus
 	UserService  userServiceCfg
 	JWTKey       string
 	DevAuthUser  string
@@ -129,9 +131,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	log.Printf("INFO: configure easystore")
-	if cfg.easyStore.mode == "none" {
-		log.Printf("INFO: easystore is set to none and will not be used")
-	} else if cfg.easyStore.mode == "sqlite" {
+	if cfg.easyStore.mode == "sqlite" {
 		config := uvaeasystore.DatastoreSqliteConfig{
 			DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
 			Log:        log.Default(),
@@ -150,7 +150,25 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			DbName:     cfg.easyStore.dbName,
 			DbUser:     cfg.easyStore.dbUser,
 			DbPassword: cfg.easyStore.dbPass,
-			DbTimeout:  30, // sorry, fix me later
+			DbTimeout:  cfg.easyStore.dbTimeout,
+			BusName:    cfg.busName,
+			SourceName: cfg.eventSourceName,
+			Log:        log.Default(),
+		}
+		es, err := uvaeasystore.NewEasyStore(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = es
+	} else if cfg.easyStore.mode == "s3" {
+		config := uvaeasystore.DatastoreS3Config{
+			Bucket:     cfg.easyStore.s3Bucket,
+			DbHost:     cfg.easyStore.dbHost,
+			DbPort:     cfg.easyStore.dbPort,
+			DbName:     cfg.easyStore.dbName,
+			DbUser:     cfg.easyStore.dbUser,
+			DbPassword: cfg.easyStore.dbPass,
+			DbTimeout:  cfg.easyStore.dbTimeout,
 			BusName:    cfg.busName,
 			SourceName: cfg.eventSourceName,
 			Log:        log.Default(),
@@ -164,6 +182,20 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
 	}
 	log.Printf("INFO: easystore configured")
+
+	if cfg.busName != "" && cfg.eventSourceName != "" {
+		log.Printf("INFO: configure event bus [%s] with source [%s]", cfg.busName, cfg.eventSourceName)
+		busCfg := uvalibrabus.UvaBusConfig{
+			Source:  cfg.eventSourceName,
+			BusName: cfg.busName,
+		}
+		bus, err := uvalibrabus.NewUvaBus(busCfg)
+		if err != nil {
+			log.Fatalf("create event bus failed: %s", err.Error())
+		}
+		ctx.EventBus = bus
+		log.Printf("INFO: event bus configured")
+	}
 
 	return &ctx
 }
