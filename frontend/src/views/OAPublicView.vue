@@ -9,10 +9,16 @@
       </div>
       <template v-else>
          <div class="files">
-            <Fieldset v-if="(oaRepo.work.files && oaRepo.work.files.length > 0) || oaRepo.visibility == 'embargo'" legend="Files">
-               <span class="file-embargo" v-if="oaRepo.visibility == 'embargo'">
-                  This item is embargoed and will not available <span v-if="oaRepo.work.files">to others </span>
-                  until {{ $formatDate(oaRepo.embargoReleaseDate) }}.
+            <Fieldset v-if="oaRepo.work.files || oaRepo.visibility == 'embargo'" legend="Files">
+               <span class="file-embargo owner" v-if="oaRepo.visibility == 'embargo' && oaRepo.work.files">
+                  <p>The files listed below will NOT be available until the embargo date has passed.</p>
+                  <p>
+                     Embargo end date:<br/>
+                     {{ $formatDate(oaRepo.embargoReleaseDate) }}
+                  </p>
+               </span>
+               <span  v-else class="file-embargo">
+                  This item is embargoed and will not available until {{ $formatDate(oaRepo.embargoReleaseDate) }}.
                </span>
                <div class="file" v-for="file in oaRepo.work.files">
                   <div>{{ file.name }}</div>
@@ -209,6 +215,17 @@ div.public-work {
          margin: 10px 0 10px 10px;
          font-style: italic;
          font-size: 1.15em;
+      }
+      .file-embargo.owner {
+         margin: 10px 0 20px 0;
+         background: var(--uvalib-yellow-light);
+         padding: 15px 15px 5px 15px;
+         font-size: 1em;
+         border-radius: 5px;
+         border: 1px solid var(--uvalib-yellow);
+         p {
+            margin:0 0 10px 0;
+         }
       }
       .file {
          margin-left: 10px;
