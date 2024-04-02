@@ -137,7 +137,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	//   restricted: only authors can access metadata/files
 	//   embargo: files blocked to all but owner
 	visibility := calculateVisibility(tgtObj.Fields())
-	_, hasPublicDate := tgtObj.Fields()["public-visibility-date"]
+	_, hasPublicDate := tgtObj.Fields()["publish-date"]
 	depositor := tgtObj.Fields()["depositor"]
 	log.Printf("INFO: enforce access to %s with visibility %s", workID, visibility)
 	canAccessFiles := false
@@ -315,7 +315,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	// update fields
 	log.Printf("INFO: visibility [%s]", oaSub.Visibility)
 	fields := tgtObj.Fields()
-	_, hasPublicDate := fields["public-visibility-date"]
+	_, hasPublicDate := fields["publish-date"]
 
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
@@ -327,7 +327,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 
 	visibility := calculateVisibility(tgtObj.Fields())
 	if (visibility == "open" || oaSub.Visibility == "uva") && hasPublicDate == false {
-		fields["public-visibility-date"] = time.Now().Format(time.RFC3339)
+		fields["publish-date"] = time.Now().Format(time.RFC3339)
 		hasPublicDate = true
 	}
 

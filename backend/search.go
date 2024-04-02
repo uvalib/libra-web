@@ -96,11 +96,11 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 		DateCreated: esObj.Created(),
 	}
 
-	pubDateStr, published := esObj.Fields()["public-visibility-date"]
+	pubDateStr, published := esObj.Fields()["publish-date"]
 	if published {
 		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
 		if err != nil {
-			log.Printf("ERROR: unable to parse public-visibility-date [%s]: %s", pubDateStr, err.Error())
+			log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
 			pubDate = time.Now()
 		}
 		hit.DatePublished = &pubDate
@@ -125,11 +125,11 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 		Visibility:  esObj.Fields()["default-visibility"],
 		DateCreated: esObj.Created(),
 	}
-	pubDateStr, published := esObj.Fields()["public-visibility-date"]
+	pubDateStr, published := esObj.Fields()["publish-date"]
 	if published {
 		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
 		if err != nil {
-			log.Printf("ERROR: unable to parse public-visibility-date [%s]: %s", pubDateStr, err.Error())
+			log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
 			pubDate = time.Now()
 		}
 		hit.DatePublished = &pubDate
