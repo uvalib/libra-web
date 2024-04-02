@@ -116,7 +116,7 @@ export const useOAStore = defineStore('oa', {
          this.work.licenseURL = ""
 
          this.licenseID = ""
-         this.visibility = ""
+         this.visibility = "restricted"
          this.embargoReleaseDate = ""
          this.embargoReleaseVisibility = ""
          this.pendingFileAdd = []

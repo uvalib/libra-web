@@ -12,11 +12,12 @@ import (
 )
 
 type searchHit struct {
-	ID          string    `json:"id"`
-	Namespace   string    `json:"namespace"`
-	Title       string    `json:"title"`
-	DateCreated time.Time `json:"dateCreated"`
-	Visibility  string    `json:"visibility"`
+	ID            string     `json:"id"`
+	Namespace     string     `json:"namespace"`
+	Title         string     `json:"title"`
+	DateCreated   time.Time  `json:"dateCreated"`
+	DatePublished *time.Time `json:"datePublished,omitempty"`
+	Visibility    string     `json:"visibility"`
 }
 
 func (svc *serviceContext) searchWorks(c *gin.Context) {
@@ -94,6 +95,16 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 		Visibility:  visibility,
 		DateCreated: esObj.Created(),
 	}
+
+	pubDateStr, published := esObj.Fields()["public-visibility-date"]
+	if published {
+		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse public-visibility-date [%s]: %s", pubDateStr, err.Error())
+			pubDate = time.Now()
+		}
+		hit.DatePublished = &pubDate
+	}
 	return &hit, nil
 }
 
@@ -113,6 +124,15 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 		Title:       etdWork.Title,
 		Visibility:  esObj.Fields()["default-visibility"],
 		DateCreated: esObj.Created(),
+	}
+	pubDateStr, published := esObj.Fields()["public-visibility-date"]
+	if published {
+		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse public-visibility-date [%s]: %s", pubDateStr, err.Error())
+			pubDate = time.Now()
+		}
+		hit.DatePublished = &pubDate
 	}
 	return &hit, nil
 }

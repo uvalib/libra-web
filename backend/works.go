@@ -326,7 +326,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	visibility := calculateVisibility(tgtObj.Fields())
-	if visibility == "open" && hasPublicDate == false {
+	if (visibility == "open" || oaSub.Visibility == "uva") && hasPublicDate == false {
 		fields["public-visibility-date"] = time.Now().Format(time.RFC3339)
 		hasPublicDate = true
 	}

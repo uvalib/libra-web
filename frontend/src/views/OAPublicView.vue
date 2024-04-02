@@ -8,8 +8,12 @@
          <p>{{ oaRepo.error }}</p>
       </div>
       <template v-else>
-         <div class="files" v-if="oaRepo.work.files && oaRepo.work.files.length > 0">
-            <Fieldset legend="Files">
+         <div class="files">
+            <Fieldset v-if="(oaRepo.work.files && oaRepo.work.files.length > 0) || oaRepo.visibility == 'embargo'" legend="Files">
+               <span class="file-embargo" v-if="oaRepo.visibility == 'embargo'">
+                  This item is embargoed and will not available <span v-if="oaRepo.work.files">to others </span>
+                  until {{ $formatDate(oaRepo.embargoReleaseDate) }}.
+               </span>
                <div class="file" v-for="file in oaRepo.work.files">
                   <div>{{ file.name }}</div>
                   <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
@@ -200,6 +204,12 @@ div.public-work {
       font-family: 'Open Sans', sans-serif;
       background: white;
       text-align: left;
+      .file-embargo {
+         display: block;
+         margin: 10px 0 10px 10px;
+         font-style: italic;
+         font-size: 1.15em;
+      }
       .file {
          margin-left: 10px;
          div {
@@ -217,6 +227,7 @@ div.public-work {
       background: white;
       text-align: left;
       border-radius: 3px;
+      min-height: 600px;
 
       .author-fieldset {
          :deep(legend.p-fieldset-legend) {

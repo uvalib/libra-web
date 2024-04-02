@@ -170,7 +170,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	if oaSub.Visibility == "embargo" {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
-	} else if oaSub.Visibility == "open" {
+	} else if oaSub.Visibility == "open" || oaSub.Visibility == "uva" {
 		fields["public-visibility-date"] = time.Now().Format(time.RFC3339)
 		disablePrivate = true
 	}
