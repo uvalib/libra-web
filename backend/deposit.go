@@ -12,6 +12,7 @@ import (
 	"github.com/rs/xid"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
+	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
 type depositSettings struct {
@@ -41,19 +42,19 @@ type embargoData struct {
 type baseWorkDetails struct {
 	ID             string                   `json:"id"`
 	Version        string                   `json:"version"`
-	CreatedAt      time.Time                `json:"createdAt"`
-	ModifiedAt     time.Time                `json:"modifiedAt"`
 	Files          []librametadata.FileData `json:"files"`
 	PersistentLink string                   `json:"persistentLink,omitempty"`
 	IsDraft        bool                     `json:"isDraft"`
 	Visibility     string                   `json:"visibility"`
 	Embargo        *embargoData             `json:"embargo,omitempty"`
+	DatePublished  *time.Time               `json:"datePublished,omitempty"`
+	CreatedAt      time.Time                `json:"createdAt"`
+	ModifiedAt     time.Time                `json:"modifiedAt"`
 }
 
 type oaWorkDetails struct {
 	*baseWorkDetails
 	*librametadata.OAWork
-	PrivateDisabled bool `json:"disablePrivate"`
 }
 
 type etdWorkDetails struct {
@@ -165,14 +166,15 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	//   fields["embargo-release"] : set when embarg; the release data
 	//   fields["embargo-release-visibility"] : visibility after embargo-release
 	log.Printf("INFO: submitted visibility [%s]", oaSub.Visibility)
-	disablePrivate := false
+	var publishDate time.Time
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
 	} else if oaSub.Visibility == "open" || oaSub.Visibility == "uva" {
-		fields["publish-date"] = time.Now().Format(time.RFC3339)
-		disablePrivate = true
+		publishDate = time.Now()
+		fields["publish-date"] = publishDate.Format(time.RFC3339)
+		svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.oa, obj.Id())
 	}
 
 	obj.SetMetadata(oaSub.Work)
@@ -199,8 +201,10 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 			CreatedAt:  obj.Created(),
 			ModifiedAt: obj.Modified(),
 		},
-		OAWork:          &oaSub.Work,
-		PrivateDisabled: disablePrivate,
+		OAWork: &oaSub.Work,
+	}
+	if publishDate.IsZero() == false {
+		resp.DatePublished = &publishDate
 	}
 	if oaSub.Visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}

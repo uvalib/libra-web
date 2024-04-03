@@ -19,7 +19,7 @@
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
             >
                <Column field="title" header="Title" />
-               <Column field="createdAt" header="Date Uploaded" >
+               <Column field="dateCreated" header="Date Uploaded" >
                   <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
                </Column>
                <Column header="ORCID Status"/>
@@ -28,11 +28,17 @@
                      <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("oa",slotProps.data.visibility) }}</span>
                   </template>
                </Column>
+               <Column field="datePublished" header="Date Published" >
+                  <template #body="slotProps">
+                     <span v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished)}}</span>
+                     <span v-else class="none">N/A</span>
+                  </template>
+               </Column>
                <Column header="Actions">
                   <template #body="slotProps">
                      <div  class="acts">
                         <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" text @click="editWorkClicked(slotProps.data.id)"/>
-                        <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-eye" :label="publicLinkLabel(slotProps.data)" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
                         <Button class="action" v-if="!slotProps.data.datePublished"
                            icon="pi pi-trash" label="Delete Work" severity="danger" text @click="deleteWorkClicked(slotProps.data.id)"/>
                      </div>
@@ -67,6 +73,13 @@ const confirm = useConfirm()
 onBeforeMount( () => {
    document.title = "LibraOpen"
    searchStore.search("oa", user.computeID)
+})
+
+const publicLinkLabel = ( (hit) => {
+   if ( hit.datePublished ) {
+      return "Public View"
+   }
+   return "Public Preview"
 })
 
 const editWorkClicked = ( (id) => {
@@ -112,6 +125,10 @@ const createWorkClicked = (() => {
          font-size: 1.25em;
          color: var(--uvalib-text);
       }
+   }
+   .none {
+      color: var(--uvalib-grey-light);
+      font-style: italic;
    }
    .acts {
       display: flex;

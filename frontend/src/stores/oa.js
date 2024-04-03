@@ -13,7 +13,7 @@ export const useOAStore = defineStore('oa', {
       persistentLink: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
-      disablePrivate: false,
+      datePublished: null,
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -39,6 +39,9 @@ export const useOAStore = defineStore('oa', {
          if ( state.work.sponsors.length > 1) return true
          return state.work.sponsors[0] != ""
       },
+      disablePrivate: state => {
+         return state.datePublished != null
+      },
    },
    actions: {
       async getWork(id) {
@@ -48,9 +51,9 @@ export const useOAStore = defineStore('oa', {
          this.pendingFileDel = []
          this.embargoReleaseDate = ""
          this.embargoReleaseVisibility = ""
+         this.datePublished = null
          this.persistentLink = ""
          this.licenseID = ""
-         this.disablePrivate = false
          return axios.get(`/api/works/oa/${id}`).then(response => {
             this.setWorkDetails( response.data )
             this.working = false
@@ -70,10 +73,9 @@ export const useOAStore = defineStore('oa', {
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
-         this.disablePrivate = false
-         if ( data.disablePrivate ) {
-            this.disablePrivate = data.disablePrivate
-            delete data.disablePrivate
+         if ( data.datePublished ) {
+            this.datePublished = data.datePublished
+            delete data.datePublished
          }
          if ( data.embargo ) {
             this.embargoReleaseDate = data.embargo.releaseDate

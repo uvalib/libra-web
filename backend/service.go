@@ -183,21 +183,32 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: easystore configured")
 
-	if cfg.busName != "" && cfg.eventSourceName != "" {
-		log.Printf("INFO: configure event bus [%s] with source [%s]", cfg.busName, cfg.eventSourceName)
-		busCfg := uvalibrabus.UvaBusConfig{
-			Source:  cfg.eventSourceName,
-			BusName: cfg.busName,
-		}
-		bus, err := uvalibrabus.NewUvaBus(busCfg)
-		if err != nil {
-			log.Fatalf("create event bus failed: %s", err.Error())
-		}
-		ctx.EventBus = bus
-		log.Printf("INFO: event bus configured")
+	log.Printf("INFO: configure event bus [%s] with source [%s]", cfg.busName, cfg.eventSourceName)
+	busCfg := uvalibrabus.UvaBusConfig{
+		Source:  cfg.eventSourceName,
+		BusName: cfg.busName,
 	}
+	bus, err := uvalibrabus.NewUvaBus(busCfg)
+	if err != nil {
+		log.Fatalf("create event bus failed: %s", err.Error())
+	}
+	ctx.EventBus = bus
+	log.Printf("INFO: event bus configured")
 
 	return &ctx
+}
+
+func (svc *serviceContext) publishEvent(eventName, namespace, oid string) {
+	log.Printf("INFO: publish event %s for %s in namespace %s", eventName, oid, namespace)
+	ev := uvalibrabus.UvaBusEvent{
+		EventName:  eventName,
+		Namespace:  namespace,
+		Identifier: oid,
+	}
+	err := svc.EventBus.PublishEvent(ev)
+	if err != nil {
+		log.Printf("ERROR: unable to publish event %s %s - %s: %s", eventName, namespace, oid, err.Error())
+	}
 }
 
 func (svc *serviceContext) checkUserServiceJWT() error {

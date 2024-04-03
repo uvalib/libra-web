@@ -77,6 +77,12 @@ func getConfiguration() *configData {
 	if config.userService.URL == "" {
 		log.Fatal("Parameter userws is required")
 	}
+	if config.busName == "" {
+		log.Fatal("Parameter busname is required")
+	}
+	if config.eventSourceName == "" {
+		log.Fatal("Parameter eventsrc is required")
+	}
 	if config.easyStore.mode == "s3" && config.easyStore.s3Bucket == "" {
 		log.Fatal("Parameter esbucket is required for easystore s3 mode")
 	}

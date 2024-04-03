@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
+	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
 func (svc *serviceContext) getETDWork(c *gin.Context) {
@@ -137,7 +138,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	//   restricted: only authors can access metadata/files
 	//   embargo: files blocked to all but owner
 	visibility := calculateVisibility(tgtObj.Fields())
-	_, hasPublicDate := tgtObj.Fields()["publish-date"]
+	pubDatStr, hasPublicDate := tgtObj.Fields()["publish-date"]
 	depositor := tgtObj.Fields()["depositor"]
 	log.Printf("INFO: enforce access to %s with visibility %s", workID, visibility)
 	canAccessFiles := false
@@ -173,8 +174,11 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 			CreatedAt:      tgtObj.Created(),
 			ModifiedAt:     tgtObj.Modified(),
 		},
-		OAWork:          oaWork,
-		PrivateDisabled: hasPublicDate,
+		OAWork: oaWork,
+	}
+	if hasPublicDate {
+		pubDate, _ := time.Parse(time.RFC3339, pubDatStr)
+		resp.DatePublished = &pubDate
 	}
 	if visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
@@ -315,8 +319,8 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	// update fields
 	log.Printf("INFO: visibility [%s]", oaSub.Visibility)
 	fields := tgtObj.Fields()
-	_, hasPublicDate := fields["publish-date"]
-
+	publishDateStr, hasPublicDate := fields["publish-date"]
+	var publishDate time.Time
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["default-visibility"] = oaSub.Visibility
@@ -326,9 +330,15 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	visibility := calculateVisibility(tgtObj.Fields())
-	if (visibility == "open" || oaSub.Visibility == "uva") && hasPublicDate == false {
-		fields["publish-date"] = time.Now().Format(time.RFC3339)
-		hasPublicDate = true
+	if visibility == "open" || oaSub.Visibility == "uva" {
+		if hasPublicDate == false {
+			publishDate = time.Now()
+			fields["publish-date"] = publishDate.Format(time.RFC3339)
+			hasPublicDate = true
+			svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.oa, tgtObj.Id())
+		} else {
+			publishDate, _ = time.Parse(time.RFC3339, publishDateStr)
+		}
 	}
 
 	tgtObj.SetFields(fields)
@@ -344,12 +354,14 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 			CreatedAt:      updatedObj.Created(),
 			ModifiedAt:     updatedObj.Modified(),
 		},
-		OAWork:          &oaSub.Work,
-		PrivateDisabled: hasPublicDate,
+		OAWork: &oaSub.Work,
 	}
 	if oaSub.Visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}
 		resp.Embargo = &embInfo
+	}
+	if publishDate.IsZero() == false {
+		resp.DatePublished = &publishDate
 	}
 
 	for _, file := range updatedObj.Files() {
