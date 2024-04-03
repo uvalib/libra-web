@@ -117,7 +117,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 // the requests for public work metadata do not require authorization, but will accepot and use it if present
 func (svc *serviceContext) authMiddleware(c *gin.Context) {
 	jwtRequired := true
-	if strings.Contains(c.Request.URL.Path, "/api/works/oa") || strings.Contains(c.Request.URL.Path, "/api/works/etd") {
+	if c.Request.Method == "GET" && (strings.Contains(c.Request.URL.Path, "/api/works/oa") || strings.Contains(c.Request.URL.Path, "/api/works/etd")) {
 		log.Printf("INFO: public metadata request for %s; jwt not required", c.Request.URL.Path)
 		jwtRequired = false
 	} else {
