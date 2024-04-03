@@ -5,7 +5,7 @@
             <SavePanel v-if="etdRepo.working==false"
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
-               @saveExit="saveAndExitClicked" @saveContinue="saveAndContinueClicked" @cancel="cancelClicked"
+               @submit="submitClicked" @cancel="cancelClicked"
                ref="savepanel"
             />
          </div>
@@ -311,13 +311,8 @@ const deleteFileClicked = ( (name) => {
 const downloadFileClicked = ( (name) => {
    etdRepo.downloadFile(name)
 })
-const saveAndContinueClicked= ( async (visibility) => {
+const submitClicked = ( async (visibility) => {
    nextURL.value = "/etd" // TODO go to display form
-   updateWorkModel(visibility)
-   etdForm.value.node.submit()
-})
-const saveAndExitClicked = ( (visibility) => {
-   nextURL.value = "/etd" // back to etd dashboard
    updateWorkModel(visibility)
    etdForm.value.node.submit()
 })

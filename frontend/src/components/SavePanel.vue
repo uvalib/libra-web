@@ -67,8 +67,7 @@
          </template>
          <template v-else>
             <Button severity="secondary" label="Cancel Edit" @click="emit('cancel')"/>
-            <Button label="Save and Exit" @click="etdSubmitClicked('saveExit')" :disabled="!canSubmit"/>
-            <Button label="Save and Continue" @click="etdSubmitClicked('saveContinue')" :disabled="!canSubmit"/>
+            <Button label="Save" @click="etdSubmitClicked()" :disabled="!canSubmit"/>
          </template>
       </div>
    </Panel>
@@ -90,7 +89,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
 const confirm = useConfirm()
-const emit = defineEmits( ['submit', 'cancel', 'saveExit', 'saveContinue'])
+const emit = defineEmits( ['submit', 'cancel'])
 const props = defineProps({
    type: {
       type: String,
@@ -201,7 +200,7 @@ const oaSubmitClicked = (() => {
       emit('submit', visibility.value)
    }
 })
-const etdSubmitClicked = ((act) => {
+const etdSubmitClicked = (() => {
    if ( visibility.value == "limited") {
       let endDate = new Date()
       if ( limitedDuration.value == "6-months") {
@@ -210,9 +209,9 @@ const etdSubmitClicked = ((act) => {
          let numYears = parseInt(limitedDuration.value.split("-")[0], 10)
          endDate.setFullYear( endDate.getFullYear()+numYears)
       }
-      emit(act, visibility.value, endDate, "open")
+      emit("submit", visibility.value, endDate, "open")
    } else {
-      emit(act, visibility.value)
+      emit("submit", visibility.value)
    }
 })
 </script>
