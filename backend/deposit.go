@@ -79,13 +79,6 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 		return
 	}
 
-	uploadDir := path.Join("/tmp", token)
-	esFiles, err := getSubmittedFiles(uploadDir, etdSub.AddFiles)
-	if err != nil {
-		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-	}
-
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
@@ -97,6 +90,13 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	if etdSub.Visibility == "limited" {
 		fields["embargo-release"] = etdSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = etdSub.EmbargoReleaseVisibility
+	}
+
+	uploadDir := path.Join("/tmp", token)
+	esFiles, err := getSubmittedFiles(uploadDir, etdSub.AddFiles)
+	if err != nil {
+		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	obj.SetMetadata(etdSub.Work)
@@ -145,13 +145,6 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 		return
 	}
 
-	uploadDir := path.Join("/tmp", token)
-	esFiles, err := getSubmittedFiles(uploadDir, oaSub.AddFiles)
-	if err != nil {
-		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-	}
-
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
@@ -159,22 +152,31 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["create-date"] = time.Now().Format(time.RFC3339)
-	fields["draft"] = "false"
 
-	// visibility rules:
-	//   fields["default-visibility"] : visibility set from form
-	//   fields["embargo-release"] : set when embarg; the release data
-	//   fields["embargo-release-visibility"] : visibility after embargo-release
 	log.Printf("INFO: submitted visibility [%s]", oaSub.Visibility)
 	var publishDate time.Time
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
-	} else if oaSub.Visibility == "open" || oaSub.Visibility == "uva" {
+	}
+
+	if oaSub.Visibility != "restricted" {
+		// any non-restricted visibility is considered published. save the date, and flag it as non-draft
 		publishDate = time.Now()
 		fields["publish-date"] = publishDate.Format(time.RFC3339)
+		fields["draft"] = "false"
 		svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.oa, obj.Id())
+	} else {
+		fields["draft"] = "true"
+	}
+
+	// get all submitted files
+	uploadDir := path.Join("/tmp", token)
+	esFiles, err := getSubmittedFiles(uploadDir, oaSub.AddFiles)
+	if err != nil {
+		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	obj.SetMetadata(oaSub.Work)

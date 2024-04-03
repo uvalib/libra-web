@@ -9,7 +9,7 @@ export const useOAStore = defineStore('oa', {
       depositToken: "",
       work: {},
       licenseID: "",
-      visibility: "",
+      visibility: "restricted",
       persistentLink: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
@@ -45,15 +45,8 @@ export const useOAStore = defineStore('oa', {
    },
    actions: {
       async getWork(id) {
-         this.error = ""
+         this.$reset
          this.working = true
-         this.pendingFileAdd = []
-         this.pendingFileDel = []
-         this.embargoReleaseDate = ""
-         this.embargoReleaseVisibility = ""
-         this.datePublished = null
-         this.persistentLink = ""
-         this.licenseID = ""
          return axios.get(`/api/works/oa/${id}`).then(response => {
             this.setWorkDetails( response.data )
             this.working = false
@@ -69,6 +62,7 @@ export const useOAStore = defineStore('oa', {
          })
       },
       setWorkDetails( data) {
+         delete data.isDraft // not used in OA
          this.visibility = data.visibility
          delete data.visibility
          this.persistentLink = data.persistentLink

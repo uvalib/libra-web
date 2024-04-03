@@ -43,13 +43,12 @@
             <Fieldset legend="Rights:">
                <a :href="etdRepo.work.licenseURL" target="_blank">{{ etdRepo.work.license }}</a>
             </Fieldset>
-            <Fieldset v-if="etdRepo.work.pubDate" legend="Publication Date:">{{  etdRepo.work.pubDate }}</Fieldset>
             <Fieldset legend="Persistent Link:">
                <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
                <span v-else>Persistent link will appear here after submission.</span>
             </Fieldset>
          </div>
-         <div class="draft" v-if="etdRepo.work.isDraft">
+         <div class="draft" v-if="etdRepo.isDraft">
             <h2 class="proof">Submission Proof</h2>
             <p>
                Before proceeding, we encourage you to review the information in this page.

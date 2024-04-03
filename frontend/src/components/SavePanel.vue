@@ -66,7 +66,7 @@
             <Button label="Submit" @click="oaSubmitClicked()" :disabled="!canSubmit"/>
          </template>
          <template v-else>
-            <Button severity="secondary" label="Cancel Edit" @click="emit('cancel')"/>
+            <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
             <Button label="Save" @click="etdSubmitClicked()" :disabled="!canSubmit"/>
          </template>
       </div>

@@ -22,11 +22,23 @@
                      <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
                   </template>
                </Column>
-               <Column header="Actions">
+               <Column field="datePublished" header="Date Published" >
+                  <template #body="slotProps">
+                     <span v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished)}}</span>
+                     <span v-else class="none">N/A</span>
+                  </template>
+               </Column>
+               <Column header="Actions" style="max-width:110px;">
                   <template #body="slotProps">
                      <div  class="acts">
-                        <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" text @click="editWorkClicked(slotProps.data.id)"/>
-                        <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
+                        <template v-if="slotProps.data.datePublished">
+                           <Button v-if="slotProps.data.datePublished" class="action" icon="pi pi-eye" label="Public View" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
+                        </template>
+                        <template v-else>
+                           <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" icon="pi pi-check" label="Submit Thesis" @click="submitThesis(slotProps.data.id)"/>
+                        </template>
                      </div>
                   </template>
                </Column>
@@ -66,6 +78,9 @@ const previewWorkClicked = ( (id) => {
    let url = `/public/etd/${id}`
    router.push(url)
 })
+const submitThesis = ( (id) => {
+   alert("this is not yet supported")
+})
 
 const hackWorkClicked = (() => {
    router.push("/etd/new")
@@ -89,14 +104,23 @@ const hackWorkClicked = (() => {
          color: var(--uvalib-text);
       }
    }
+   .none {
+      color: var(--uvalib-grey-light);
+      font-style: italic;
+   }
    .acts {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
       justify-content: flex-start;
       button.action {
-         font-size: 0.9em;
-         margin-bottom: 5px;
+         font-size: 0.85em;
+         margin-top: 10px;
+         width: 100%;
+         padding: 4px 8px;
+      }
+      button.action:first-of-type {
+         margin-top: 0;
       }
    }
    .p-panel {

@@ -8,11 +8,13 @@ export const useETDStore = defineStore('etd', {
       error: "",
       depositToken: "",
       work: {},
+      isDraft: true,
       visibility: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
       licenseID: "",
       persistentLink: "",
+      datePublished: null,
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -33,14 +35,8 @@ export const useETDStore = defineStore('etd', {
    },
    actions: {
       async getWork(id) {
-         this.error = ""
+         this.$reset
          this.working = true
-         this.pendingFileAdd = []
-         this.pendingFileDel = []
-         this.persistentLink = ""
-         this.embargoReleaseDate = ""
-         this.embargoReleaseVisibility = ""
-         this.licenseID = ""
          return axios.get(`/api/works/etd/${id}`).then(response => {
             this.setWorkDetails(response.data)
             this.working = false
@@ -56,10 +52,16 @@ export const useETDStore = defineStore('etd', {
          })
       },
       setWorkDetails( data) {
+         this.isDraft = data.isDraft
+         delete data.isDraft
          this.visibility = data.visibility
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
+         if ( data.datePublished ) {
+            this.datePublished = data.datePublished
+            delete data.datePublished
+         }
          if ( data.embargo ) {
             this.embargoReleaseDate = data.embargo.releaseDate
             this.embargoReleaseVisibility  = data.embargo.releaseVisibility
@@ -179,12 +181,23 @@ export const useETDStore = defineStore('etd', {
             embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
          let url = `/api/works/etd/${this.work.id}`
-         console.log(url)
          return axios.put(url, payload).then(response => {
             this.work = response.data
             this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
+      async publishWork() {
+         this.working = true
+         return axios.post(`/api/works/etd/${this.work.id}/pubish`).then(()=> {
+            this.isDraft = false
+            this.datePublished = new Date()
+            this.working = false
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

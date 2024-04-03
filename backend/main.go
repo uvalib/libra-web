@@ -55,6 +55,7 @@ func main() {
 		api.GET("/works/etd/:id", svc.getETDWork)
 		api.GET("/works/etd/:id/files/:name", svc.downloadETDFile)
 		api.PUT("/works/etd/:id", svc.etdUpdate)
+		api.POST("/works/etd/:id/publish", svc.publishETDWork)
 		api.DELETE("/works/etd/:id", svc.deleteETDWork)
 		api.GET("/works/search", svc.searchWorks)
 	}

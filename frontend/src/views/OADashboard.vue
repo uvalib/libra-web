@@ -36,13 +36,13 @@
                      <span v-else class="none">N/A</span>
                   </template>
                </Column>
-               <Column header="Actions">
+               <Column header="Actions" style="max-width:110px">
                   <template #body="slotProps">
                      <div  class="acts">
-                        <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" text @click="editWorkClicked(slotProps.data.id)"/>
-                        <Button class="action" icon="pi pi-eye" :label="publicLinkLabel(slotProps.data)" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
+                        <Button class="action" icon="pi pi-eye" :label="publicLinkLabel(slotProps.data)" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
                         <Button class="action" v-if="!slotProps.data.datePublished"
-                           icon="pi pi-trash" label="Delete Work" severity="danger" text @click="deleteWorkClicked(slotProps.data.id)"/>
+                           icon="pi pi-trash" label="Delete Work" severity="danger" @click="deleteWorkClicked(slotProps.data.id)"/>
                      </div>
                   </template>
                </Column>
@@ -138,8 +138,13 @@ const createWorkClicked = (() => {
       align-items: flex-start;
       justify-content: flex-start;
       button.action {
-         font-size: 0.9em;
-         margin-bottom: 5px;
+         font-size: 0.85em;
+         margin-top: 10px;
+         width: 100%;
+         padding: 4px 8px;
+      }
+      button.action:first-of-type {
+         margin-top: 0;
       }
    }
 }

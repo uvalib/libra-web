@@ -42,9 +42,7 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 
 	// enforce visibility;
 	//   ANYONE CAN ACCESS METADATA - Except draft content
-	//   file visibility:
-	//       open = visible to all;
-	//       limited = only visible to uva
+	//   files: open = visible to all; limited = only visible to uva for a limited timeframe
 	visibility := tgtObj.Fields()["default-visibility"]
 	depositor := tgtObj.Fields()["depositor"]
 	isDraft, err := strconv.ParseBool(tgtObj.Fields()["draft"])
@@ -91,7 +89,11 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	if visibility == "limited" {
 		resp.Embargo = &embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
 	}
-
+	if isDraft == false {
+		pubDateStr := tgtObj.Fields()["publish-date"]
+		pubDate, _ := time.Parse(time.RFC3339, pubDateStr)
+		resp.DatePublished = &pubDate
+	}
 	if canAccessFiles {
 		for _, etdFile := range tgtObj.Files() {
 			log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
@@ -138,7 +140,6 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	//   restricted: only authors can access metadata/files
 	//   embargo: files blocked to all but owner
 	visibility := calculateVisibility(tgtObj.Fields())
-	pubDatStr, hasPublicDate := tgtObj.Fields()["publish-date"]
 	depositor := tgtObj.Fields()["depositor"]
 	log.Printf("INFO: enforce access to %s with visibility %s", workID, visibility)
 	canAccessFiles := false
@@ -164,10 +165,11 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 		return
 	}
 
+	pubDateStr, hasPublicDate := tgtObj.Fields()["publish-date"]
 	resp := oaWorkDetails{
 		baseWorkDetails: &baseWorkDetails{
 			ID:             tgtObj.Id(),
-			IsDraft:        false,
+			IsDraft:        !hasPublicDate,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
 			PersistentLink: tgtObj.Fields()["doi"],
@@ -177,7 +179,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 		OAWork: oaWork,
 	}
 	if hasPublicDate {
-		pubDate, _ := time.Parse(time.RFC3339, pubDatStr)
+		pubDate, _ := time.Parse(time.RFC3339, pubDateStr)
 		resp.DatePublished = &pubDate
 	}
 	if visibility == "embargo" {
@@ -330,7 +332,9 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	visibility := calculateVisibility(tgtObj.Fields())
-	if visibility == "open" || oaSub.Visibility == "uva" {
+	fields["draft"] = "true"
+	if visibility != "restricted" {
+		fields["draft"] = "false"
 		if hasPublicDate == false {
 			publishDate = time.Now()
 			fields["publish-date"] = publishDate.Format(time.RFC3339)
@@ -347,7 +351,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	resp := oaWorkDetails{
 		baseWorkDetails: &baseWorkDetails{
 			ID:             updatedObj.Id(),
-			IsDraft:        false,
+			IsDraft:        !hasPublicDate,
 			Version:        updatedObj.VTag(),
 			Visibility:     oaSub.Visibility,
 			PersistentLink: updatedObj.Fields()["doi"],
@@ -498,9 +502,37 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	if etdReq.Visibility == "limited" {
 		resp.Embargo = &embargoData{ReleaseDate: etdReq.EmbargoReleaseDate, ReleaseVisibility: etdReq.EmbargoReleaseVisibility}
 	}
+	if isDraft == false {
+		pubDateStr := tgtObj.Fields()["publish-date"]
+		pubDate, _ := time.Parse(time.RFC3339, pubDateStr)
+		resp.DatePublished = &pubDate
+	}
 
 	for _, file := range updatedObj.Files() {
 		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+func (svc *serviceContext) publishETDWork(c *gin.Context) {
+	workID := c.Param("id")
+	log.Printf("INFO: get etd work %s", workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.etd, workID, uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespaces.etd, workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	fields := tgtObj.Fields()
+	fields["draft"] = "false"
+	fields["publish-date"] = time.Now().Format(time.RFC3339)
+	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	if err != nil {
+		log.Printf("ERROR: unable ti publish etd work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.etd, tgtObj.Id())
+	c.String(http.StatusOK, "published")
 }
