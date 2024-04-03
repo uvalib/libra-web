@@ -9,7 +9,9 @@
          </template>
          <WaitSpinner v-if="searchStore.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active thesis</p>" />
          <template v-else>
-            <div  v-if="searchStore.hits.length == 0" class="none">You have no active thesis</div>
+            <div  v-if="searchStore.hits.length == 0" class="none">
+               You have no active works
+            </div>
             <DataTable v-else :value="searchStore.hits" ref="oaWorks" dataKey="id"
                stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
                :lazy="false" :paginator="true" :alwaysShowPaginator="false"
