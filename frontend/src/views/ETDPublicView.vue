@@ -59,20 +59,30 @@
                <Button severity="primary" label="Submit Thesis" icon="pi pi-check" @click="submitThesis()"/>
             </div>
          </div>
+         <div class="published" v-if="justPublished">
+            Thank you for submitting your thesis. Be sure to take note of and use
+            the Persistent Link when you refer to this work.
+         </div>
       </template>
    </div>
 </template>
 
 <script setup>
-import { onBeforeMount } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useETDStore } from "@/stores/etd"
+import { useSystemStore } from "@/stores/system"
 import { useRoute, useRouter } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
+import { useConfirm } from "primevue/useconfirm"
 
 const etdRepo = useETDStore()
+const system = useSystemStore()
 const route = useRoute()
 const router = useRouter()
+const confirm = useConfirm()
+
+const justPublished = ref(false)
 
 const authorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${a.program}, ${a.institution}`
@@ -88,8 +98,19 @@ const editThesis = (() => {
    router.push(`/etd/${route.params.id}`)
 
 })
-const submitThesis = (() => {
-   alert("this is not yet supported")
+const submitThesis = ( () => {
+   confirm.require({
+      message: `This is your final step and you cannot change the document afterwards. Are you sure?`,
+      header: 'Confirm Submission',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: async () => {
+         await etdRepo.publish()
+         if (system.error == "") {
+            justPublished.value = true
+         }
+      },
+   })
 })
 </script>
 
@@ -105,7 +126,7 @@ const submitThesis = (() => {
          margin: 50px auto 0 auto;
          box-shadow: 0 0 15px 5px black;
       }
-      div.draft {
+      div.draft, div.published {
          margin: 20px 20px 0 0;
          max-width: 300px;
       }
@@ -137,7 +158,7 @@ const submitThesis = (() => {
    div.public-work {
       display: flex;
       flex-direction: column-reverse;
-      div.draft {
+      div.draft, div.published  {
          margin: 20px auto 0 auto;
          width: 90%;
       }
@@ -183,6 +204,14 @@ div.work-bkg {
 div.public-work {
    position: relative;
    min-height: 300px;
+
+   div.published {
+      background: var(--uvalib-yellow-light);
+      padding: 20px;
+      border: 1px solid var(--uvalib-yellow-dark);
+      border-radius: 4px;
+      text-align: left;
+   }
 
    div.draft {
       background: var(--uvalib-yellow-light);

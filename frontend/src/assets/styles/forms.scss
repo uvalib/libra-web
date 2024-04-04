@@ -87,12 +87,13 @@ button.libra-form-input {
  }
 
 span.req-field {
-   color: white;
+   color: var(--uvalib-text);
    font-size: 0.75em;
-   background-color: #d9534f;
+   background-color: var(--uvalib-teal-lightest);
    padding: 2px 8px;
    border-radius: 5px;
    margin-left: auto;
+   border: 1px solid var(--uvalib-teal);
 }
 .libra-form-help {
    margin: 5px 0;

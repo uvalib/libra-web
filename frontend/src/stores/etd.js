@@ -32,6 +32,12 @@ export const useETDStore = defineStore('etd', {
          if ( state.work.sponsors.length > 1) return true
          return state.work.sponsors[0] != ""
       },
+      hasAdvisor: state => {
+         if ( state.work.advisors.length == 0) return false
+         if ( state.work.advisors.length > 1) return true
+         let a = state.work.advisors[0]
+         return a.firstName != "" && a.lastName != "" && a.computeID != ""
+      },
    },
    actions: {
       async getWork(id) {
@@ -192,9 +198,9 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
-      async publishWork() {
+      async publish(  ) {
          this.working = true
-         return axios.post(`/api/works/etd/${this.work.id}/pubish`).then(()=> {
+         return axios.post(`/api/works/etd/${this.work.id}/publish`).then(()=> {
             this.isDraft = false
             this.datePublished = new Date()
             this.working = false

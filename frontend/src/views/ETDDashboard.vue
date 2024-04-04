@@ -19,7 +19,8 @@
                <Column header="ORCID Status"/>
                <Column field="visibility" header="Visibility" >
                   <template #body="slotProps">
-                     <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
+                     <span v-if="slotProps.data.datePublished" class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
+                     <span v-else class="visibility draft">Draft</span>
                   </template>
                </Column>
                <Column field="datePublished" header="Date Published" >
@@ -33,11 +34,10 @@
                      <div  class="acts">
                         <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
                         <template v-if="slotProps.data.datePublished">
-                           <Button v-if="slotProps.data.datePublished" class="action" icon="pi pi-eye" label="Public View" severity="secondary" text @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button v-if="slotProps.data.datePublished" class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                         <template v-else>
-                           <Button class="action" icon="pi pi-eye" label="Public Preview" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
-                           <Button class="action" icon="pi pi-check" label="Submit Thesis" @click="submitThesis(slotProps.data.id)"/>
+                           <Button class="action" icon="pi pi-eye" label="Preview / Submit" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                      </div>
                   </template>
@@ -55,6 +55,7 @@ import { onMounted } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
+import { useETDStore } from "@/stores/etd"
 import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -63,7 +64,8 @@ import WaitSpinner from "@/components/WaitSpinner.vue"
 const router = useRouter()
 const searchStore = useSearchStore()
 const user = useUserStore()
-const system= useSystemStore()
+const system = useSystemStore()
+const etdStore = useETDStore()
 
 onMounted( () => {
    searchStore.search("etd", user.computeID)
@@ -78,10 +80,6 @@ const previewWorkClicked = ( (id) => {
    let url = `/public/etd/${id}`
    router.push(url)
 })
-const submitThesis = ( (id) => {
-   alert("this is not yet supported")
-})
-
 const hackWorkClicked = (() => {
    router.push("/etd/new")
 })

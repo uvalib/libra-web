@@ -18,6 +18,7 @@
       </div>
       <div class="user-header" v-if="user.isSignedIn">
          <template v-if="route.path != '/'">
+            <router-link class="dashboard" to="/">Libra</router-link>
             <span class="dashboard" v-if="isDashboard">Dashboard</span>
             <router-link class="dashboard" v-else :to="dashboardLink">Dashboard</router-link>
          </template>

@@ -32,7 +32,7 @@ body {
    .visibility.embargo {
       background-color: var(--uvalib-blue-alt);
    }
-   .visibility.restricted {
+   .visibility.restricted, .visibility.draft {
       background-color: var(--uvalib-red-darker);
    }
 

@@ -35,12 +35,12 @@
                   <FormKit type="group" v-model="etdRepo.work.author">
                      <div class="author">
                         <div class="two-col">
-                           <FormKit type="text" name="firstName" label="First Name" outer-class="first"/>
-                           <FormKit type="text" name="lastName" label="Last Name"  outer-class="first"/>
+                           <FormKit type="text" name="firstName" label="First Name" outer-class="first" validation="required"/>
+                           <FormKit type="text" name="lastName" label="Last Name"  outer-class="first" validation="required"/>
                         </div>
                         <div class="two-col">
-                           <FormKit type="text" name="program" label="Plan / Program"/>
-                           <FormKit type="text" name="institution" label="Institution"/>
+                           <FormKit type="text" name="program" label="Plan / Program" validation="required"/>
+                           <FormKit type="text" name="institution" label="Institution" validation="required"/>
                         </div>
                      </div>
                   </FormKit>
@@ -50,10 +50,11 @@
                   <template #header>
                      <span class="hdr">
                         <div>Advisors</div>
+                        <span class="req-field margin-right">Required</span>
                         <Button label="Add Advisor" @click="addAdvisor"/>
                      </span>
                   </template>
-                  <FormKit v-model="etdRepo.work.advisors" type="list" dynamic #default="{ items }">
+                  <FormKit v-model="etdRepo.work.advisors" type="list" dynamic #default="{ items }" validation="required">
                      <p class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</p>
                      <div class="authors">
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
@@ -217,7 +218,7 @@ const nextURL =  ref("/etd")
 
 const workDescribed = computed( () => {
    if ( etdForm.value ) {
-     return etdForm.value.node.context.state.valid
+     return (etdForm.value.node.context.state.valid && etdRepo.hasAdvisor )
    }
    return false
 })
@@ -416,6 +417,9 @@ const cancelClicked = (() => {
       margin-bottom: 20px;
       border-bottom: 1px solid var(--uvalib-grey-light);
       padding-bottom: 20px;
+   }
+   .margin-right {
+      margin-right: 10px;
    }
 
    .sub-panel {
