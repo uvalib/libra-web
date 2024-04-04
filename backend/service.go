@@ -21,12 +21,19 @@ import (
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
+type eventContext struct {
+	DevMode     bool
+	BusName     string
+	EventSource string
+	Bus         uvalibrabus.UvaBus
+}
+
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version      string
 	HTTPClient   *http.Client
 	EasyStore    uvaeasystore.EasyStore
-	EventBus     uvalibrabus.UvaBus
+	Events       eventContext
 	UserService  userServiceCfg
 	JWTKey       string
 	DevAuthUser  string
@@ -131,11 +138,17 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	log.Printf("INFO: configure easystore")
+	// NOTE: easystore will disable the event bus if the bus name is bank. Do this for devBus mode
+	busName := cfg.busName
+	if cfg.devBus {
+		log.Printf("INFO: bus is in dev mode; set blank name for easystore config")
+		busName = ""
+	}
 	if cfg.easyStore.mode == "sqlite" {
 		config := uvaeasystore.DatastoreSqliteConfig{
 			DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
 			Log:        log.Default(),
-			BusName:    cfg.busName,
+			BusName:    busName,
 			SourceName: cfg.eventSourceName,
 		}
 		es, err := uvaeasystore.NewEasyStore(config)
@@ -151,7 +164,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			DbUser:     cfg.easyStore.dbUser,
 			DbPassword: cfg.easyStore.dbPass,
 			DbTimeout:  cfg.easyStore.dbTimeout,
-			BusName:    cfg.busName,
+			BusName:    busName,
 			SourceName: cfg.eventSourceName,
 			Log:        log.Default(),
 		}
@@ -169,7 +182,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			DbUser:     cfg.easyStore.dbUser,
 			DbPassword: cfg.easyStore.dbPass,
 			DbTimeout:  cfg.easyStore.dbTimeout,
-			BusName:    cfg.busName,
+			BusName:    busName,
 			SourceName: cfg.eventSourceName,
 			Log:        log.Default(),
 		}
@@ -183,17 +196,23 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: easystore configured")
 
-	log.Printf("INFO: configure event bus [%s] with source [%s]", cfg.busName, cfg.eventSourceName)
-	busCfg := uvalibrabus.UvaBusConfig{
-		Source:  cfg.eventSourceName,
-		BusName: cfg.busName,
+	ctx.Events.DevMode = cfg.devBus
+	ctx.Events.BusName = cfg.busName
+	ctx.Events.EventSource = cfg.eventSourceName
+	if cfg.devBus {
+		log.Printf("INFO: bus is in dev mode - log events instead of sending to bus")
+	} else {
+		log.Printf("INFO: configure event bus [%s] with source [%s]", cfg.busName, cfg.eventSourceName)
+		busCfg := uvalibrabus.UvaBusConfig{
+			Source:  cfg.eventSourceName,
+			BusName: cfg.busName,
+		}
+		bus, err := uvalibrabus.NewUvaBus(busCfg)
+		if err != nil {
+			log.Fatalf("create event bus failed: %s", err.Error())
+		}
+		ctx.Events.Bus = bus
 	}
-	bus, err := uvalibrabus.NewUvaBus(busCfg)
-	if err != nil {
-		log.Fatalf("create event bus failed: %s", err.Error())
-	}
-	ctx.EventBus = bus
-	log.Printf("INFO: event bus configured")
 
 	return &ctx
 }
@@ -205,9 +224,13 @@ func (svc *serviceContext) publishEvent(eventName, namespace, oid string) {
 		Namespace:  namespace,
 		Identifier: oid,
 	}
-	err := svc.EventBus.PublishEvent(ev)
-	if err != nil {
-		log.Printf("ERROR: unable to publish event %s %s - %s: %s", eventName, namespace, oid, err.Error())
+	if svc.Events.DevMode {
+		log.Printf("INFO: dev mode send %+v to bus [%s] with source [%s]", ev, svc.Events.BusName, svc.Events.EventSource)
+	} else {
+		err := svc.Events.Bus.PublishEvent(ev)
+		if err != nil {
+			log.Printf("ERROR: unable to publish event %s %s - %s: %s", eventName, namespace, oid, err.Error())
+		}
 	}
 }
 

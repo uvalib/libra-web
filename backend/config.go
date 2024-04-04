@@ -32,6 +32,7 @@ type configData struct {
 	port            int
 	userService     userServiceCfg
 	devAuthUser     string
+	devBus          bool
 	jwtKey          string
 	easyStore       easyStoreConfig
 	namespace       namespaceConfig
@@ -44,7 +45,10 @@ func getConfiguration() *configData {
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
+
+	// dev mode
 	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")
+	flag.BoolVar(&config.devBus, "devbus", false, "bus dev mode (no events sent out)")
 
 	// easystore cfg
 	flag.StringVar(&config.easyStore.mode, "esmode", "none", "EasyStore mode (sqlite, psql)")
@@ -92,8 +96,8 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
 	log.Printf("[CONFIG] oanamespace   = [%s]", config.namespace.oa)
 	log.Printf("[CONFIG] etdnamespace  = [%s]", config.namespace.etd)
-	log.Printf("[CONFIG] busname       = [%s]", config.busName)
 	log.Printf("[CONFIG] eventsrc      = [%s]", config.eventSourceName)
+	log.Printf("[CONFIG] busname       = [%s]", config.busName)
 
 	if config.easyStore.mode == "sqlite" {
 		log.Printf("[CONFIG] esdbdir       = [%s]", config.easyStore.dbDir)
@@ -110,6 +114,9 @@ func getConfiguration() *configData {
 	}
 	if config.devAuthUser != "" {
 		log.Printf("[CONFIG] devuser       = [%s]", config.devAuthUser)
+	}
+	if config.devBus {
+		log.Printf("[CONFIG] ** dev mode bus - event publishing is disabled **")
 	}
 
 	return &config

@@ -37,7 +37,7 @@
                            <Button v-if="slotProps.data.datePublished" class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                         <template v-else>
-                           <Button class="action" icon="pi pi-eye" label="Preview / Submit" @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" icon="pi pi-check" label="Preview / Submit" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                      </div>
                   </template>
