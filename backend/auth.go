@@ -100,10 +100,11 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		}
 	} else {
 		// dev mode user is always an admin
+		log.Printf("INFO: dev auth user is always admin")
 		jsonResp.User.IsAdmin = true
 	}
 
-	log.Printf("INFO: generate JWT for %s", computingID)
+	log.Printf("INFO: generate JWT for %+v", jsonResp.User)
 	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwtClaims{
 		UserDetails: &jsonResp.User,

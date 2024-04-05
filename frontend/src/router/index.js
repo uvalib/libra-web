@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import AdminDashboard from '../views/AdminDashboard.vue'
 import OADashboard from '../views/OADashboard.vue'
 import OAWorkForm from '../views/OAWorkForm.vue'
 import OAPublicView from '../views/OAPublicView.vue'
@@ -19,6 +20,11 @@ const router = createRouter({
          path: '/',
          name: 'home',
          component: HomeView
+      },
+      {
+         path: '/admin',
+         name: 'admin',
+         component: AdminDashboard
       },
       {
          path: '/etd',
@@ -145,6 +151,14 @@ router.beforeEach((to, _from, next) => {
    console.log(`GOT JWT [${jwtStr}]`)
    if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
       userStore.setJWT(jwtStr)
+      if (to.name == "admin" ) {
+         if ( userStore.admin == false ) {
+            console.log("   REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
+            next("/forbidden")
+            return
+         }
+         console.log("    ADMIN REQUEST GRANTED")
+      }
       next()
    } else {
       console.log("AUTHENTICATE")

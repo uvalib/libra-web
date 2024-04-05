@@ -29,6 +29,7 @@ export const useUserStore = defineStore('user', {
 	   affiliation: [],
 	   email: "",
 	   private: "",
+      admin: false,
    }),
    getters: {
       isSignedIn: state => {
@@ -57,6 +58,7 @@ export const useUserStore = defineStore('user', {
          this.affiliation = parsed.affiliation
          this.email = parsed.email
          this.private = parsed.private
+         this.admin = parsed.admin
 
          // add interceptor to put bearer token in header
          const system = useSystemStore()

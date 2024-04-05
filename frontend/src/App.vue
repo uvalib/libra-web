@@ -65,7 +65,7 @@ const configuring = ref(true)
 const route = useRoute()
 
 const showDashboard = computed( () => {
-   return route.path != "/forbidden" && route.path != "not_found" && route.path != "expired"
+   return route.path != "/forbidden" && route.path != "/not_found" && route.path != "/expired" && route.path != "/admin"
 })
 const isDashboard = computed( () => {
    return route.path == "/oa" ||  route.path == "/etd"
