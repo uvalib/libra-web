@@ -185,6 +185,7 @@ import { useConfirm } from "primevue/useconfirm"
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
+import dayjs from 'dayjs'
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
    const formEle = document.getElementById("etd-form-layout")
@@ -312,13 +313,15 @@ const deleteFileClicked = ( (name) => {
 const downloadFileClicked = ( (name) => {
    etdRepo.downloadFile(name)
 })
-const submitClicked = ( async (visibility) => {
-   nextURL.value = "/etd" // TODO go to display form
-   updateWorkModel(visibility)
+const submitClicked = ( async (visibility, releaseDate, releaseVisibility) => {
+   nextURL.value = "/etd"
+   updateWorkModel(visibility, releaseDate, releaseVisibility)
    etdForm.value.node.submit()
 })
-const updateWorkModel = (( visibility) => {
+const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
    etdRepo.visibility = visibility
+   etdRepo.embargoReleaseDate =  dayjs(releaseDate).format("YYYY-MM-DD")
+   etdRepo.embargoReleaseVisibility =  releaseVisibility
    let license = system.licenseDetail("etd", etdRepo.licenseID)
    etdRepo.work.license = license.label
    etdRepo.work.licenseURL = license.url

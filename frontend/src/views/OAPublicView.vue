@@ -9,7 +9,7 @@
       </div>
       <template v-else>
          <div class="files">
-            <Fieldset v-if="oaRepo.work.files || oaRepo.visibility == 'embargo'" legend="Files">
+            <Fieldset legend="Files">
                <span class="file-embargo owner" v-if="oaRepo.visibility == 'embargo' && oaRepo.work.files">
                   <p>The files listed below will NOT be available until the embargo date has passed.</p>
                   <p>
@@ -17,12 +17,16 @@
                      {{ $formatDate(oaRepo.embargoReleaseDate) }}
                   </p>
                </span>
-               <span  v-else class="file-embargo">
+               <span  v-else-if="oaRepo.visibility == 'embargo'" class="file-embargo">
                   This item is embargoed and will not available until {{ $formatDate(oaRepo.embargoReleaseDate) }}.
                </span>
+               <span  v-else-if="oaRepo.visibility == 'uva'" class="file-embargo">
+                  This item is restricted to UVA.
+               </span>
                <div class="file" v-for="file in oaRepo.work.files">
-                  <div>{{ file.name }}</div>
-                  <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+                  <div class="name">{{ file.name }}</div>
+                  <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+                  <Button icon="pi pi-cloud-download" label="Download" severity="secondary" @click="downloadFileClicked(file.name)"/>
                </div>
             </Fieldset>
          </div>
@@ -94,6 +98,9 @@ const authorDisplay = ((a) => {
 onBeforeMount( async () => {
    document.title = "LibraOpen"
    await oaRepo.getWork( route.params.id )
+})
+const downloadFileClicked = ( (name) => {
+   oaRepo.downloadFile(name)
 })
 </script>
 
@@ -228,13 +235,28 @@ div.public-work {
          }
       }
       .file {
-         margin-left: 10px;
-         div {
+         margin: 10px 0 0 10px;
+         border: 1px solid var(--uvalib-grey-light);
+         border-radius: 4px;
+         padding: 10px;
+         .name {
+            text-align: left;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+         }
+         .upload {
+            font-size: 0.9em;
             margin-bottom: 5px;
          }
          label {
             font-weight: bold;
             margin-right: 5px;
+         }
+         button {
+            margin: 15px auto 0 auto;
+            font-size: 0.9em;
+            padding: 4px 10px;
+            display: block;
          }
       }
    }

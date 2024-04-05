@@ -42,11 +42,11 @@ type embargoData struct {
 type baseWorkDetails struct {
 	ID             string                   `json:"id"`
 	Version        string                   `json:"version"`
-	Files          []librametadata.FileData `json:"files"`
 	PersistentLink string                   `json:"persistentLink,omitempty"`
 	IsDraft        bool                     `json:"isDraft"`
 	Visibility     string                   `json:"visibility"`
 	Embargo        *embargoData             `json:"embargo,omitempty"`
+	Files          []librametadata.FileData `json:"files"`
 	DatePublished  *time.Time               `json:"datePublished,omitempty"`
 	CreatedAt      time.Time                `json:"createdAt"`
 	ModifiedAt     time.Time                `json:"modifiedAt"`
@@ -87,7 +87,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	fields["create-date"] = time.Now().Format(time.RFC3339)
 	fields["draft"] = "true"
 	fields["default-visibility"] = etdSub.Visibility
-	if etdSub.Visibility == "limited" {
+	if etdSub.Visibility == "uva" {
 		fields["embargo-release"] = etdSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = etdSub.EmbargoReleaseVisibility
 	}
@@ -125,7 +125,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 		},
 		ETDWork: &etdSub.Work,
 	}
-	if etdSub.Visibility == "limited" {
+	if etdSub.Visibility == "uva" {
 		resp.Embargo = &embargoData{ReleaseDate: etdSub.EmbargoReleaseDate, ReleaseVisibility: etdSub.EmbargoReleaseVisibility}
 	}
 	for _, file := range obj.Files() {

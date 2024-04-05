@@ -58,20 +58,23 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		isAuthor = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
 	}
 
-	if isDraft {
-		canAccessMetadata = isAuthor
-		canAccessFiles = isAuthor
+	if isAuthor {
+		canAccessFiles = true
+		canAccessMetadata = true
 	} else {
-		if visibility == "open" {
-			canAccessFiles = true
+		if isDraft {
+			canAccessMetadata = false
 		} else {
-			canAccessFiles = svc.isFromUVA(c)
+			if visibility == "open" {
+				canAccessFiles = true
+			} else {
+				canAccessFiles = svc.isFromUVA(c)
+			}
 		}
-	}
-
-	if canAccessMetadata == false {
-		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-		return
+		if canAccessMetadata == false {
+			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+			return
+		}
 	}
 
 	resp := etdWorkDetails{
@@ -81,12 +84,13 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
 			PersistentLink: tgtObj.Fields()["doi"],
+			Files:          make([]librametadata.FileData, 0),
 			CreatedAt:      tgtObj.Created(),
 			ModifiedAt:     tgtObj.Modified(),
 		},
 		ETDWork: etdWork,
 	}
-	if visibility == "limited" {
+	if visibility == "uva" {
 		resp.Embargo = &embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
 	}
 	if isDraft == false {
@@ -173,6 +177,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
 			PersistentLink: tgtObj.Fields()["doi"],
+			Files:          make([]librametadata.FileData, 0),
 			CreatedAt:      tgtObj.Created(),
 			ModifiedAt:     tgtObj.Modified(),
 		},
@@ -479,7 +484,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	fields := tgtObj.Fields()
 	fields["author"] = etdReq.Work.Author.ComputeID
 	fields["default-visibility"] = etdReq.Visibility
-	if etdReq.Visibility == "limited" {
+	if etdReq.Visibility == "uva" {
 		fields["embargo-release"] = etdReq.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = etdReq.EmbargoReleaseVisibility
 	}
@@ -499,7 +504,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 		},
 		ETDWork: &etdReq.Work,
 	}
-	if etdReq.Visibility == "limited" {
+	if etdReq.Visibility == "uva" {
 		resp.Embargo = &embargoData{ReleaseDate: etdReq.EmbargoReleaseDate, ReleaseVisibility: etdReq.EmbargoReleaseVisibility}
 	}
 	if isDraft == false {

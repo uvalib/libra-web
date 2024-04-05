@@ -10,9 +10,13 @@
       <template v-else>
          <div class="files">
             <Fieldset legend="Files">
+               <span  v-if="etdRepo.visibility == 'uva'" class="file-embargo">
+                  This item is restricted to UVA until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
+               </span>
                <div class="file" v-for="file in etdRepo.work.files">
-                  <div>{{ file.name }}</div>
-                  <div><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+                  <div class="name">{{ file.name }}</div>
+                  <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+                  <Button icon="pi pi-cloud-download" label="Download" severity="secondary" @click="downloadFileClicked(file.name)"/>
                </div>
             </Fieldset>
          </div>
@@ -93,6 +97,9 @@ const advisorDisplay = ((a) => {
 onBeforeMount( async () => {
    document.title = "LibraETD"
    await etdRepo.getWork( route.params.id )
+})
+const downloadFileClicked = ( (name) => {
+   etdRepo.downloadFile(name)
 })
 const editThesis = (() => {
    router.push(`/etd/${route.params.id}`)
@@ -264,14 +271,35 @@ div.public-work {
       font-family: 'Open Sans', sans-serif;
       background: white;
       text-align: left;
+      .file-embargo {
+         display: block;
+         margin: 10px 0 10px 10px;
+         font-style: italic;
+         font-size: 1.15em;
+      }
       .file {
-         margin-left: 10px;
-         div {
+         margin: 10px 0 0 10px;
+         border: 1px solid var(--uvalib-grey-light);
+         border-radius: 4px;
+         padding: 10px;
+         .name {
+            text-align: left;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+         }
+         .upload {
+            font-size: 0.9em;
             margin-bottom: 5px;
          }
          label {
             font-weight: bold;
             margin-right: 5px;
+         }
+         button {
+            margin: 15px auto 0 auto;
+            font-size: 0.9em;
+            padding: 4px 10px;
+            display: block;
          }
       }
    }

@@ -187,7 +187,7 @@ const showLicense = ( (vis) => {
    return false
 })
 const showETDEmbargo = ((vis) =>{
-   return (vis.value == 'limited' && visibility.value == vis.value)
+   return (vis.value == 'uva' && visibility.value == vis.value)
 })
 const showOAEmbargo = ((vis) =>{
    return (vis.value == 'embargo' && visibility.value == vis.value)
@@ -201,7 +201,7 @@ const oaSubmitClicked = (() => {
    }
 })
 const etdSubmitClicked = (() => {
-   if ( visibility.value == "limited") {
+   if ( visibility.value == "uva") {
       let endDate = new Date()
       if ( limitedDuration.value == "6-months") {
          endDate.setMonth( endDate.getMonth()+6)

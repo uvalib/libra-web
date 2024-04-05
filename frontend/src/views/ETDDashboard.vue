@@ -19,17 +19,17 @@
                <Column header="ORCID Status"/>
                <Column field="visibility" header="Visibility" >
                   <template #body="slotProps">
-                     <span v-if="slotProps.data.datePublished" class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
-                     <span v-else class="visibility draft">Draft</span>
+                     <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
                   </template>
                </Column>
                <Column field="datePublished" header="Date Published" >
                   <template #body="slotProps">
                      <span v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished)}}</span>
-                     <span v-else class="none">N/A</span>
+                     <!-- <span v-else class="none">N/A</span> -->
+                     <span v-else class="visibility draft">Draft</span>
                   </template>
                </Column>
-               <Column header="Actions" style="max-width:110px;">
+               <Column header="Actions" style="width:175px;">
                   <template #body="slotProps">
                      <div  class="acts">
                         <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
