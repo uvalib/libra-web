@@ -33,6 +33,7 @@ type UserDetails struct {
 	Affiliation []string `json:"affiliation"`
 	Email       string   `json:"email"`
 	Private     string   `json:"private"`
+	IsAdmin     bool     `json:"admin"`
 }
 
 type userServiceResp struct {
@@ -89,13 +90,26 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		return
 	}
 
+	// if not in dev mode check for membership in libra-admins
+	if svc.DevAuthUser == "" {
+		// Membership format: cn=group_name1;cn=group_name2;...
+		membershipStr := c.GetHeader("member")
+		if strings.Contains(membershipStr, "libra-admins") {
+			log.Printf("INFO: user %s is an admin", computingID)
+			jsonResp.User.IsAdmin = true
+		}
+	} else {
+		// dev mode user is always an admin
+		jsonResp.User.IsAdmin = true
+	}
+
 	log.Printf("INFO: generate JWT for %s", computingID)
 	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwtClaims{
 		UserDetails: &jsonResp.User,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
-			Issuer:    "libra3",
+			Issuer:    "libra-web",
 		},
 	}
 
