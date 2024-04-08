@@ -21,10 +21,17 @@ type searchHit struct {
 }
 
 func (svc *serviceContext) searchWorks(c *gin.Context) {
-	// NOTES: search accepts query params for search:
-	//    type=oa|etd, cid=compute_id, title=title
-	workType := c.Query("type")
 	computeID := c.Query("cid")
+
+	// NOTES: search accepts query params for search:
+	//    type=oa|etd|all, cid=compute_id, title=title
+	workType := c.Query("type")
+	if workType != "oa" && workType != "etd" && workType != "all" {
+		log.Printf("INFO: invalid search type: %s", workType)
+		c.String(http.StatusBadRequest, fmt.Sprintf("%s is not a valid search type", workType))
+		return
+	}
+
 	namespace := ""
 	if workType == "oa" {
 		namespace = svc.Namespaces.oa
@@ -37,7 +44,11 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 		fields["depositor"] = computeID
 	}
 
-	log.Printf("INFO: find %s works with fields %v", namespace, fields)
+	if namespace != "" {
+		log.Printf("INFO: find %s works with fields %v", namespace, fields)
+	} else {
+		log.Printf("INFO: find all works with fields %v", fields)
+	}
 	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: search failed: %s", err.Error())
@@ -90,7 +101,7 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 
 	hit := searchHit{
 		ID:          esObj.Id(),
-		Namespace:   svc.Namespaces.oa,
+		Namespace:   "oa",
 		Title:       oaWork.Title,
 		Visibility:  visibility,
 		DateCreated: esObj.Created(),
@@ -120,7 +131,7 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 	}
 	hit := searchHit{
 		ID:          esObj.Id(),
-		Namespace:   svc.Namespaces.oa,
+		Namespace:   "etd",
 		Title:       etdWork.Title,
 		Visibility:  esObj.Fields()["default-visibility"],
 		DateCreated: esObj.Created(),

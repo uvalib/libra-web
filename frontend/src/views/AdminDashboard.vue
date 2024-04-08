@@ -1,11 +1,38 @@
 <template>
    <div class="admin">
-      <Panel>
-         <template #header>
-            <span class="hdr">
-               <div>Libra Admin Dashboard</div>
-            </span>
-         </template>
+      <Panel header="Libra Admin Dashboard">
+         <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
+               stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+               :lazy="false" :paginator="true" :alwaysShowPaginator="true"
+               :rows="30" :totalRecords="admin.hits.length"
+               paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+               :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
+               currentPageReportTemplate="{first} - {last} of {totalRecords}"
+               :filters="admin.filters" :globalFilterFields="['title']"
+               :loading="admin.working"
+         >
+            <template #paginatorstart>
+               <label>Select View:</label>
+               <Dropdown v-model="admin.scope" :options="admin.scopes" optionLabel="label" optionValue="value" @change="admin.search()"/>
+            </template>
+            <template #paginatorend>
+               <IconField iconPosition="left">
+                  <InputIcon class="pi pi-search" />
+                  <InputText v-model="admin.filters['global'].value" placeholder="Search works" />
+               </IconField>
+            </template>
+            <Column field="namespace" header="" style="width:30px;">
+               <template #body="slotProps">
+                  <span v-if="slotProps.data.namespace=='oa'" class="type oa">O</span>
+                  <span v-else class="type etd">S</span>
+               </template>
+            </Column>
+            <Column field="createdAt" header="Created" sortable>
+               <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
+            </Column>
+            <Column field="id" header="ID" sortable/>
+            <Column field="title" header="Title" sortable/>
+         </DataTable>
       </Panel>
    </div>
 </template>
@@ -13,26 +40,27 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { onBeforeMount } from 'vue'
-import { useSearchStore } from "@/stores/search"
-import { useUserStore } from "@/stores/user"
+import { useAdminStore } from "@/stores/admin"
 import { useSystemStore } from "@/stores/system"
 import { useOAStore } from "@/stores/oa"
 import Panel from 'primevue/panel'
+import Dropdown from 'primevue/dropdown'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import WaitSpinner from "@/components/WaitSpinner.vue"
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import InputText from 'primevue/inputtext'
 import { useConfirm } from "primevue/useconfirm"
 
 const router = useRouter()
-const searchStore = useSearchStore()
-const user = useUserStore()
+const admin = useAdminStore()
 const system = useSystemStore()
 const oaRepo = useOAStore()
 const confirm = useConfirm()
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
-   searchStore.search("oa", user.computeID)
+   admin.search()
 })
 
 const editWorkClicked = ( (id) => {
@@ -54,10 +82,6 @@ const deleteWorkClicked = ( (id) => {
       },
    })
 })
-
-const createWorkClicked = (() => {
-   router.push("/oa/new")
-})
 </script>
 
 <style lang="scss" scoped>
@@ -76,9 +100,19 @@ const createWorkClicked = (() => {
          color: var(--uvalib-text);
       }
    }
-   .none {
-      color: var(--uvalib-grey-light);
-      font-style: italic;
+   .type {
+      font-size: 0.9em;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-weight: bold;
+   }
+   .type.etd {
+      background-color: var(--uvalib-blue-alt);
+      color: white;
+   }
+   .type.oa {
+      background-color: var(--uvalib-brand-orange);
+      color: white;
    }
    .acts {
       display: flex;

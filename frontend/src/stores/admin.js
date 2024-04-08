@@ -1,19 +1,25 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useSystemStore } from './system'
+import { FilterMatchMode } from 'primevue/api'
 
-export const useSearchStore = defineStore('search', {
+export const useAdminStore = defineStore('admin', {
    state: () => ({
       working: false,
+      scope: "etd",
+      filters: {global: { value: null, matchMode: FilterMatchMode.CONTAINS }},
       hits: [],
+      scopes: [
+         {label: "All Works", value: "all"},
+         {label: "SIS Works", value: "etd"},
+         {label: "Optional Works", value: "oa"}
+      ]
    }),
    actions: {
-      search(type, computeID) {
+      search() {
          this.working = true
-         let url = `/api/works/search?type=${type}`
-         if (computeID != "") {
-            url += `&cid=${computeID}`
-         }
+         let url = `/api/works/search?type=${this.scope}`
+         console.log(url)
          axios.get(url).then(response => {
             this.hits = response.data
             this.working = false
@@ -23,9 +29,5 @@ export const useSearchStore = defineStore('search', {
             this.working = false
          })
       },
-      removeDeletedWork( id ) {
-         let idx = this.hits.findIndex( h => h.id == id)
-         this.hits.splice(idx,1)
-      }
    }
 })
