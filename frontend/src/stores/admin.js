@@ -18,7 +18,7 @@ export const useAdminStore = defineStore('admin', {
    actions: {
       search() {
          this.working = true
-         let url = `/api/works/search?type=${this.scope}`
+         let url = `/api/admin/search?type=${this.scope}`
          console.log(url)
          axios.get(url).then(response => {
             this.hits = response.data

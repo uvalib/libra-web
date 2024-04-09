@@ -32,7 +32,7 @@ func main() {
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/version", svc.getVersion)
 
-	api := router.Group("/api", svc.authMiddleware)
+	api := router.Group("/api", svc.userMiddleware)
 	{
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 
@@ -57,7 +57,13 @@ func main() {
 		api.PUT("/works/etd/:id", svc.etdUpdate)
 		api.POST("/works/etd/:id/publish", svc.publishETDWork)
 		api.DELETE("/works/etd/:id", svc.deleteETDWork)
-		api.GET("/works/search", svc.searchWorks)
+		api.GET("/works/search", svc.userSearch)
+
+		admin := api.Group("/admin", svc.adminMiddleware)
+		{
+			admin.GET("/search", svc.adminSearch)
+		}
+
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served

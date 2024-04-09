@@ -12,23 +12,80 @@ import (
 )
 
 type searchHit struct {
-	ID            string     `json:"id"`
-	Namespace     string     `json:"namespace"`
-	Title         string     `json:"title"`
-	ComputeID     string     `json:"computeID"`
+	ID           string    `json:"id"`
+	Namespace    string    `json:"namespace"`
+	Title        string    `json:"title"`
+	ComputeID    string    `json:"computeID"`
+	DateCreated  time.Time `json:"dateCreated"`
+	DateModified time.Time `json:"dateModified"`
+}
+
+type userSearchHit struct {
+	*searchHit
 	Visibility    string     `json:"visibility"`
-	DateCreated   time.Time  `json:"dateCreated"`
-	DateModified  time.Time  `json:"dateModified"`
 	DatePublished *time.Time `json:"datePublished,omitempty"`
 }
 
-func (svc *serviceContext) searchWorks(c *gin.Context) {
-	computeID := c.Query("cid")
-
-	// NOTES: search accepts query params for search:
-	//    type=oa|etd|all, cid=compute_id, title=title
+func (svc *serviceContext) adminSearch(c *gin.Context) {
 	workType := c.Query("type")
-	if workType != "oa" && workType != "etd" && workType != "all" {
+	if workType != "oa" && workType != "etd" {
+		log.Printf("INFO: invalid search type: %s", workType)
+		c.String(http.StatusBadRequest, fmt.Sprintf("%s is not a valid search type", workType))
+		return
+	}
+
+	namespace := ""
+	if workType == "oa" {
+		namespace = svc.Namespaces.oa
+	} else if workType == "etd" {
+		namespace = svc.Namespaces.etd
+	}
+
+	log.Printf("INFO: adming search for %s works", namespace)
+	fields := uvaeasystore.DefaultEasyStoreFields()
+	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata)
+	if err != nil {
+		log.Printf("ERROR: search failed: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
+	resp := make([]*searchHit, 0)
+	obj, err := hits.Next()
+	for err == nil {
+		var hit *searchHit
+		if obj.Namespace() == svc.Namespaces.oa {
+			hit, err = svc.parseOASearchHit(obj)
+			if err != nil {
+				log.Printf("ERROR: unable to parse oa search result %s: %s", obj.Id(), err.Error())
+				continue
+			}
+		} else if obj.Namespace() == svc.Namespaces.etd {
+			hit, err = svc.parseETDSearchHit(obj)
+			if err != nil {
+				log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
+				continue
+			}
+		} else {
+			continue
+		}
+		resp = append(resp, hit)
+		obj, err = hits.Next()
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (svc *serviceContext) userSearch(c *gin.Context) {
+	computeID := c.Query("cid")
+	if computeID == "" {
+		log.Printf("INFO: inmvalid search for usser works without a compute id")
+		c.String(http.StatusBadRequest, "cid is required")
+		return
+	}
+
+	workType := c.Query("type")
+	if workType != "oa" && workType != "etd" {
 		log.Printf("INFO: invalid search type: %s", workType)
 		c.String(http.StatusBadRequest, fmt.Sprintf("%s is not a valid search type", workType))
 		return
@@ -46,11 +103,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 		fields["depositor"] = computeID
 	}
 
-	if namespace != "" {
-		log.Printf("INFO: find %s works with fields %v", namespace, fields)
-	} else {
-		log.Printf("INFO: find all works with fields %v", fields)
-	}
+	log.Printf("INFO: find user %s %s works", computeID, namespace)
 	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: search failed: %s", err.Error())
@@ -59,7 +112,7 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 	}
 
 	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
-	resp := make([]*searchHit, 0)
+	resp := make([]userSearchHit, 0)
 	obj, err := hits.Next()
 	for err == nil {
 		var hit *searchHit
@@ -80,7 +133,24 @@ func (svc *serviceContext) searchWorks(c *gin.Context) {
 			continue
 		}
 
-		resp = append(resp, hit)
+		// add user-specific fields; visibility and published date
+		userHit := userSearchHit{searchHit: hit}
+		visibility := obj.Fields()["default-visibility"]
+		if visibility == "embargo" {
+			visibility = calculateVisibility(obj.Fields())
+		}
+		userHit.Visibility = visibility
+		pubDateStr, published := obj.Fields()["publish-date"]
+		if published {
+			pubDate, err := time.Parse(time.RFC3339, pubDateStr)
+			if err != nil {
+				log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
+				pubDate = time.Now()
+			}
+			userHit.DatePublished = &pubDate
+		}
+
+		resp = append(resp, userHit)
 		obj, err = hits.Next()
 	}
 	c.JSON(http.StatusOK, resp)
@@ -96,29 +166,13 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 	if objErr != nil {
 		return nil, objErr
 	}
-	visibility := esObj.Fields()["default-visibility"]
-	if visibility == "embargo" {
-		visibility = calculateVisibility(esObj.Fields())
-	}
-
 	hit := searchHit{
 		ID:           esObj.Id(),
 		Namespace:    "oa",
 		Title:        oaWork.Title,
 		ComputeID:    oaWork.Authors[0].ComputeID,
-		Visibility:   visibility,
 		DateCreated:  esObj.Created(),
 		DateModified: esObj.Modified(),
-	}
-
-	pubDateStr, published := esObj.Fields()["publish-date"]
-	if published {
-		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
-		if err != nil {
-			log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
-			pubDate = time.Now()
-		}
-		hit.DatePublished = &pubDate
 	}
 	return &hit, nil
 }
@@ -138,18 +192,8 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 		Namespace:    "etd",
 		Title:        etdWork.Title,
 		ComputeID:    etdWork.Author.ComputeID,
-		Visibility:   esObj.Fields()["default-visibility"],
 		DateCreated:  esObj.Created(),
 		DateModified: esObj.Modified(),
-	}
-	pubDateStr, published := esObj.Fields()["publish-date"]
-	if published {
-		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
-		if err != nil {
-			log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
-			pubDate = time.Now()
-		}
-		hit.DatePublished = &pubDate
 	}
 	return &hit, nil
 }

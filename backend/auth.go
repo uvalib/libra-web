@@ -128,15 +128,13 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/signedin")
 }
 
-// AuthMiddleware is middleware that checks for a user auth token in the Authorization header
-// the requests for public work metadata do not require authorization, but will accepot and use it if present
-func (svc *serviceContext) authMiddleware(c *gin.Context) {
+func (svc *serviceContext) userMiddleware(c *gin.Context) {
 	jwtRequired := true
 	if c.Request.Method == "GET" && (strings.Contains(c.Request.URL.Path, "/api/works/oa") || strings.Contains(c.Request.URL.Path, "/api/works/etd")) {
 		log.Printf("INFO: public metadata request for %s; jwt not required", c.Request.URL.Path)
 		jwtRequired = false
 	} else {
-		log.Printf("Authorize access to %s", c.Request.URL.Path)
+		log.Printf("INFO: authorize user access to %s", c.Request.URL.Path)
 	}
 
 	auth, err := svc.getAuthFromHeader(c.Request.Header.Get("Authorization"))
@@ -152,6 +150,28 @@ func (svc *serviceContext) authMiddleware(c *gin.Context) {
 		c.Set("claims", auth.jwt)
 	}
 
+	c.Next()
+}
+
+func (svc *serviceContext) adminMiddleware(c *gin.Context) {
+	log.Printf("INFO: authorize admin access to %s", c.Request.URL.Path)
+	// NOTE: this middleare happens AFTER user middleware, so the claims
+	// will already be set with c.Set("claims", auth.jwt) above.
+	// just need to verify here that the claims are for an admin user
+	claims := getJWTClaims(c)
+	if claims == nil {
+		log.Printf("WARNING: admin auth failed; no claims present")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	if claims.IsAdmin == false {
+		log.Printf("WARNING: admin auth failed for non-admin user %s", claims.ComputeID)
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	log.Printf("INFO: admin authorization successful")
 	c.Next()
 }
 
