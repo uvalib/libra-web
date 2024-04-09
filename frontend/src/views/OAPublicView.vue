@@ -74,7 +74,7 @@
                <div v-for="s in oaRepo.work.sponsors">{{ s }}</div>
             </Fieldset>
             <Fieldset v-if="oaRepo.work.notes" legend="Notes:">{{  oaRepo.work.notes }}</Fieldset>
-            <Fieldset v-if="oaRepo.work.persistentLink" legend="Persistent Link:">
+            <Fieldset v-if="oaRepo.persistentLink" legend="Persistent Link:">
                <a target="_blank" :href="oaRepo.persistentLink">{{ oaRepo.persistentLink }}</a>
             </Fieldset>
          </div>
