@@ -15,9 +15,11 @@ type searchHit struct {
 	ID            string     `json:"id"`
 	Namespace     string     `json:"namespace"`
 	Title         string     `json:"title"`
-	DateCreated   time.Time  `json:"dateCreated"`
-	DatePublished *time.Time `json:"datePublished,omitempty"`
+	ComputeID     string     `json:"computeID"`
 	Visibility    string     `json:"visibility"`
+	DateCreated   time.Time  `json:"dateCreated"`
+	DateModified  time.Time  `json:"dateModified"`
+	DatePublished *time.Time `json:"datePublished,omitempty"`
 }
 
 func (svc *serviceContext) searchWorks(c *gin.Context) {
@@ -100,11 +102,13 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 	}
 
 	hit := searchHit{
-		ID:          esObj.Id(),
-		Namespace:   "oa",
-		Title:       oaWork.Title,
-		Visibility:  visibility,
-		DateCreated: esObj.Created(),
+		ID:           esObj.Id(),
+		Namespace:    "oa",
+		Title:        oaWork.Title,
+		ComputeID:    oaWork.Authors[0].ComputeID,
+		Visibility:   visibility,
+		DateCreated:  esObj.Created(),
+		DateModified: esObj.Modified(),
 	}
 
 	pubDateStr, published := esObj.Fields()["publish-date"]
@@ -130,11 +134,13 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 		return nil, objErr
 	}
 	hit := searchHit{
-		ID:          esObj.Id(),
-		Namespace:   "etd",
-		Title:       etdWork.Title,
-		Visibility:  esObj.Fields()["default-visibility"],
-		DateCreated: esObj.Created(),
+		ID:           esObj.Id(),
+		Namespace:    "etd",
+		Title:        etdWork.Title,
+		ComputeID:    etdWork.Author.ComputeID,
+		Visibility:   esObj.Fields()["default-visibility"],
+		DateCreated:  esObj.Created(),
+		DateModified: esObj.Modified(),
 	}
 	pubDateStr, published := esObj.Fields()["publish-date"]
 	if published {

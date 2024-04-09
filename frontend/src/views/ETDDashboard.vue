@@ -17,7 +17,7 @@
                   <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
                </Column>
                <Column header="ORCID Status"/>
-               <Column field="visibility" header="Visibility" >
+               <Column header="Visibility" >
                   <template #body="slotProps">
                      <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
                   </template>
@@ -25,7 +25,6 @@
                <Column field="datePublished" header="Date Published" >
                   <template #body="slotProps">
                      <span v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished)}}</span>
-                     <!-- <span v-else class="none">N/A</span> -->
                      <span v-else class="visibility draft">Draft</span>
                   </template>
                </Column>
@@ -51,7 +50,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
@@ -67,7 +66,7 @@ const user = useUserStore()
 const system = useSystemStore()
 const etdStore = useETDStore()
 
-onMounted( () => {
+onBeforeMount( () => {
    searchStore.search("etd", user.computeID)
 })
 

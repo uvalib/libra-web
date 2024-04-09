@@ -23,12 +23,18 @@ export const useSystemStore = defineStore('system', {
          return (mode, key) => {
             if ( mode == "oa") {
                let oaV = state.visibility.filter( rt => rt.oa == true)
-               let out = oaV.find(  v=>v.value == key)
-               return out.label
+               if ( oaV ) {
+                  let out = oaV.find(  v=>v.value == key)
+                  if ( out ) return out.label
+               }
+            } else {
+               let etdV = state.visibility.filter( rt => rt.etd == true)
+               if (etdV) {
+                  let out = etdV.find(  v=>v.value == key)
+                  if ( out ) return out.label
+               }
             }
-            let etdV = state.visibility.filter( rt => rt.etd == true)
-            let out = etdV.find(  v=>v.value == key)
-            return out.label
+            return key
          }
       },
       oaResourceTypes: state => {
