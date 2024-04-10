@@ -187,9 +187,11 @@ const showLicense = ( (vis) => {
    return false
 })
 const showETDEmbargo = ((vis) =>{
+   if (props.type == "oa") return false
    return (vis.value == 'uva' && visibility.value == vis.value)
 })
 const showOAEmbargo = ((vis) =>{
+   if (props.type == "etd") return false
    return (vis.value == 'embargo' && visibility.value == vis.value)
 })
 

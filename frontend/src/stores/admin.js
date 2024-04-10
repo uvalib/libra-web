@@ -29,5 +29,13 @@ export const useAdminStore = defineStore('admin', {
             this.working = false
          })
       },
+      async delete(type, id) {
+         this.working = true
+         return axios.delete(`/api/admin/${type}/${id}`).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      }
    }
 })

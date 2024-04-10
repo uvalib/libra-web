@@ -27,11 +27,25 @@
                   <span v-else class="type etd">S</span>
                </template>
             </Column>
-            <Column field="createdAt" header="Created" sortable>
+            <Column field="dateCreated" header="Created" sortable class="nowrap">
                <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
             </Column>
-            <Column field="id" header="ID" sortable/>
-            <Column field="title" header="Title" sortable/>
+            <Column field="dateModified" header="Modified" sortable class="nowrap">
+               <template #body="slotProps">{{ $formatDate(slotProps.data.dateModified)}}</template>
+            </Column>
+            <Column field="id" header="ID" sortable class="nowrap"/>
+            <Column field="computeID" header="Compute ID" sortable style="width: 275px"/>
+            <Column field="title" header="Title" sortable style="width: max-content"/>
+            <Column header="Actions" style="max-width:50px">
+               <template #body="slotProps">
+                  <div  class="acts">
+                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
+                     <Button class="action" icon="pi pi-eye" label="View" severity="secondary" @click="viewWorkClicked(slotProps.data.id)"/>
+                     <Button class="action" v-if="!slotProps.data.datePublished"
+                        icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data.id)"/>
+                  </div>
+               </template>
+            </Column>
          </DataTable>
       </Panel>
    </div>
@@ -64,7 +78,12 @@ onBeforeMount( () => {
 })
 
 const editWorkClicked = ( (id) => {
-   let url = `/oa/${id}`
+   let url = `/${props.type}/${id}`
+   router.push(url)
+})
+
+const viewWorkClicked = ( (id) => {
+   let url = `/public/${props.type}/${id}`
    router.push(url)
 })
 
@@ -75,7 +94,7 @@ const deleteWorkClicked = ( (id) => {
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
       accept: async (  ) => {
-         await oaRepo.deleteWork(id)
+         await admin.delete(props.type, id)
          if ( system.showError == false) {
             searchStore.removeDeletedWork(id)
          }
@@ -89,6 +108,9 @@ const deleteWorkClicked = ( (id) => {
    width: 95%;
    margin: 2% auto;
    min-height: 600px;
+   :deep(td.nowrap),  :deep(th){
+      white-space: nowrap;
+   }
    .hdr {
       width: 100%;
       display: flex;
