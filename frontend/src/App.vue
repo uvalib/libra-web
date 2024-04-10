@@ -19,9 +19,9 @@
       <div class="user-header" v-if="user.isSignedIn">
          <template v-if="route.path != '/'">
             <router-link class="dashboard" to="/">Libra</router-link>
+            <router-link v-if="user.admin" class="dashboard" to="/admin">Admin</router-link>
             <template v-if="showDashboard">
-               <span class="dashboard" v-if="isDashboard">Dashboard</span>
-               <router-link class="dashboard" v-else :to="dashboardLink">Dashboard</router-link>
+               <router-link class="dashboard" :to="dashboardLink">Dashboard</router-link>
             </template>
          </template>
          <span>{{ user.displayName }}</span>
@@ -66,9 +66,6 @@ const route = useRoute()
 
 const showDashboard = computed( () => {
    return route.path != "/forbidden" && route.path != "/not_found" && route.path != "/expired" && route.path != "/admin"
-})
-const isDashboard = computed( () => {
-   return route.path == "/oa" ||  route.path == "/etd"
 })
 const dashboardLink = computed( () => {
    if ( isLibraOpen.value ) {

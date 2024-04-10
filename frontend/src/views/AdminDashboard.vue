@@ -35,7 +35,7 @@
             </Column>
             <Column field="id" header="ID" sortable class="nowrap"/>
             <Column field="computeID" header="Compute ID" sortable style="width: 275px"/>
-            <Column field="title" header="Title" sortable style="width: max-content"/>
+            <Column field="title" header="Title" sortable />
             <Column header="Actions" style="max-width:50px">
                <template #body="slotProps">
                   <div  class="acts">
@@ -69,7 +69,6 @@ import { useConfirm } from "primevue/useconfirm"
 const router = useRouter()
 const admin = useAdminStore()
 const system = useSystemStore()
-const oaRepo = useOAStore()
 const confirm = useConfirm()
 
 onBeforeMount( () => {
@@ -78,12 +77,12 @@ onBeforeMount( () => {
 })
 
 const editWorkClicked = ( (id) => {
-   let url = `/${props.type}/${id}`
+   let url = `/${admin.scope}/${id}`
    router.push(url)
 })
 
 const viewWorkClicked = ( (id) => {
-   let url = `/public/${props.type}/${id}`
+   let url = `/public/${admin.scope}/${id}`
    router.push(url)
 })
 
@@ -94,7 +93,7 @@ const deleteWorkClicked = ( (id) => {
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
       accept: async (  ) => {
-         await admin.delete(props.type, id)
+         await admin.delete(admin.scope, id)
          if ( system.showError == false) {
             searchStore.removeDeletedWork(id)
          }

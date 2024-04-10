@@ -40,7 +40,7 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		return
 	}
 
-	// enforce visibility;
+	// enforce visibility; (admins can always view all)
 	//   ANYONE CAN ACCESS METADATA - Except draft content
 	//   files: open = visible to all; limited = only visible to uva for a limited timeframe
 	visibility := tgtObj.Fields()["default-visibility"]
@@ -53,12 +53,14 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	canAccessFiles := false
 	canAccessMetadata := true
 	isAuthor := false
+	isAdmin := false
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		isAuthor = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+		isAdmin = jwt.IsAdmin
 	}
 
-	if isAuthor {
+	if isAuthor || isAdmin {
 		canAccessFiles = true
 		canAccessMetadata = true
 	} else {
@@ -137,7 +139,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 		return
 	}
 
-	// enforce work visibility;
+	// enforce work visibility; (admin can see all)
 	//   ANYONE CAN ACCESS METADATA - Except restricted (private) content
 	//   open: anyone can access files
 	//   uva: uva users can access files
@@ -150,23 +152,26 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	canAccessMetadata := true
 	fromUVA := svc.isFromUVA(c)
 	isAuthor := false
+	isAdmin := false
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		isAuthor = oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+		isAdmin = jwt.IsAdmin
 	}
-	if visibility == "open" {
+
+	if isAdmin || isAuthor {
 		canAccessFiles = true
-	} else if visibility == "uva" {
-		canAccessFiles = fromUVA || isAuthor
-	} else if visibility == "embargo" {
-		canAccessFiles = isAuthor
-	} else if visibility == "restricted" {
-		canAccessFiles = isAuthor
-		canAccessMetadata = isAuthor
-	}
-	if canAccessMetadata == false {
-		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-		return
+		canAccessMetadata = true
+	} else {
+		if visibility == "open" {
+			canAccessFiles = true
+		} else if visibility == "uva" {
+			canAccessFiles = fromUVA
+		}
+		if canAccessMetadata == false {
+			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+			return
+		}
 	}
 
 	pubDateStr, hasPublicDate := tgtObj.Fields()["publish-date"]
