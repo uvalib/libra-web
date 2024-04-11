@@ -21,7 +21,6 @@ type depositSettings struct {
 	EmbargoReleaseVisibility string   `json:"embargoReleaseVisibility,omitempty"`
 	AddFiles                 []string `json:"addFiles"`
 	DelFiles                 []string `json:"delFiles"`
-	Depositor                string   `json:"depositor"`
 }
 
 type oaDepositRequest struct {
@@ -79,10 +78,20 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 		return
 	}
 
+	// must be signed in to do this so there should always be claims
+	claims := getJWTClaims(c)
+	if claims == nil {
+		log.Printf("WARNING: invalid etd dsposit request without claims")
+		c.String(http.StatusForbidden, "you do not have permission to make this submission")
+		return
+	}
+
+	// TODO only let author or admin make changes?
+
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = etdSub.Depositor
+	fields["depositor"] = claims.Email
 	fields["author"] = etdSub.Work.Author.ComputeID
 	fields["create-date"] = time.Now().Format(time.RFC3339)
 	fields["draft"] = "true"
@@ -145,10 +154,18 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 		return
 	}
 
+	// must be signed in to do this so there should always be claims
+	claims := getJWTClaims(c)
+	if claims == nil {
+		log.Printf("WARNING: invalid oa dsposit request without claims")
+		c.String(http.StatusForbidden, "you do not have permission to make this submission")
+		return
+	}
+
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = oaSub.Depositor
+	fields["depositor"] = claims.Email
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["create-date"] = time.Now().Format(time.RFC3339)

@@ -56,7 +56,7 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	isAdmin := false
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		isAuthor = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+		isAuthor = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID || depositor == jwt.Email
 		isAdmin = jwt.IsAdmin
 	}
 
@@ -155,7 +155,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	isAdmin := false
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		isAuthor = oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID
+		isAuthor = oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID || depositor == jwt.Email
 		isAdmin = jwt.IsAdmin
 	}
 

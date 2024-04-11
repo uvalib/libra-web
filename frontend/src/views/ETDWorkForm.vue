@@ -328,7 +328,7 @@ const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
 })
 const submitHandler = ( async () => {
    if ( isNewSubmission.value ) {
-      await etdRepo.deposit( user.computeID )
+      await etdRepo.deposit( )
    } else {
       await etdRepo.update( )
    }

@@ -41,7 +41,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 
 	log.Printf("INFO: admin search for works by %s", computeID)
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = computeID
+	fields["author"] = computeID
 	hits, err := svc.EasyStore.GetByFields("", fields, uvaeasystore.Metadata|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: search failed: %s", err.Error())
@@ -102,7 +102,7 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	if computeID != "" {
-		fields["depositor"] = computeID
+		fields["author"] = computeID
 	}
 
 	log.Printf("INFO: find user %s %s works", computeID, namespace)

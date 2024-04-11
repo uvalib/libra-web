@@ -173,10 +173,10 @@ export const useOAStore = defineStore('oa', {
             system.setError( error)
          })
       },
-      async deposit( depositorComputeID ) {
+      async deposit() {
          this.working = true
          let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, depositor: depositorComputeID, visibility: this.visibility,
+            work: this.work, addFiles: this.pendingFileAdd, visibility: this.visibility,
             embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
          return axios.post(`/api/submit/oa/${this.depositToken}`, payload).then(response => {
