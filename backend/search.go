@@ -20,6 +20,11 @@ type searchHit struct {
 	DateModified time.Time `json:"dateModified"`
 }
 
+type adminSearchHit struct {
+	*searchHit
+	Source string `json:"source"`
+}
+
 type userSearchHit struct {
 	*searchHit
 	Visibility    string     `json:"visibility"`
@@ -27,30 +32,24 @@ type userSearchHit struct {
 }
 
 func (svc *serviceContext) adminSearch(c *gin.Context) {
-	workType := c.Query("type")
-	if workType != "oa" && workType != "etd" {
-		log.Printf("INFO: invalid search type: %s", workType)
-		c.String(http.StatusBadRequest, fmt.Sprintf("%s is not a valid search type", workType))
+	computeID := c.Query("cid")
+	if computeID == "" {
+		log.Printf("INFO: invalid search; missing cid")
+		c.String(http.StatusBadRequest, "cid is required")
 		return
 	}
 
-	namespace := ""
-	if workType == "oa" {
-		namespace = svc.Namespaces.oa
-	} else if workType == "etd" {
-		namespace = svc.Namespaces.etd
-	}
-
-	log.Printf("INFO: adming search for %s works", namespace)
+	log.Printf("INFO: admin search for works by %s", computeID)
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata)
+	fields["depositor"] = computeID
+	hits, err := svc.EasyStore.GetByFields("", fields, uvaeasystore.Metadata|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: search failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
-	resp := make([]*searchHit, 0)
+	resp := make([]adminSearchHit, 0)
 	obj, err := hits.Next()
 	for err == nil {
 		var hit *searchHit
@@ -69,7 +68,10 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		} else {
 			continue
 		}
-		resp = append(resp, hit)
+
+		adminHit := adminSearchHit{searchHit: hit}
+		adminHit.Source = obj.Fields()["source"]
+		resp = append(resp, adminHit)
 		obj, err = hits.Next()
 	}
 

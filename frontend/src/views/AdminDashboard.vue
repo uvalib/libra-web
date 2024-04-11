@@ -1,6 +1,12 @@
 <template>
    <div class="admin">
       <Panel header="Libra Admin Dashboard">
+         <Fieldset legend="Find Works By">
+            <IconField iconPosition="left">
+               <InputIcon class="pi pi-search" />
+               <InputText v-model="admin.search.computeID" placeholder="Compute ID"  @keypress="searchKeyPressed($event)"/>
+            </IconField>
+         </Fieldset>
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
                stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
                :lazy="false" :paginator="true" :alwaysShowPaginator="true"
@@ -11,20 +17,13 @@
                :filters="admin.filters" :globalFilterFields="['title']"
                :loading="admin.working"
          >
-            <template #paginatorstart>
-               <label>Select View:</label>
-               <Dropdown v-model="admin.scope" :options="admin.scopes" optionLabel="label" optionValue="value" @change="admin.search()"/>
+            <template #empty>
+               <div class="none">No matching works found</div>
             </template>
-            <template #paginatorend>
-               <IconField iconPosition="left">
-                  <InputIcon class="pi pi-search" />
-                  <InputText v-model="admin.filters['global'].value" placeholder="Search works" />
-               </IconField>
-            </template>
-            <Column field="namespace" header="" style="width:30px;">
+            <Column field="namespace" header="Source">
                <template #body="slotProps">
-                  <span v-if="slotProps.data.namespace=='oa'" class="type oa">O</span>
-                  <span v-else class="type etd">S</span>
+                  <div>{{ system.namespaceLabel(slotProps.data.namespace) }}</div>
+                  <div v-if="slotProps.data.source"><{{ slotProps.data.source }}</div>
                </template>
             </Column>
             <Column field="dateCreated" header="Created" sortable class="nowrap">
@@ -39,7 +38,7 @@
             <Column header="Actions" style="max-width:50px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
+                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data.id)"/>
                      <Button class="action" icon="pi pi-eye" label="View" severity="secondary" @click="viewWorkClicked(slotProps.data.id)"/>
                      <Button class="action" v-if="!slotProps.data.datePublished"
                         icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data.id)"/>
@@ -56,11 +55,11 @@ import { useRouter } from 'vue-router'
 import { onBeforeMount } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import { useSystemStore } from "@/stores/system"
-import { useOAStore } from "@/stores/oa"
 import Panel from 'primevue/panel'
 import Dropdown from 'primevue/dropdown'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Fieldset from 'primevue/fieldset'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
@@ -73,9 +72,17 @@ const confirm = useConfirm()
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
-   admin.search()
 })
 
+const searchKeyPressed = ((event) => {
+   if (event.keyCode == 13) {
+      admin.search()
+   }
+})
+
+const resetSearchClicked = (() => {
+   admin.resetSearch()
+})
 const editWorkClicked = ( (id) => {
    let url = `/${admin.scope}/${id}`
    router.push(url)
@@ -107,9 +114,20 @@ const deleteWorkClicked = ( (id) => {
    width: 95%;
    margin: 2% auto;
    min-height: 600px;
+   text-align: left;
+
+   .none {
+      text-align: center;
+      font-size: 1.25em;
+      color: var(--uvalib-grey-light);
+      font-style: italic;
+      padding: 20px;
+   }
+
    :deep(td.nowrap),  :deep(th){
       white-space: nowrap;
    }
+
    .hdr {
       width: 100%;
       display: flex;

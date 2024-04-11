@@ -9,6 +9,7 @@ export const useSystemStore = defineStore('system', {
       licenses: [],
       visibility: [],
       resourceTypes: [],
+      namespaces: [],
       error: "",
       showError: false,
       toast: {
@@ -19,6 +20,15 @@ export const useSystemStore = defineStore('system', {
       }
    }),
    getters: {
+      namespaceLabel: state => {
+         return (ns) => {
+            let nsv = state.namespaces.find( n => n.namespace == ns)
+            if (nsv) {
+               return nsv.label
+            }
+            return nsv
+         }
+      },
       visibilityLabel: state => {
          return (mode, key) => {
             if ( mode == "oa") {
@@ -74,6 +84,7 @@ export const useSystemStore = defineStore('system', {
             this.licenses = response.data.licenses
             this.resourceTypes = response.data.resourceTypes
             this.visibility = response.data.visibility
+            this.namespaces = response.data.namespaces
             console.log("CONFIGURE SUCCESS")
          }).catch( err => {
             this.setError(  err )

@@ -79,12 +79,18 @@ type resourceType struct {
 	OA       bool   `json:"oa"`
 }
 
+type libraNamespace struct {
+	Label     string `json:"label"`
+	Namespace string `json:"namespace"`
+}
+
 type configResponse struct {
-	Version        string         `json:"id"`
-	RessourceTypes []resourceType `json:"resourceTypes"`
-	Licenses       []license      `json:"licenses"`
-	Languages      []language     `json:"languages"`
-	Visibility     []visibility   `json:"visibility"`
+	Version        string           `json:"id"`
+	RessourceTypes []resourceType   `json:"resourceTypes"`
+	Licenses       []license        `json:"licenses"`
+	Languages      []language       `json:"languages"`
+	Visibility     []visibility     `json:"visibility"`
+	Namespaces     []libraNamespace `json:"namespaces"`
 }
 
 // InitializeService sets up the service context for all API handlers
@@ -272,6 +278,10 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	verInfo := svc.lookupVersion()
 	ver := fmt.Sprintf("v%s-build%s", verInfo["version"], verInfo["build"])
 	resp := configResponse{Version: ver}
+
+	log.Printf("INFO: get nameapaces")
+	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraETD", Namespace: svc.Namespaces.etd})
+	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraOpen", Namespace: svc.Namespaces.oa})
 
 	log.Printf("INFO: load languages")
 	bytes, err := os.ReadFile("./data/languages.json")

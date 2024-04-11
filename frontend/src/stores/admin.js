@@ -7,19 +7,16 @@ export const useAdminStore = defineStore('admin', {
    state: () => ({
       working: false,
       scope: "etd",
+      search: {
+         computeID: ""
+      },
       filters: {global: { value: null, matchMode: FilterMatchMode.CONTAINS }},
       hits: [],
-      scopes: [
-         {label: "All Works", value: "all"},
-         {label: "SIS Works", value: "etd"},
-         {label: "Optional Works", value: "oa"}
-      ]
    }),
    actions: {
       search() {
          this.working = true
-         let url = `/api/admin/search?type=${this.scope}`
-         console.log(url)
+         let url = `/api/admin/search?cid=${this.search.computeID}`
          axios.get(url).then(response => {
             this.hits = response.data
             this.working = false
@@ -28,6 +25,9 @@ export const useAdminStore = defineStore('admin', {
             system.setError(  err )
             this.working = false
          })
+      },
+      resetSearch() {
+         this.$reset
       },
       async delete(type, id) {
          this.working = true
