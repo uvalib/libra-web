@@ -27,56 +27,39 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		return
 	}
 
-	mdBytes, err := tgtObj.Metadata().Payload()
+	etdWork, err := parseETDWork(tgtObj)
 	if err != nil {
-		log.Printf("ERROR: unable to get metadata paload from respose: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	etdWork, err := librametadata.ETDWorkFromBytes(mdBytes)
-	if err != nil {
-		log.Printf("ERROR: unable to process paypad from work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to parse etd work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	// enforce visibility; (admins can always view all)
-	//   ANYONE CAN ACCESS METADATA - Except draft content
-	//   files: open = visible to all; limited = only visible to uva for a limited timeframe
+	//   METADATA: viaible to all - except draft content is author/admin only
+	//   FILES: open = visible to all; limited = only visible to uva for a limited timeframe
 	visibility := tgtObj.Fields()["default-visibility"]
 	depositor := tgtObj.Fields()["depositor"]
-	isDraft, err := strconv.ParseBool(tgtObj.Fields()["draft"])
-	if err != nil {
-		log.Printf("ERROR: unable to parse draft field for etd work %s; default to true: %s", workID, err.Error())
-		isDraft = true
-	}
+	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
 	canAccessFiles := false
 	canAccessMetadata := true
-	isAuthor := false
-	isAdmin := false
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		isAuthor = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID || depositor == jwt.Email
-		isAdmin = jwt.IsAdmin
+		if etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin {
+			canAccessFiles = true
+		}
 	}
-
-	if isAuthor || isAdmin {
-		canAccessFiles = true
-		canAccessMetadata = true
+	if isDraft {
+		canAccessMetadata = false
 	} else {
-		if isDraft {
-			canAccessMetadata = false
+		if visibility == "open" {
+			canAccessFiles = true
 		} else {
-			if visibility == "open" {
-				canAccessFiles = true
-			} else {
-				canAccessFiles = svc.isFromUVA(c)
-			}
+			canAccessFiles = svc.isFromUVA(c)
 		}
-		if canAccessMetadata == false {
-			c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-			return
-		}
+	}
+	if canAccessMetadata == false {
+		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+		return
 	}
 
 	resp := etdWorkDetails{
@@ -126,15 +109,9 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 		return
 	}
 
-	mdBytes, err := tgtObj.Metadata().Payload()
+	oaWork, err := parseOAWork(tgtObj)
 	if err != nil {
-		log.Printf("ERROR: unable to get metadata paload from respose: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	oaWork, err := librametadata.OAWorkFromBytes(mdBytes)
-	if err != nil {
-		log.Printf("ERROR: unable to process paypad from work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to parse oa work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -296,6 +273,24 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 		return
 	}
 
+	oaWork, err := parseOAWork(tgtObj)
+	if err != nil {
+		log.Printf("ERROR: unable to parse oa work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	canUpdate := false
+	if isSignedIn(c) {
+		jwt := getJWTClaims(c)
+		depositor := tgtObj.Fields()["depositor"]
+		canUpdate = oaWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin
+	}
+	if canUpdate == false {
+		log.Printf("INFO: unauthorized attempt to update oa work %s", workID)
+		c.String(http.StatusForbidden, "you do not have permission to update this work")
+		return
+	}
+
 	// update the metadata with newly submitted info
 	tgtObj.SetMetadata(oaSub.Work)
 
@@ -453,6 +448,24 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 		return
 	}
 
+	etdWork, err := parseETDWork(tgtObj)
+	if err != nil {
+		log.Printf("ERROR: unable to parse etd work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	canUpdate := false
+	if isSignedIn(c) {
+		jwt := getJWTClaims(c)
+		depositor := tgtObj.Fields()["depositor"]
+		canUpdate = etdWork.IsAuthor(jwt.ComputeID) || depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin
+	}
+	if canUpdate == false {
+		log.Printf("INFO: unauthorized attempt to update etd work %s", workID)
+		c.String(http.StatusForbidden, "you do not have permission to update this work")
+		return
+	}
+
 	// update the metadata with newly submitted info
 	tgtObj.SetMetadata(etdReq.Work)
 
@@ -539,10 +552,33 @@ func (svc *serviceContext) publishETDWork(c *gin.Context) {
 	fields["publish-date"] = time.Now().Format(time.RFC3339)
 	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
 	if err != nil {
-		log.Printf("ERROR: unable ti publish etd work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to publish etd work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.etd, tgtObj.Id())
 	c.String(http.StatusOK, "published")
+}
+
+func parseETDWork(tgtObj uvaeasystore.EasyStoreObject) (*librametadata.ETDWork, error) {
+	mdBytes, err := tgtObj.Metadata().Payload()
+	if err != nil {
+		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
+	}
+	etdWork, err := librametadata.ETDWorkFromBytes(mdBytes)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse payload: %s", err.Error())
+	}
+	return etdWork, nil
+}
+func parseOAWork(tgtObj uvaeasystore.EasyStoreObject) (*librametadata.OAWork, error) {
+	mdBytes, err := tgtObj.Metadata().Payload()
+	if err != nil {
+		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
+	}
+	oaWork, err := librametadata.OAWorkFromBytes(mdBytes)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse payload: %s", err.Error())
+	}
+	return oaWork, nil
 }

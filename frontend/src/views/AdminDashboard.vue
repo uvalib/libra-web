@@ -33,7 +33,7 @@
                <template #body="slotProps">{{ $formatDate(slotProps.data.dateModified)}}</template>
             </Column>
             <Column field="id" header="ID" sortable class="nowrap"/>
-            <Column field="computeID" header="Compute ID" sortable style="width: 275px"/>
+            <Column field="computeID" header="Author" sortable style="width: 275px"/>
             <Column field="title" header="Title" sortable />
             <Column header="Actions" style="max-width:50px">
                <template #body="slotProps">
