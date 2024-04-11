@@ -17,9 +17,9 @@
          </div>
       </div>
       <div class="user-header" v-if="user.isSignedIn">
+         <router-link class="dashboard" to="/">Libra</router-link>
+         <router-link v-if="user.admin" class="dashboard" to="/admin">Admin</router-link>
          <template v-if="route.path != '/'">
-            <router-link class="dashboard" to="/">Libra</router-link>
-            <router-link v-if="user.admin" class="dashboard" to="/admin">Admin</router-link>
             <template v-if="showDashboard">
                <router-link class="dashboard" :to="dashboardLink">Dashboard</router-link>
             </template>

@@ -39,9 +39,10 @@
                <Column header="Actions" style="max-width:110px">
                   <template #body="slotProps">
                      <div  class="acts">
-                        <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
+                        <Button v-if="!slotProps.data.datePublished" class="action"
+                           icon="pi pi-file-edit" label="Edit Work" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
                         <Button class="action" icon="pi pi-eye" :label="publicLinkLabel(slotProps.data)" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
-                        <Button class="action" v-if="!slotProps.data.datePublished"
+                        <Button v-if="!slotProps.data.datePublished"class="action"
                            icon="pi pi-trash" label="Delete Work" severity="danger" @click="deleteWorkClicked(slotProps.data.id)"/>
                      </div>
                   </template>
