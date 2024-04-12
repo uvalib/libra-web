@@ -5,7 +5,7 @@
             <SavePanel v-if="oaRepo.working==false"
                type="oa" :create="isNewSubmission" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
                :visibility="oaRepo.visibility" :releaseDate="oaRepo.embargoReleaseDate" :releaseVisibility="oaRepo.embargoReleaseVisibility"
-               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"
+               :draft="oaRepo.isDraft" @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"
             />
          </div>
 

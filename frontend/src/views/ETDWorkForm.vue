@@ -5,7 +5,7 @@
             <SavePanel v-if="etdRepo.working==false"
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
-               @submit="submitClicked" @cancel="cancelClicked"
+               :draft="etdRepo.isDraft"  @submit="submitClicked" @cancel="cancelClicked"
                ref="savepanel"
             />
          </div>

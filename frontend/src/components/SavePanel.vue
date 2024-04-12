@@ -18,7 +18,7 @@
       </Fieldset>
       <Fieldset legend="Visibility">
          <!-- note; use props.visibility here to capture the visibility when the work was loaded, not when changed during edit -->
-         <div v-if="props.visibility == 'embargo'" class="embargo no-pad">
+         <div v-if="props.visibility == 'embargo' && props.draft == false" class="embargo no-pad">
             <span class="embargo-note">This work is under embargo.</span>
             <p>Files will be unavavilble to others until:</p>
             <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
@@ -114,6 +114,10 @@ const props = defineProps({
    releaseVisibility: {
       type: String,
       default: ""
+   },
+   draft: {
+      type: Boolean,
+      required: true
    },
    described: {
       type: Boolean,
