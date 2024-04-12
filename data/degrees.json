@@ -1,12 +1,12 @@
 [
    "BA (Bachelor of Arts)",
    "BARH (Bachelor of Architectural History)",
-   "BS",
    "BS (Bachelor of Science)",
    "BSC (Bachelor of Science in Commerce)",
    "BUEP (Bachelor of Urban and Environmental Planning)",
    "DNP (Doctor of Nursing Practice)",
    "EDD (Doctor of Education)",
+   "EDS (Education Specialist)",
    "MA (Master of Arts)",
    "MAR (Master of Architecture)",
    "MARH (Master of Architectural History)",
@@ -20,6 +20,7 @@
    "MPP (Master of Public Policy)",
    "MS (Master of Science)",
    "MSDS (Master of Science in Data Science)",
+   "MUEP (Master of Urban \u0026 Environmental Planning)",
    "MUEP (Master of Urban and Environmental Planning)",
    "PHD (Doctor of Philosophy)"
 ]
