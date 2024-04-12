@@ -91,6 +91,8 @@ type configResponse struct {
 	Languages      []language       `json:"languages"`
 	Visibility     []visibility     `json:"visibility"`
 	Namespaces     []libraNamespace `json:"namespaces"`
+	Departments    []string         `json:"departments"`
+	Degrees        []string         `json:"degrees"`
 }
 
 // InitializeService sets up the service context for all API handlers
@@ -283,8 +285,29 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraETD", Namespace: svc.Namespaces.etd})
 	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraOpen", Namespace: svc.Namespaces.oa})
 
+	log.Printf("INFO: departments")
+	bytes, err := os.ReadFile("./data/departments.json")
+	if err != nil {
+		log.Printf("ERROR: unable to load departments: %s", err.Error())
+	} else {
+		err = json.Unmarshal(bytes, &resp.Departments)
+		if err != nil {
+			log.Printf("ERROR: unable to parse departments: %s", err.Error())
+		}
+	}
+
+	bytes, err = os.ReadFile("./data/degrees.json")
+	if err != nil {
+		log.Printf("ERROR: unable to load degrees: %s", err.Error())
+	} else {
+		err = json.Unmarshal(bytes, &resp.Degrees)
+		if err != nil {
+			log.Printf("ERROR: unable to parse degrees: %s", err.Error())
+		}
+	}
+
 	log.Printf("INFO: load languages")
-	bytes, err := os.ReadFile("./data/languages.json")
+	bytes, err = os.ReadFile("./data/languages.json")
 	if err != nil {
 		log.Printf("ERROR: unable to load languages: %s", err.Error())
 	} else {

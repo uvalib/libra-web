@@ -10,6 +10,8 @@ export const useSystemStore = defineStore('system', {
       visibility: [],
       resourceTypes: [],
       namespaces: [],
+      degrees: [],
+      departments: [],
       error: "",
       showError: false,
       toast: {
@@ -85,6 +87,8 @@ export const useSystemStore = defineStore('system', {
             this.resourceTypes = response.data.resourceTypes
             this.visibility = response.data.visibility
             this.namespaces = response.data.namespaces
+            this.degrees = response.data.degrees
+            this.departments = response.data.departments
             console.log("CONFIGURE SUCCESS")
          }).catch( err => {
             this.setError(  err )
