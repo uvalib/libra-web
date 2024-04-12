@@ -16,12 +16,14 @@ body {
 
    .visibility {
       font-size: 0.85em;
-      margin-left: 10px;
       border-radius: 5px;
       padding: 3px 10px;
       color: white;
       text-transform: capitalize;
       font-weight: 500;
+      box-sizing: border-box;
+      text-align: center;
+      display: inline-block;
    }
    .visibility.open {
       background-color: var(--uvalib-green-dark);
@@ -32,8 +34,8 @@ body {
    .visibility.embargo {
       background-color: var(--uvalib-blue-alt);
    }
-   .visibility.restricted, .visibility.draft {
-      background-color: var(--uvalib-red-darker);
+   .visibility.draft {
+      background-color: var(--uvalib-grey);
    }
 
    #app {

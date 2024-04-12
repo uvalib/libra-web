@@ -59,8 +59,9 @@
                If you experience problems with your submission, please <a href="mailto:libra@virginia.edu">contact</a> us.
             </p>
             <div class="buttons">
+               <Button severity="secondary" label="Cancel" @click="cancelPreview()"/>
                <Button severity="secondary" label="Edit" @click="editThesis()"/>
-               <Button severity="primary" label="Submit Thesis" icon="pi pi-check" @click="submitThesis()"/>
+               <Button severity="primary" label="Submit Thesis" @click="submitThesis()"/>
             </div>
          </div>
          <div class="published" v-if="justPublished">
@@ -103,7 +104,9 @@ const downloadFileClicked = ( (name) => {
 })
 const editThesis = (() => {
    router.push(`/etd/${route.params.id}`)
-
+})
+const cancelPreview = ( () => {
+   router.push("/etd")
 })
 const submitThesis = ( () => {
    confirm.require({
@@ -237,6 +240,7 @@ div.public-work {
          button {
             margin-left: 5px;
             font-size: 0.9em;
+            padding: 6px 12px;
          }
       }
    }

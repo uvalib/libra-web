@@ -9,7 +9,8 @@ export const useOAStore = defineStore('oa', {
       depositToken: "",
       work: {},
       licenseID: "",
-      visibility: "restricted",
+      isDraft: true,
+      visibility: "open",
       persistentLink: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
@@ -39,9 +40,6 @@ export const useOAStore = defineStore('oa', {
          if ( state.work.sponsors.length > 1) return true
          return state.work.sponsors[0] != ""
       },
-      disablePrivate: state => {
-         return state.datePublished != null
-      },
    },
    actions: {
       async getWork(id) {
@@ -62,7 +60,8 @@ export const useOAStore = defineStore('oa', {
          })
       },
       setWorkDetails( data) {
-         delete data.isDraft // not used in OA
+         this.isDraft = data.isDraft
+         delete data.isDraft
          this.visibility = data.visibility
          delete data.visibility
          this.persistentLink = data.persistentLink
@@ -112,7 +111,8 @@ export const useOAStore = defineStore('oa', {
          this.work.licenseURL = ""
 
          this.licenseID = ""
-         this.visibility = "restricted"
+         this.visibility = "open"
+         this.isDraft = true
          this.embargoReleaseDate = ""
          this.embargoReleaseVisibility = ""
          this.pendingFileAdd = []
@@ -204,6 +204,18 @@ export const useOAStore = defineStore('oa', {
             this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
+      async publish(  ) {
+         this.working = true
+         return axios.post(`/api/works/oa/${this.work.id}/publish`).then(()=> {
+            this.isDraft = false
+            this.datePublished = new Date()
+            this.working = false
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

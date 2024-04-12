@@ -36,11 +36,5 @@
       "value": "embargo",
       "oa": true,
       "etd": false
-   },
-   {
-      "label": "Private",
-      "value": "restricted",
-      "oa": true,
-      "etd": false
    }
 ]

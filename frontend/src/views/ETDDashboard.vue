@@ -32,7 +32,7 @@
                   <template #body="slotProps">
                      <div  class="acts">
                         <template v-if="slotProps.data.datePublished">
-                           <Button v-if="slotProps.data.datePublished" class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                         <template v-else>
                            <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>

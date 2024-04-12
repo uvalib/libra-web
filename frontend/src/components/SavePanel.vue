@@ -27,11 +27,8 @@
             <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
          </div>
          <div v-else v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
-            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" :disabled="v.value=='restricted' && props.disablePrivate" />
-            <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
-            <div v-if="v.value=='restricted' && props.disablePrivate" class="license">
-               Contact libra@virginia.edu for this visibility change.
-            </div>
+            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" />
+            <label :for="v.value" class="left-margin visibility" :class="v.value">{{ v.label }}</label>
             <div v-if="showLicense(v)" class="license">
                <a :href="v.license.url">{{ v.license.label }}</a>
             </div>
@@ -117,10 +114,6 @@ const props = defineProps({
    releaseVisibility: {
       type: String,
       default: ""
-   },
-   disablePrivate: {
-      type: Boolean,
-      default: false
    },
    described: {
       type: Boolean,
@@ -278,7 +271,10 @@ const etdSubmitClicked = (() => {
       }
       .license {
          font-size: 0.8em;
-         margin: 7px 0px 10px 35px;
+         margin: 10px 0px 15px 35px;
+      }
+      label.left-margin {
+         margin-left: 10px;
       }
    }
    .agree {
@@ -293,7 +289,7 @@ const etdSubmitClicked = (() => {
    .button-bar {
       display: flex;
       flex-flow: row nowrap;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: stretch;
       button {
          font-size: 0.85em;

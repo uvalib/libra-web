@@ -12,7 +12,6 @@ import (
 	"github.com/rs/xid"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
-	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
 type depositSettings struct {
@@ -86,8 +85,6 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 		return
 	}
 
-	// TODO only let author or admin make changes?
-
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
@@ -113,7 +110,7 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	obj.SetFields(fields)
 
 	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Namespace(), obj.Id())
-	_, err = svc.EasyStore.Create(obj)
+	newObj, err := svc.EasyStore.Create(obj)
 	if err != nil {
 		log.Printf("ERROR: easystore save failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -123,22 +120,11 @@ func (svc *serviceContext) etdSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := etdWorkDetails{
-		baseWorkDetails: &baseWorkDetails{
-			ID:         obj.Id(),
-			IsDraft:    true,
-			Version:    obj.VTag(),
-			Visibility: etdSub.Visibility,
-			CreatedAt:  obj.Created(),
-			ModifiedAt: obj.Modified(),
-		},
-		ETDWork: &etdSub.Work,
-	}
-	if etdSub.Visibility == "uva" {
-		resp.Embargo = &embargoData{ReleaseDate: etdSub.EmbargoReleaseDate, ReleaseVisibility: etdSub.EmbargoReleaseVisibility}
-	}
-	for _, file := range obj.Files() {
-		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
+	resp, err := parseETDWork(newObj, true)
+	if err != nil {
+		log.Printf("ERROR: unable to parse newly deposited etd work: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -169,23 +155,11 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["create-date"] = time.Now().Format(time.RFC3339)
-
-	log.Printf("INFO: submitted visibility [%s]", oaSub.Visibility)
-	var publishDate time.Time
+	fields["draft"] = "true"
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
-	}
-
-	if oaSub.Visibility != "restricted" {
-		// any non-restricted visibility is considered published. save the date, and flag it as non-draft
-		publishDate = time.Now()
-		fields["publish-date"] = publishDate.Format(time.RFC3339)
-		fields["draft"] = "false"
-		svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.oa, obj.Id())
-	} else {
-		fields["draft"] = "true"
 	}
 
 	// get all submitted files
@@ -201,7 +175,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	obj.SetFields(fields)
 
 	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Namespace(), obj.Id())
-	_, err = svc.EasyStore.Create(obj)
+	newObj, err := svc.EasyStore.Create(obj)
 	if err != nil {
 		log.Printf("ERROR: easystore save failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -211,26 +185,11 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp := oaWorkDetails{
-		baseWorkDetails: &baseWorkDetails{
-			ID:         obj.Id(),
-			IsDraft:    false,
-			Version:    obj.VTag(),
-			Visibility: oaSub.Visibility,
-			CreatedAt:  obj.Created(),
-			ModifiedAt: obj.Modified(),
-		},
-		OAWork: &oaSub.Work,
-	}
-	if publishDate.IsZero() == false {
-		resp.DatePublished = &publishDate
-	}
-	if oaSub.Visibility == "embargo" {
-		embInfo := embargoData{ReleaseDate: oaSub.EmbargoReleaseDate, ReleaseVisibility: oaSub.EmbargoReleaseVisibility}
-		resp.Embargo = &embInfo
-	}
-	for _, file := range obj.Files() {
-		resp.Files = append(resp.Files, librametadata.FileData{MimeType: file.MimeType(), Name: file.Name(), CreatedAt: file.Created()})
+	resp, err := parseOAWork(newObj, true)
+	if err != nil {
+		log.Printf("ERROR: unable to parse newly deposited oa work: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
 	}
 	c.JSON(http.StatusOK, resp)
 }

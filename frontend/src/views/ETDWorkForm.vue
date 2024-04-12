@@ -10,7 +10,14 @@
             />
          </div>
 
-         <Panel :header="panelTitle" class="main-form">
+         <Panel class="main-form">
+            <template #header>
+               <div class="work-header">
+                  <span>{{ panelTitle }}</span>
+                  <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
+                  <span v-else><b>Submitted</b>: {{ $formatDate(etdRepo.datePublished) }}</span>
+               </div>
+            </template>
             <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
             <FormKit v-else ref="etdForm" type="form" :actions="false" @submit="submitHandler">
                <div class="two-col margin-bottom">
@@ -350,7 +357,7 @@ const cancelClicked = (() => {
 <style lang="scss" scoped>
 @media only screen and (min-width: 768px) {
    .scroll-body {
-      padding: 50px;
+      padding: 25px;
    }
    .sidebar-col {
       width: 400px;
@@ -394,6 +401,14 @@ const cancelClicked = (() => {
 
 .action {
    margin-right: 15px;
+}
+
+.work-header {
+   display: flex;
+   flex-flow: row nowrap;
+   justify-content: space-between;
+   align-items: center;
+   width: 100%;
 }
 
 .form {

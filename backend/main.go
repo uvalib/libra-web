@@ -50,6 +50,7 @@ func main() {
 		api.GET("/works/oa/:id", svc.getOAWork)
 		api.GET("/works/oa/:id/files/:name", svc.downloadOAFile)
 		api.PUT("/works/oa/:id", svc.oaUpdate)
+		api.POST("/works/oa/:id/publish", svc.publishOAWork)
 		api.DELETE("/works/oa/:id", svc.deleteOAWork)
 
 		api.GET("/works/etd/:id", svc.getETDWork)

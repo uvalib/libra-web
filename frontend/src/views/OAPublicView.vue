@@ -78,19 +78,40 @@
                <a target="_blank" :href="oaRepo.persistentLink">{{ oaRepo.persistentLink }}</a>
             </Fieldset>
          </div>
+         <div class="draft" v-if="oaRepo.isDraft">
+            <h2 class="proof">Publication Proof</h2>
+            <p>
+               Before proceeding, we encourage you to review the information in this page.
+               If you experience problems with your publication, please <a href="mailto:libra@virginia.edu">contact</a> us.
+            </p>
+            <div class="buttons">
+               <Button severity="secondary" label="Cancel" @click="cancelPreview()"/>
+               <Button severity="secondary" label="Edit" @click="editWork()"/>
+               <Button severity="primary" label="Publish" @click="publishWork()"/>
+            </div>
+         </div>
+         <div class="published" v-if="justPublished">
+            Thank you for publishing your work.
+         </div>
       </template>
    </div>
 </template>
 
 <script setup>
-import { onBeforeMount } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useOAStore } from "@/stores/oa"
-import { useRoute } from 'vue-router'
+import { useSystemStore } from "@/stores/system"
+import { useRoute, useRouter } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
+import { useConfirm } from "primevue/useconfirm"
 
 const oaRepo = useOAStore()
 const route = useRoute()
+const router = useRouter()
+const confirm = useConfirm()
+const system = useSystemStore()
+const justPublished = ref(false)
 
 const authorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${a.department}`
@@ -101,6 +122,26 @@ onBeforeMount( async () => {
 })
 const downloadFileClicked = ( (name) => {
    oaRepo.downloadFile(name)
+})
+const editWork = (() => {
+   router.push(`/oa/${route.params.id}`)
+})
+const cancelPreview = ( () => {
+   router.push("/oa")
+})
+const publishWork = ( () => {
+   confirm.require({
+      message: `Publish this work? Depending upon your visibility settings, this work will become visible worldwide or to UVA only. Are you sure?`,
+      header: 'Confirm Publication',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: async () => {
+         await oaRepo.publish()
+         if (system.error == "") {
+            justPublished.value = true
+         }
+      },
+   })
 })
 </script>
 
@@ -115,6 +156,10 @@ const downloadFileClicked = ( (name) => {
          max-width: 60%;
          margin: 50px auto 0 auto;
          box-shadow: 0 0 15px 5px black;
+      }
+      div.draft, div.published {
+         margin: 20px 20px 0 0;
+         max-width: 300px;
       }
       div.details {
          max-width: 60%;
@@ -144,6 +189,10 @@ const downloadFileClicked = ( (name) => {
    div.public-work {
       display: flex;
       flex-direction: column-reverse;
+      div.draft, div.published  {
+         margin: 20px auto 0 auto;
+         width: 90%;
+      }
       div.error {
          max-width: 100%;
          margin: 5px;
@@ -186,6 +235,28 @@ div.work-bkg {
 div.public-work {
    position: relative;
    min-height: 300px;
+
+   div.draft {
+      background: var(--uvalib-yellow-light);
+      padding: 0 20px 20px 20px;
+      border: 1px solid var(--uvalib-yellow-dark);
+      border-radius: 4px;
+      h2.proof {
+         padding: 0;
+         margin: 20px 0 10px 0 !important;
+         font-weight: normal !important;
+      }
+      p {
+         text-align: left;
+      }
+      .buttons {
+         button {
+            margin-left: 5px;
+            font-size: 0.9em;
+            padding: 6px 12px;
+         }
+      }
+   }
 
    div.error {
       border-radius: 5px;

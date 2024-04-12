@@ -5,11 +5,18 @@
             <SavePanel v-if="oaRepo.working==false"
                type="oa" :create="isNewSubmission" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
                :visibility="oaRepo.visibility" :releaseDate="oaRepo.embargoReleaseDate" :releaseVisibility="oaRepo.embargoReleaseVisibility"
-               :disablePrivate="oaRepo.disablePrivate" @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"
+               @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"
             />
          </div>
 
-         <Panel :header="panelTitle" class="main-form">
+         <Panel class="main-form">
+            <template #header>
+               <div class="work-header">
+               <span>{{ panelTitle }}</span>
+               <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
+               <span v-else><b>Published</b>: {{ $formatDate(oaRepo.datePublished) }}</span>
+               </div>
+            </template>
             <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
             <FormKit v-else ref="oaForm" type="form" :actions="false" @submit="submitHandler">
                <FormKit type="select" label="Resource Type" v-model="oaRepo.work.resourceType"
@@ -441,7 +448,7 @@ const cancelClicked = (() => {
 <style lang="scss" scoped>
 @media only screen and (min-width: 768px) {
    .scroll-body {
-      padding: 50px;
+      padding: 25px;
    }
    .sidebar-col {
       width: 400px;
@@ -485,6 +492,14 @@ const cancelClicked = (() => {
 
 .action {
    margin-right: 15px;
+}
+
+.work-header {
+   display: flex;
+   flex-flow: row nowrap;
+   justify-content: space-between;
+   align-items: center;
+   width: 100%;
 }
 
 .form {
