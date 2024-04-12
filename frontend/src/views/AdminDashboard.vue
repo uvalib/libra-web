@@ -1,6 +1,12 @@
 <template>
    <div class="admin">
-      <Panel header="Libra Admin Dashboard">
+      <Panel>
+         <template #header>
+            <div class="panel-header">
+               <span>Libra Admin Dashboard</span>
+               <DepositRegistrationDialog />
+            </div>
+         </template>
          <Fieldset legend="Find Works By">
             <IconField iconPosition="left">
                <InputIcon class="pi pi-search" />
@@ -56,7 +62,7 @@ import { onBeforeMount } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import { useSystemStore } from "@/stores/system"
 import Panel from 'primevue/panel'
-import Dropdown from 'primevue/dropdown'
+import DepositRegistrationDialog from "@/components/DepositRegistrationDialog.vue"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Fieldset from 'primevue/fieldset'
@@ -115,6 +121,15 @@ const deleteWorkClicked = ( (id) => {
    margin: 2% auto;
    min-height: 600px;
    text-align: left;
+
+   .panel-header {
+      font-weight: bold;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+   }
 
    .none {
       text-align: center;
