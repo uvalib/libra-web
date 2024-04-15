@@ -35,7 +35,7 @@ import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
 import FieldSet from 'primevue/fieldset'
 import InputText from 'primevue/inputtext'
-import Chip from 'primevue/Chip'
+import Chip from 'primevue/chip'
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
 import axios from 'axios'
