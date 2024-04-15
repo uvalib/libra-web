@@ -46,7 +46,7 @@
                   <span v-else class="none">Undefined</span>
                </template>
             </Column>
-            <Column header="Actions" style="max-width:50px">
+            <Column header="Actions" style="width:100px">
                <template #body="slotProps">
                   <div  class="acts">
                      <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data.id)"/>

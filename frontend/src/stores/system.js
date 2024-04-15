@@ -28,7 +28,7 @@ export const useSystemStore = defineStore('system', {
             if (nsv) {
                return nsv.label
             }
-            return nsv
+            return ns
          }
       },
       visibilityLabel: state => {
