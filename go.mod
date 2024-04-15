@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/xid v1.5.0
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240411133422-fa321d3d2147
-	github.com/uvalib/libra-metadata v0.0.0-20240412181700-2e19429dbfa8
+	github.com/uvalib/libra-metadata v0.0.0-20240415185307-75fea509a389
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240325152856-57ba633b6d1b
 )
 
@@ -35,9 +35,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6 // indirect
 	github.com/aws/smithy-go v1.20.2 // indirect
-	github.com/bytedance/sonic v1.11.3 // indirect
+	github.com/bytedance/sonic v1.11.4 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
+	github.com/cloudwego/base64x v0.1.0 // indirect
+	github.com/cloudwego/iasm v0.1.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

@@ -138,7 +138,7 @@
 
                <FormKit label="Notes" type="textarea" v-model="etdRepo.work.notes" rows="10"/>
 
-               <template v-if="isNewSubmission==false">
+               <template v-if="isNewSubmission==false && etdRepo.work.files.length > 0">
                   <label class="libra-form-label">Previously Uploaded Files</label>
                   <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
                         stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"

@@ -44,7 +44,6 @@ func main() {
 		api.DELETE("/:token/:filename", svc.removeSubmissionFile)
 		api.POST("/cancel/:token", svc.cancelSubmission)
 		api.POST("/submit/oa/:token", svc.oaSubmit)
-		api.POST("/submit/etd/:token", svc.etdSubmit)
 
 		// After initial submission, the work is referenced by the permanent ID
 		api.GET("/works/oa/:id", svc.getOAWork)
@@ -62,6 +61,7 @@ func main() {
 
 		admin := api.Group("/admin", svc.adminMiddleware)
 		{
+			admin.POST("/register", svc.adminDepositRegistrations)
 			admin.GET("/search", svc.adminSearch)
 		}
 

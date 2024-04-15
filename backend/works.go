@@ -417,11 +417,12 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, fields uvaeasystore.Eas
 	//    FILES: open = visible to all; uva = only visible to uva for a limited timeframe; embargo: only author and admin until date
 	visibility := calculateVisibility(fields)
 	depositor := fields["depositor"]
+	author := fields["author"]
 	isDraft, _ := strconv.ParseBool(fields["draft"])
 	resp := workAccess{files: false, metadata: true}
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		if depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin {
+		if depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin || author == jwt.ComputeID {
 			resp.files = true
 		}
 	} else {

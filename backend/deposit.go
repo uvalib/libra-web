@@ -60,73 +60,60 @@ type etdWorkDetails struct {
 	*librametadata.ETDWork
 }
 
+type registrationRequest struct {
+	Department string `json:"department"`
+	Degree     string `json:"degree"`
+	Students   []struct {
+		ComputeID  string `json:"computeID"`
+		Email      string `json:"email"`
+		FirstName  string `json:"firstName"`
+		LastName   string `json:"lastName"`
+		Department string `json:"department"`
+	} `json:"students"`
+}
+
 func (svc *serviceContext) getDepositToken(c *gin.Context) {
 	log.Printf("INFO: request a deposit token")
 	guid := xid.New()
 	c.String(http.StatusOK, guid.String())
 }
 
-func (svc *serviceContext) etdSubmit(c *gin.Context) {
-	token := c.Param("token")
-	log.Printf("INFO: received etd deposit request for %s", token)
-	var etdSub etdDepositRequest
-	err := c.ShouldBindJSON(&etdSub)
+func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
+	var regReq registrationRequest
+	err := c.ShouldBindJSON(&regReq)
 	if err != nil {
-		log.Printf("ERROR: bad payload in etd deposit request: %s", err.Error())
+		log.Printf("ERROR: bad payload for depost registration request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// must be signed in to do this so there should always be claims
+	// note: this endpoint is protected by admin middleware which ensures claims are present and admin
 	claims := getJWTClaims(c)
-	if claims == nil {
-		log.Printf("WARNING: invalid etd dsposit request without claims")
-		c.String(http.StatusForbidden, "you do not have permission to make this submission")
-		return
+	log.Printf("INFO: %s requests deposit registrations %+v", claims.ComputeID, regReq)
+	for _, student := range regReq.Students {
+		author := librametadata.ContributorData{ComputeID: student.ComputeID,
+			FirstName: student.FirstName, LastName: student.LastName, Program: regReq.Department,
+			Institution: "University of Virginia"}
+		etdReg := librametadata.ETDWork{Department: regReq.Department, Degree: regReq.Degree, Author: author}
+		obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
+		fields := uvaeasystore.DefaultEasyStoreFields()
+		fields["create-date"] = time.Now().Format(time.RFC3339)
+		fields["draft"] = "true"
+		fields["default-visibility"] = "open"
+		fields["depositor"] = student.Email
+		fields["author"] = student.ComputeID
+		fields["source"] = "optional"
+		obj.SetMetadata(etdReg)
+		obj.SetFields(fields)
+
+		_, err := svc.EasyStore.Create(obj)
+		if err != nil {
+			log.Printf("ERROR: admin create registration failed: %s", err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
-
-	log.Printf("INFO: create easystore object")
-	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
-	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = claims.Email
-	fields["author"] = etdSub.Work.Author.ComputeID
-	fields["create-date"] = time.Now().Format(time.RFC3339)
-	fields["draft"] = "true"
-	fields["default-visibility"] = etdSub.Visibility
-	if etdSub.Visibility == "uva" {
-		fields["embargo-release"] = etdSub.EmbargoReleaseDate
-		fields["embargo-release-visibility"] = etdSub.EmbargoReleaseVisibility
-	}
-
-	uploadDir := path.Join("/tmp", token)
-	esFiles, err := getSubmittedFiles(uploadDir, etdSub.AddFiles)
-	if err != nil {
-		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	obj.SetMetadata(etdSub.Work)
-	obj.SetFiles(esFiles)
-	obj.SetFields(fields)
-
-	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Namespace(), obj.Id())
-	newObj, err := svc.EasyStore.Create(obj)
-	if err != nil {
-		log.Printf("ERROR: easystore save failed: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
-	os.RemoveAll(uploadDir)
-
-	resp, err := parseETDWork(newObj, true)
-	if err != nil {
-		log.Printf("ERROR: unable to parse newly deposited etd work: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, resp)
+	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
 }
 
 func (svc *serviceContext) oaSubmit(c *gin.Context) {

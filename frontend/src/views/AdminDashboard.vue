@@ -29,7 +29,7 @@
             <Column field="namespace" header="Source">
                <template #body="slotProps">
                   <div>{{ system.namespaceLabel(slotProps.data.namespace) }}</div>
-                  <div v-if="slotProps.data.source"><{{ slotProps.data.source }}</div>
+                  <div v-if="slotProps.data.source" class="source">( {{ slotProps.data.source }} )</div>
                </template>
             </Column>
             <Column field="dateCreated" header="Created" sortable class="nowrap">
@@ -40,12 +40,17 @@
             </Column>
             <Column field="id" header="ID" sortable class="nowrap"/>
             <Column field="computeID" header="Author" sortable style="width: 275px"/>
-            <Column field="title" header="Title" sortable />
+            <Column field="title" header="Title" sortable>
+               <template #body="slotProps">
+                  <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
+                  <span v-else class="none">Undefined</span>
+               </template>
+            </Column>
             <Column header="Actions" style="max-width:50px">
                <template #body="slotProps">
                   <div  class="acts">
                      <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data.id)"/>
-                     <Button class="action" icon="pi pi-eye" label="View" severity="secondary" @click="viewWorkClicked(slotProps.data.id)"/>
+                     <Button v-if="canPreview(slotProps.data)" class="action" icon="pi pi-eye" label="View" severity="secondary" @click="viewWorkClicked(slotProps.data.id)"/>
                      <Button class="action" v-if="!slotProps.data.datePublished"
                         icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data.id)"/>
                   </div>
@@ -75,6 +80,10 @@ const router = useRouter()
 const admin = useAdminStore()
 const system = useSystemStore()
 const confirm = useConfirm()
+
+const canPreview = ( (work) => {
+   return work.title != ""
+})
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
@@ -122,6 +131,11 @@ const deleteWorkClicked = ( (id) => {
    min-height: 600px;
    text-align: left;
 
+   .source {
+      margin-top: 5px;
+      font-size: 0.85em;
+      color: var(--uvalib-grey);
+   }
    .panel-header {
       font-weight: bold;
       display: flex;

@@ -14,6 +14,17 @@ export const useAdminStore = defineStore('admin', {
       hits: [],
    }),
    actions: {
+      async addRegistrations( department, degree, users ) {
+         let students = []
+         users.forEach( u => {
+            u.department = department
+            students.push(u)
+         })
+         return axios.post(`/api/admin/register`, {department: department, degree: degree, students: students}).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+         })
+      },
       search() {
          this.working = true
          let url = `/api/admin/search?cid=${this.search.computeID}`

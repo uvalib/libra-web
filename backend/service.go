@@ -398,7 +398,7 @@ func (svc *serviceContext) lookupComputeID(c *gin.Context) {
 	resp, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
 		log.Printf("INFO: lookup info user [%s] failed: %s", computeID, userErr.Message)
-		c.Redirect(http.StatusNotFound, fmt.Sprintf("%s not found", computeID))
+		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", computeID))
 		return
 	}
 

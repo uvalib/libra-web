@@ -12,7 +12,12 @@
                :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
             >
-               <Column field="title" header="Title" />
+               <Column field="title" header="Title">
+                  <template #body="slotProps">
+                     <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
+                     <span v-else class="none">Undefined</span>
+                  </template>
+               </Column>
                <Column field="createdAt" header="Date Uploaded" >
                   <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
                </Column>
@@ -36,7 +41,7 @@
                         </template>
                         <template v-else>
                            <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
-                           <Button class="action" icon="pi pi-check" label="Preview / Submit" @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" v-if="slotProps.data.title" icon="pi pi-check" label="Preview / Submit" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                      </div>
                   </template>
@@ -44,7 +49,6 @@
             </DataTable>
          </template>
       </Panel>
-      <Button label="Test Add Work" @click="hackWorkClicked"/>
    </div>
 </template>
 
@@ -78,9 +82,6 @@ const editWorkClicked = ( (id) => {
 const previewWorkClicked = ( (id) => {
    let url = `/public/etd/${id}`
    router.push(url)
-})
-const hackWorkClicked = (() => {
-   router.push("/etd/new")
 })
 </script>
 
