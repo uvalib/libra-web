@@ -170,7 +170,7 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 	}
 	hit := searchHit{
 		ID:           esObj.Id(),
-		Namespace:    "oa",
+		Namespace:    svc.Namespaces.oa,
 		Title:        oaWork.Title,
 		ComputeID:    oaWork.Authors[0].ComputeID,
 		DateCreated:  esObj.Created(),
@@ -191,7 +191,7 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 	}
 	hit := searchHit{
 		ID:           esObj.Id(),
-		Namespace:    "etd",
+		Namespace:    svc.Namespaces.etd,
 		Title:        etdWork.Title,
 		ComputeID:    etdWork.Author.ComputeID,
 		DateCreated:  esObj.Created(),
