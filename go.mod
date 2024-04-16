@@ -11,7 +11,7 @@ require (
 	github.com/rs/xid v1.5.0
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240411133422-fa321d3d2147
 	github.com/uvalib/libra-metadata v0.0.0-20240415185307-75fea509a389
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240325152856-57ba633b6d1b
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240416170310-0936c3e9bc76
 )
 
 require (
@@ -59,7 +59,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/exp v0.0.0-20240409090435-93d18d7e34b8 // indirect
+	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect

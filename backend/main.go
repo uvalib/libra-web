@@ -65,6 +65,8 @@ func main() {
 			admin.GET("/search", svc.adminSearch)
 			admin.DELETE("/etd/:id", svc.deleteETDWork)
 			admin.DELETE("/oa/:id", svc.deleteOAWork)
+			admin.DELETE("/etd/:id/publish", svc.unpublishETDWork)
+			admin.DELETE("/oa/:id/publish", svc.unpublishOAWork)
 		}
 
 	}

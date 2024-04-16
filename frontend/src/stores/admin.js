@@ -37,9 +37,19 @@ export const useAdminStore = defineStore('admin', {
          })
       },
 
-      async delete(type, id) {
+      unpublish(type, id) {
+         axios.delete(`/api/admin/${type}/${id}/publish`).then(() => {
+            let hit = this.hits.find( h=> h.id == id)
+            delete hit.datePublished
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+         })
+      },
+
+      delete(type, id) {
          this.working = true
-         return axios.delete(`/api/admin/${type}/${id}`).then( ()=> {
+         axios.delete(`/api/admin/${type}/${id}`).then( ()=> {
             let idx = this.hits.findIndex( h=> h.id == id)
             if (idx > -1) {
                this.hits.splice(idx,1)

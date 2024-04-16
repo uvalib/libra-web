@@ -12,11 +12,12 @@ import (
 )
 
 type searchHit struct {
-	ID           string    `json:"id"`
-	Title        string    `json:"title"`
-	ComputeID    string    `json:"computeID"`
-	DateCreated  time.Time `json:"dateCreated"`
-	DateModified time.Time `json:"dateModified"`
+	ID            string     `json:"id"`
+	Title         string     `json:"title"`
+	ComputeID     string     `json:"computeID"`
+	DateCreated   time.Time  `json:"dateCreated"`
+	DateModified  time.Time  `json:"dateModified"`
+	DatePublished *time.Time `json:"datePublished,omitempty"`
 }
 
 type adminSearchHit struct {
@@ -28,8 +29,7 @@ type adminSearchHit struct {
 
 type userSearchHit struct {
 	*searchHit
-	Visibility    string     `json:"visibility"`
-	DatePublished *time.Time `json:"datePublished,omitempty"`
+	Visibility string `json:"visibility"`
 }
 
 func (svc *serviceContext) adminSearch(c *gin.Context) {
@@ -71,6 +71,18 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 			}
 		} else {
 			continue
+		}
+
+		pubDateStr, published := obj.Fields()["publish-date"]
+		if published {
+			log.Printf("INFO: date published %s", pubDateStr)
+			pubDate, err := time.Parse(time.RFC3339, pubDateStr)
+			if err != nil {
+				log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
+				pubDate = time.Now()
+			}
+			log.Printf("INFO: parsed published %v", pubDate)
+			hit.DatePublished = &pubDate
 		}
 
 		adminHit.searchHit = hit

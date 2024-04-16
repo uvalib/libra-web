@@ -39,20 +39,27 @@
             <Column field="dateModified" header="Modified" sortable class="nowrap">
                <template #body="slotProps">{{ $formatDate(slotProps.data.dateModified)}}</template>
             </Column>
+            <Column field="datePublished" header="Published" sortable class="nowrap">
+               <template #body="slotProps">
+                  <div v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished) }}</div>
+                  <div v-else class="na">N/A</div>
+               </template>
+            </Column>
             <Column field="id" header="ID" sortable class="nowrap"/>
             <Column field="computeID" header="Author" sortable style="width: 275px"/>
             <Column field="title" header="Title" sortable>
                <template #body="slotProps">
                   <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
-                  <span v-else class="none">Undefined</span>
+                  <span v-else class="na">Undefined</span>
                </template>
             </Column>
             <Column header="Actions" style="width:100px">
                <template #body="slotProps">
                   <div  class="acts">
                      <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data)"/>
-                     <Button class="action" v-if="!slotProps.data.datePublished"
+                     <Button v-if="!slotProps.data.datePublished" class="action"
                         icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data)"/>
+                     <Button v-else class="action" icon="pi pi-eye-slash" label="Unpublish" severity="warning" @click="unpublishWorkClicked(slotProps.data)"/>
                   </div>
                </template>
             </Column>
@@ -103,14 +110,26 @@ const editWorkClicked = ( (work) => {
    router.push(url)
 })
 
+const unpublishWorkClicked = ( (work) => {
+   confirm.require({
+      message: "Unpublish this work? It will no longer be visible to UVA or worldwide users. Are you sure?",
+      header: 'Confirm Work Unpublish',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: (  ) => {
+         admin.unpublish(work.type, work.id)
+      },
+   })
+})
+
 const deleteWorkClicked = ( (work) => {
    confirm.require({
       message: "Delete this work? All data will be lost. This cannot be reversed. Are you sure?",
       header: 'Confirm Work Delete',
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
-      accept: async (  ) => {
-         await admin.delete(work.type, work.id)
+      accept: (  ) => {
+         admin.delete(work.type, work.id)
       },
    })
 })
@@ -147,6 +166,10 @@ const deleteWorkClicked = ( (work) => {
       color: var(--uvalib-grey-light);
       font-style: italic;
       padding: 20px;
+   }
+   .na {
+      color: var(--uvalib-grey-light);
+      font-style: italic;
    }
 
    :deep(td.nowrap),  :deep(th){

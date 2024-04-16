@@ -275,6 +275,28 @@ func (svc *serviceContext) publishOAWork(c *gin.Context) {
 	c.String(http.StatusOK, "published")
 }
 
+func (svc *serviceContext) unpublishOAWork(c *gin.Context) {
+	workID := c.Param("id")
+	err := svc.unpublishWork(svc.Namespaces.oa, workID)
+	if err != nil {
+		log.Printf("ERROR: unpublish oa work %s failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.String(http.StatusOK, "unpublished")
+}
+
+func (svc *serviceContext) unpublishETDWork(c *gin.Context) {
+	workID := c.Param("id")
+	err := svc.unpublishWork(svc.Namespaces.etd, workID)
+	if err != nil {
+		log.Printf("ERROR: unpublish etd work %s failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.String(http.StatusOK, "unpublished")
+}
+
 func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 	fromUVA := false
 	fwdIP := net.ParseIP(c.Request.Header.Get("X-Forwarded-For"))
@@ -408,6 +430,24 @@ func (svc *serviceContext) publishWork(namespace string, workID string) error {
 		return fmt.Errorf("publish failed: %s", err.Error())
 	}
 	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.etd, tgtObj.Id())
+	return nil
+}
+
+func (svc *serviceContext) unpublishWork(namespace string, workID string) error {
+	log.Printf("INFO: get work %s %s for unpublish", namespace, workID)
+	tgtObj, err := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
+	if err != nil {
+		return fmt.Errorf("unable to get work %s", workID)
+	}
+
+	fields := tgtObj.Fields()
+	fields["draft"] = "true"
+	delete(fields, "publish-date")
+	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	if err != nil {
+		return fmt.Errorf("unpublish failed: %s", err.Error())
+	}
+	svc.publishEvent(uvalibrabus.EventWorkUnpublish, svc.Namespaces.etd, tgtObj.Id())
 	return nil
 }
 
