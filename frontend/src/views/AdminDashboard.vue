@@ -92,7 +92,6 @@ const computeID = ref("")
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
-   admin.clearAll()
 })
 
 const searchKeyPressed = ((event) => {

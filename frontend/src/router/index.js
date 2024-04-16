@@ -27,33 +27,19 @@ const router = createRouter({
          component: AdminDashboard
       },
       {
-         path: '/admin/etd/:id',
-         name: 'edtworkform',
-         component: ETDWorkForm
-      },
-      {
-         path: '/admin/oa/:id',
-         name: 'oaworkform',
-         component: OAWorkForm
-      },
-      {
          path: '/etd',
-         name: 'edt',
+         name: 'libraetd',
          component: ETDDashboard
       },
       {
-         path: '/etd/new',
-         name: 'edtworkform',
-         component: ETDWorkForm
-      },
-      {
          path: '/etd/:id',
+         alias: '/admin/etd/:id',
          name: 'edtworkform',
          component: ETDWorkForm
       },
       {
          path: '/oa',
-         name: 'open',
+         name: 'libraopen',
          component: OADashboard
       },
       {
@@ -63,6 +49,7 @@ const router = createRouter({
       },
       {
          path: '/oa/:id',
+         alias: '/admin/oa/:id',
          name: 'openworkform',
          component: OAWorkForm
       },
