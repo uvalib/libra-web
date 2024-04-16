@@ -440,7 +440,7 @@ const cancelClicked = (() => {
    } else {
       oaRepo.cancelEdit()
    }
-   router.push("/oa")
+   router.back()
 
 })
 </script>

@@ -10,7 +10,8 @@
          <Fieldset legend="Find Works By">
             <IconField iconPosition="left">
                <InputIcon class="pi pi-search" />
-               <InputText v-model="admin.search.computeID" placeholder="Compute ID"  @keypress="searchKeyPressed($event)"/>
+               <InputText v-model="computeID" placeholder="Compute ID" @keypress="searchKeyPressed($event)"/>
+               <Button class="search" icon="pi pi-search" severity="secondary" @click="searchClicked()"/>
             </IconField>
          </Fieldset>
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
@@ -23,7 +24,8 @@
                :loading="admin.working"
          >
             <template #empty>
-               <div class="none">No matching works found</div>
+               <div v-if="computeID" class="none">No matching works found for {{ computeID }}</div>
+               <div v-else class="none">Search for works by compute ID</div>
             </template>
             <Column field="namespace" header="Source">
                <template #body="slotProps">
@@ -48,10 +50,9 @@
             <Column header="Actions" style="width:100px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data.id)"/>
-                     <Button v-if="canPreview(slotProps.data)" class="action" icon="pi pi-eye" label="View" severity="secondary" @click="viewWorkClicked(slotProps.data.id)"/>
+                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data)"/>
                      <Button class="action" v-if="!slotProps.data.datePublished"
-                        icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data.id)"/>
+                        icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data)"/>
                   </div>
                </template>
             </Column>
@@ -62,7 +63,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onBeforeMount } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import { useSystemStore } from "@/stores/system"
 import Panel from 'primevue/panel'
@@ -80,41 +81,36 @@ const admin = useAdminStore()
 const system = useSystemStore()
 const confirm = useConfirm()
 
-const canPreview = ( (work) => {
-   return work.title != ""
-})
+const computeID = ref("")
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
+   admin.clearAll()
 })
 
 const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
-      admin.search()
+      admin.search(computeID.value)
    }
 })
 
-const editWorkClicked = ( (id) => {
-   let url = `/${admin.scope}/${id}`
+const searchClicked = (() => {
+   admin.search(computeID.value)
+})
+
+const editWorkClicked = ( (work) => {
+   let url = `/admin/${work.type}/${work.id}`
    router.push(url)
 })
 
-const viewWorkClicked = ( (id) => {
-   let url = `/public/${admin.scope}/${id}`
-   router.push(url)
-})
-
-const deleteWorkClicked = ( (id) => {
+const deleteWorkClicked = ( (work) => {
    confirm.require({
       message: "Delete this work? All data will be lost. This cannot be reversed. Are you sure?",
       header: 'Confirm Work Delete',
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
       accept: async (  ) => {
-         await admin.delete(admin.scope, id)
-         if ( system.showError == false) {
-            searchStore.removeDeletedWork(id)
-         }
+         await admin.delete(work.type, work.id)
       },
    })
 })
@@ -126,6 +122,10 @@ const deleteWorkClicked = ( (id) => {
    margin: 2% auto;
    min-height: 600px;
    text-align: left;
+
+   button.search {
+      margin-left: 5px;
+   }
 
    .source {
       margin-top: 5px;

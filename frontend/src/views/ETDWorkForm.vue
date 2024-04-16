@@ -349,7 +349,7 @@ const cancelClicked = (() => {
    } else {
       etdRepo.cancelEdit()
    }
-   router.push("/etd")
+   router.back()
 
 })
 </script>

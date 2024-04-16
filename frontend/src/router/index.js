@@ -27,13 +27,21 @@ const router = createRouter({
          component: AdminDashboard
       },
       {
+         path: '/admin/etd/:id',
+         name: 'edtworkform',
+         component: ETDWorkForm
+      },
+      {
+         path: '/admin/oa/:id',
+         name: 'oaworkform',
+         component: OAWorkForm
+      },
+      {
          path: '/etd',
          name: 'edt',
          component: ETDDashboard
       },
       {
-         // NOTE: this route is temporary as users can't create new ETD works; they are
-         // autocreated by a back end process and users just edit them
          path: '/etd/new',
          name: 'edtworkform',
          component: ETDWorkForm

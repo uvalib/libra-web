@@ -63,6 +63,8 @@ func main() {
 		{
 			admin.POST("/register", svc.adminDepositRegistrations)
 			admin.GET("/search", svc.adminSearch)
+			admin.DELETE("/etd/:id", svc.deleteETDWork)
+			admin.DELETE("/oa/:id", svc.deleteOAWork)
 		}
 
 	}

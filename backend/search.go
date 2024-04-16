@@ -13,7 +13,6 @@ import (
 
 type searchHit struct {
 	ID           string    `json:"id"`
-	Namespace    string    `json:"namespace"`
 	Title        string    `json:"title"`
 	ComputeID    string    `json:"computeID"`
 	DateCreated  time.Time `json:"dateCreated"`
@@ -22,7 +21,9 @@ type searchHit struct {
 
 type adminSearchHit struct {
 	*searchHit
-	Source string `json:"source"`
+	Namespace string `json:"namespace"`
+	WorkType  string `json:"type"`
+	Source    string `json:"source"`
 }
 
 type userSearchHit struct {
@@ -52,14 +53,17 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	resp := make([]adminSearchHit, 0)
 	obj, err := hits.Next()
 	for err == nil {
+		adminHit := adminSearchHit{Source: obj.Fields()["source"], Namespace: obj.Namespace()}
 		var hit *searchHit
 		if obj.Namespace() == svc.Namespaces.oa {
+			adminHit.WorkType = "oa"
 			hit, err = svc.parseOASearchHit(obj)
 			if err != nil {
 				log.Printf("ERROR: unable to parse oa search result %s: %s", obj.Id(), err.Error())
 				continue
 			}
 		} else if obj.Namespace() == svc.Namespaces.etd {
+			adminHit.WorkType = "etd"
 			hit, err = svc.parseETDSearchHit(obj)
 			if err != nil {
 				log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
@@ -69,8 +73,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 			continue
 		}
 
-		adminHit := adminSearchHit{searchHit: hit}
-		adminHit.Source = obj.Fields()["source"]
+		adminHit.searchHit = hit
 		resp = append(resp, adminHit)
 		obj, err = hits.Next()
 	}
@@ -170,7 +173,6 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 	}
 	hit := searchHit{
 		ID:           esObj.Id(),
-		Namespace:    svc.Namespaces.oa,
 		Title:        oaWork.Title,
 		ComputeID:    oaWork.Authors[0].ComputeID,
 		DateCreated:  esObj.Created(),
@@ -191,7 +193,6 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 	}
 	hit := searchHit{
 		ID:           esObj.Id(),
-		Namespace:    svc.Namespaces.etd,
 		Title:        etdWork.Title,
 		ComputeID:    etdWork.Author.ComputeID,
 		DateCreated:  esObj.Created(),
