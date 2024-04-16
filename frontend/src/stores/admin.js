@@ -6,11 +6,9 @@ import { FilterMatchMode } from 'primevue/api'
 export const useAdminStore = defineStore('admin', {
    state: () => ({
       working: false,
-      scope: "etd",
       search: {
          computeID: ""
       },
-      filters: {global: { value: null, matchMode: FilterMatchMode.CONTAINS }},
       hits: [],
    }),
    actions: {

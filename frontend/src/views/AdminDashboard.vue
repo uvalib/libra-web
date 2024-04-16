@@ -15,12 +15,11 @@
          </Fieldset>
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
                stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
-               :lazy="false" :paginator="true" :alwaysShowPaginator="true"
+               :lazy="false" :paginator="true" :alwaysShowPaginator="false"
                :rows="30" :totalRecords="admin.hits.length"
                paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
                :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
-               :filters="admin.filters" :globalFilterFields="['title']"
                :loading="admin.working"
          >
             <template #empty>
@@ -95,9 +94,6 @@ const searchKeyPressed = ((event) => {
    }
 })
 
-const resetSearchClicked = (() => {
-   admin.resetSearch()
-})
 const editWorkClicked = ( (id) => {
    let url = `/${admin.scope}/${id}`
    router.push(url)
