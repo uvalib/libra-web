@@ -20,17 +20,43 @@
          <template v-if="props.type == 'etd'">
             <tr>
                <td class="label">Plan/Program:</td>
-               <td>{{ department }}</td>
+               <td><Dropdown v-model="department" :options="system.departments" /></td>
             </tr>
             <tr>
                <td class="label">Degree:</td>
-               <td>{{ degree }}</td>
+               <td><Dropdown v-model="degree" :options="system.degrees" /></td>
+            </tr>
+            <tr>
+               <td class="label">Visibility:</td>
+               <td>
+                  <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
+               </td>
+            </tr>
+            <template v-if="visibility == 'uva'">
+               <tr>
+                  <td class="label">Embargo End:</td>
+                  <td>{{ $formatDate(embargoEndDate) }}</td>
+               </tr>
+            </template>
+         </template>
+         <template v-else>
+            <tr>
+               <td class="label">Visibility:</td>
+               <td>
+                  <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @chage="visibilityChanged()"/>
+               </td>
+               <template v-if="visibility == 'embargo'">
+                  <tr>
+                     <td class="label">Embargo End:</td>
+                     <td>{{ $formatDate(embargoEndDate) }}</td>
+                  </tr>
+                  <tr>
+                     <td class="label">End Visibility:</td>
+                     <td><Dropdown v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/></td>
+                  </tr>
+               </template>
             </tr>
          </template>
-         <tr>
-            <td class="label">Visibility:</td>
-            <td>{{  system.visibilityLabel(props.type, props.visibility)  }}</td>
-         </tr>
       </table>
       <FloatLabel>
          <Textarea v-model="adminNotes" rows="5" />
@@ -46,15 +72,21 @@
 
 <script setup>
 import Panel from 'primevue/panel'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import Textarea from 'primevue/textarea'
 import FloatLabel from 'primevue/floatlabel'
+import Dropdown from 'primevue/dropdown'
 import { useSystemStore } from "@/stores/system"
+import dayjs from 'dayjs'
 
 const system = useSystemStore()
 const adminNotes = ref("")
 const degree = ref("")
 const department = ref("")
+const visibility = ref("")
+const embargoEndDate = ref(null)
+const embargoEndVisibility = ref("")
+const endOpts = ref([{name: "Worldwide", code: "opem"}, {name: "UVA Only", code: "uva"}])
 
 const emit = defineEmits( ['submit', 'cancel'])
 const props = defineProps({
@@ -93,15 +125,37 @@ const props = defineProps({
       type: String,
       default: "",
    },
-   embargo: {
-      type: Object,
+   embargoEndDate: {
+      type: String,
+      default: null
+   },
+   embargoEndVisibility: {
+      type: String,
       default: null
    }
+})
+
+const visibilityOpts = computed( () => {
+   if (props.type == "oa") return system.oaVisibility
+   return system.etdVisibility
 })
 
 onMounted( () => {
    degree.value = props.degree
    department.value = props.department
+   visibility.value = props.visibility
+   embargoEndDate.value = dayjs(props.embargoEndDate).toDate()
+   embargoEndVisibility.value = props.embargoEndVisibility
+})
+
+const visibilityChanged = (() => {
+   if ( (props.type == "etd" && visibility.value == "uva") || (props.type == "oa" && visibility.value == "embargo")) {
+      embargoEndVisibility.value = "open"
+      let endDate = new Date()
+      endDate.setMonth( endDate.getMonth() + 6)
+      console.log(endDate)
+      embargoEndDate.value = endDate
+   }
 })
 
 const saveClicked = (() => {
@@ -117,10 +171,20 @@ const saveClicked = (() => {
    }
    table {
       font-size: 0.9em;
+      td {
+         padding: 2px 0;
+      }
       td.label {
          font-weight: bold;
          text-align: right;
          padding-right: 10px;
+      }
+      :deep(.p-dropdown ) {
+         width: 300px;
+         .p-dropdown-label {
+            font-size: 0.8em;
+            padding: 4px 8px;
+         }
       }
    }
    .p-float-label {

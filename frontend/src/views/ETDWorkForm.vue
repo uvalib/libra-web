@@ -1,13 +1,13 @@
 <template>
    <div class="scroll-body">
       <div class="form" id="etd-form-layout">
-         <div class="sidebar-col" v-if="etdRepo.working==false">
+         <div class="sidebar-col" :class="{admin: adminEdit}" v-if="etdRepo.working==false">
             <AdminPanel v-if="adminEdit"
                type="etd"  :identifier="etdRepo.work.id" :created="etdRepo.createdAt"
                :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
-               :ebmargo="{endDate: etdRepo.embargoReleaseDate, endVisibility: etdRepo.embargoReleaseVisibility}"
+               :ebmargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
                :degree="etdRepo.work.degree" :department="etdRepo.work.department"
-               ref="savepanel"
+               ref="savepanel" @cancel="cancelClicked"
             />
             <SavePanel v-else
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
@@ -16,7 +16,6 @@
                ref="savepanel"
             />
          </div>
-
          <Panel class="main-form">
             <template #header>
                <div class="work-header">
@@ -225,7 +224,7 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
    if ( flowType.indexOf("column") == -1) {
       let panelEle = savepanel.value.$el
       if ( isPinned ) {
-         panelEle.style.top = `88px` // HACK: top padding + height of user toolbar
+         panelEle.style.top = `65px` // HACK: top padding + height of user toolbar
          panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
          panelEle.classList.add("pinned")
       } else {
@@ -389,6 +388,10 @@ const cancelClicked = (() => {
    }
    .sidebar-col {
       width: 400px;
+      margin-right: 25px;
+   }
+   .sidebar-col.admin {
+      width: 450px;
       margin-right: 25px;
    }
    .main-form {
