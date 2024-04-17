@@ -21,8 +21,8 @@
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
             >
                <Column field="title" header="Title" />
-               <Column field="dateCreated" header="Date Uploaded" >
-                  <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
+               <Column field="createdAt" header="Date Uploaded" >
+                  <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
                </Column>
                <Column header="ORCID Status"/>
                <Column field="visibility" header="Visibility" >
@@ -30,9 +30,9 @@
                      <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("oa",slotProps.data.visibility) }}</span>
                   </template>
                </Column>
-               <Column field="datePublished" header="Date Published" >
+               <Column field="publishedAt" header="Date Published" >
                   <template #body="slotProps">
-                     <span v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished)}}</span>
+                     <span v-if="slotProps.data.publishedAt">{{ $formatDate(slotProps.data.publishedAt)}}</span>
                      <span v-else class="visibility draft">Draft</span>
                   </template>
                </Column>
@@ -40,7 +40,7 @@
                   <template #body="slotProps">
                      <div  class="acts">
                         <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
-                        <template v-if="slotProps.data.datePublished">
+                        <template v-if="slotProps.data.publishedAt">
                            <Button class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                         <template v-else>

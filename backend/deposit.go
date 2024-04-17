@@ -32,34 +32,6 @@ type etdDepositRequest struct {
 	depositSettings
 }
 
-type embargoData struct {
-	ReleaseDate       string `json:"releaseDate"`
-	ReleaseVisibility string `json:"releaseVisibility"`
-}
-
-type baseWorkDetails struct {
-	ID             string                   `json:"id"`
-	Version        string                   `json:"version"`
-	PersistentLink string                   `json:"persistentLink,omitempty"`
-	IsDraft        bool                     `json:"isDraft"`
-	Visibility     string                   `json:"visibility"`
-	Embargo        *embargoData             `json:"embargo,omitempty"`
-	Files          []librametadata.FileData `json:"files"`
-	DatePublished  *time.Time               `json:"datePublished,omitempty"`
-	CreatedAt      time.Time                `json:"createdAt"`
-	ModifiedAt     time.Time                `json:"modifiedAt"`
-}
-
-type oaWorkDetails struct {
-	*baseWorkDetails
-	*librametadata.OAWork
-}
-
-type etdWorkDetails struct {
-	*baseWorkDetails
-	*librametadata.ETDWork
-}
-
 type registrationRequest struct {
 	Department string `json:"department"`
 	Degree     string `json:"degree"`

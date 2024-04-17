@@ -12,12 +12,37 @@ import (
 )
 
 type searchHit struct {
-	ID            string     `json:"id"`
-	Title         string     `json:"title"`
-	ComputeID     string     `json:"computeID"`
-	DateCreated   time.Time  `json:"dateCreated"`
-	DateModified  time.Time  `json:"dateModified"`
-	DatePublished *time.Time `json:"datePublished,omitempty"`
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	ComputeID   string     `json:"computeID"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	ModifiedAt  *time.Time `json:"modifiedAt,omitempty"`
+	PublishedAt *time.Time `json:"publishedAt,omitempty"`
+}
+
+func (hit *searchHit) parseDates(esObj uvaeasystore.EasyStoreObject) {
+	log.Printf("INFO: parse dates for %s", hit.ID)
+	hit.CreatedAt = esObj.Created()
+	pubDateStr, published := esObj.Fields()["publish-date"]
+	if published {
+		log.Printf("INFO: has published date %s", pubDateStr)
+		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
+			pubDate = time.Now()
+		}
+		hit.PublishedAt = &pubDate
+	}
+	modDateStr, modified := esObj.Fields()["modify-date"]
+	if modified {
+		log.Printf("INFO: has modified date %s", modDateStr)
+		modDate, err := time.Parse(time.RFC3339, modDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse modify-date [%s]: %s", modDateStr, err.Error())
+			modDate = time.Now()
+		}
+		hit.ModifiedAt = &modDate
+	}
 }
 
 type adminSearchHit struct {
@@ -71,18 +96,6 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 			}
 		} else {
 			continue
-		}
-
-		pubDateStr, published := obj.Fields()["publish-date"]
-		if published {
-			log.Printf("INFO: date published %s", pubDateStr)
-			pubDate, err := time.Parse(time.RFC3339, pubDateStr)
-			if err != nil {
-				log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
-				pubDate = time.Now()
-			}
-			log.Printf("INFO: parsed published %v", pubDate)
-			hit.DatePublished = &pubDate
 		}
 
 		adminHit.searchHit = hit
@@ -150,22 +163,12 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 			continue
 		}
 
-		// add user-specific fields; visibility and published date
 		userHit := userSearchHit{searchHit: hit}
 		visibility := obj.Fields()["default-visibility"]
 		if visibility == "embargo" {
 			visibility = calculateVisibility(obj.Fields())
 		}
 		userHit.Visibility = visibility
-		pubDateStr, published := obj.Fields()["publish-date"]
-		if published {
-			pubDate, err := time.Parse(time.RFC3339, pubDateStr)
-			if err != nil {
-				log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
-				pubDate = time.Now()
-			}
-			userHit.DatePublished = &pubDate
-		}
 
 		resp = append(resp, userHit)
 		obj, err = hits.Next()
@@ -184,12 +187,11 @@ func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) 
 		return nil, objErr
 	}
 	hit := searchHit{
-		ID:           esObj.Id(),
-		Title:        oaWork.Title,
-		ComputeID:    oaWork.Authors[0].ComputeID,
-		DateCreated:  esObj.Created(),
-		DateModified: esObj.Modified(),
+		ID:        esObj.Id(),
+		Title:     oaWork.Title,
+		ComputeID: oaWork.Authors[0].ComputeID,
 	}
+	hit.parseDates(esObj)
 	return &hit, nil
 }
 
@@ -204,11 +206,10 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 		return nil, objErr
 	}
 	hit := searchHit{
-		ID:           esObj.Id(),
-		Title:        etdWork.Title,
-		ComputeID:    etdWork.Author.ComputeID,
-		DateCreated:  esObj.Created(),
-		DateModified: esObj.Modified(),
+		ID:        esObj.Id(),
+		Title:     etdWork.Title,
+		ComputeID: etdWork.Author.ComputeID,
 	}
+	hit.parseDates(esObj)
 	return &hit, nil
 }

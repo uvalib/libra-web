@@ -33,15 +33,18 @@
                   <div v-if="slotProps.data.source" class="source">( {{ slotProps.data.source }} )</div>
                </template>
             </Column>
-            <Column field="dateCreated" header="Created" sortable class="nowrap">
-               <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
+            <Column field="createdAt" header="Created" sortable class="nowrap">
+               <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
             </Column>
-            <Column field="dateModified" header="Modified" sortable class="nowrap">
-               <template #body="slotProps">{{ $formatDate(slotProps.data.dateModified)}}</template>
-            </Column>
-            <Column field="datePublished" header="Published" sortable class="nowrap">
+            <Column field="modifiedAt" header="Modified" sortable class="nowrap">
                <template #body="slotProps">
-                  <div v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished) }}</div>
+                  <div v-if="slotProps.data.modifiedAt">{{ $formatDateTime(slotProps.data.modifiedAt) }}</div>
+                  <div v-else class="na">N/A</div>
+               </template>
+            </Column>
+            <Column field="publishedAt" header="Published" sortable class="nowrap">
+               <template #body="slotProps">
+                  <div v-if="slotProps.data.publishedAt">{{ $formatDateTime(slotProps.data.publishedAt) }}</div>
                   <div v-else class="na">N/A</div>
                </template>
             </Column>
@@ -53,11 +56,11 @@
                   <span v-else class="na">Undefined</span>
                </template>
             </Column>
-            <Column header="Actions" style="width:100px">
+            <Column header="Actions" style="width:110px">
                <template #body="slotProps">
                   <div  class="acts">
                      <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data)"/>
-                     <Button v-if="!slotProps.data.datePublished" class="action"
+                     <Button v-if="!slotProps.data.publishedAt" class="action"
                         icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data)"/>
                      <Button v-else class="action" icon="pi pi-eye-slash" label="Unpublish" severity="warning" @click="unpublishWorkClicked(slotProps.data)"/>
                   </div>

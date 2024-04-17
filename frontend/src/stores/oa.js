@@ -14,7 +14,9 @@ export const useOAStore = defineStore('oa', {
       persistentLink: "",
       embargoReleaseDate: "",
       embargoReleaseVisibility: "",
-      datePublished: null,
+      createdAt: null,
+      modifiedAt: null,
+      publistedAt: null,
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -59,16 +61,22 @@ export const useOAStore = defineStore('oa', {
             this.working = false
          })
       },
-      setWorkDetails( data) {
+      setWorkDetails( data ) {
          this.isDraft = data.isDraft
          delete data.isDraft
          this.visibility = data.visibility
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
-         if ( data.datePublished ) {
-            this.datePublished = data.datePublished
-            delete data.datePublished
+         this.createdAt = data.createdAt
+         delete data.createdAt
+         if ( data.modifiedAt ) {
+            this.modifiedAt = data.modifiedAt
+            delete data.modifiedAt
+         }
+         if ( data.publishedAt ) {
+            this.publistedAt = data.publishedAt
+            delete data.publishedAt
          }
          if ( data.embargo ) {
             this.embargoReleaseDate = data.embargo.releaseDate
@@ -214,7 +222,7 @@ export const useOAStore = defineStore('oa', {
          this.working = true
          return axios.post(`/api/works/oa/${this.work.id}/publish`).then(()=> {
             this.isDraft = false
-            this.datePublished = new Date()
+            this.publistedAt = new Date()
             this.working = false
          }).catch( err => {
             const system = useSystemStore()

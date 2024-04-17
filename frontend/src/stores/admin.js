@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useSystemStore } from './system'
-import { FilterMatchMode } from 'primevue/api'
 
 export const useAdminStore = defineStore('admin', {
    state: () => ({
@@ -40,7 +39,7 @@ export const useAdminStore = defineStore('admin', {
       unpublish(type, id) {
          axios.delete(`/api/admin/${type}/${id}/publish`).then(() => {
             let hit = this.hits.find( h=> h.id == id)
-            delete hit.datePublished
+            delete hit.publishedAt
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

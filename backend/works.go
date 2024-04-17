@@ -17,6 +17,58 @@ import (
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
+type embargoData struct {
+	ReleaseDate       string `json:"releaseDate"`
+	ReleaseVisibility string `json:"releaseVisibility"`
+}
+
+type commonWorkDetails struct {
+	ID             string                   `json:"id"`
+	Version        string                   `json:"version"`
+	PersistentLink string                   `json:"persistentLink,omitempty"`
+	IsDraft        bool                     `json:"isDraft"`
+	Visibility     string                   `json:"visibility"`
+	Embargo        *embargoData             `json:"embargo,omitempty"`
+	Files          []librametadata.FileData `json:"files"`
+	CreatedAt      time.Time                `json:"createdAt"`
+	ModifiedAt     *time.Time               `json:"modifiedAt,omitempty"`
+	PublishedAt    *time.Time               `json:"publishedAt,omitempty"`
+}
+
+func (detail *commonWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) {
+	detail.CreatedAt = esObj.Created()
+	if detail.IsDraft == false {
+		pubDateStr, published := esObj.Fields()["publish-date"]
+		if published {
+			pubDate, err := time.Parse(time.RFC3339, pubDateStr)
+			if err != nil {
+				log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
+				pubDate = time.Now()
+			}
+			detail.PublishedAt = &pubDate
+		}
+	}
+	modDateStr, modified := esObj.Fields()["modify-date"]
+	if modified {
+		modDate, err := time.Parse(time.RFC3339, modDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse modify-date [%s]: %s", modDateStr, err.Error())
+			modDate = time.Now()
+		}
+		detail.ModifiedAt = &modDate
+	}
+}
+
+type oaWorkDetails struct {
+	*commonWorkDetails
+	*librametadata.OAWork
+}
+
+type etdWorkDetails struct {
+	*commonWorkDetails
+	*librametadata.ETDWork
+}
+
 type workAccess struct {
 	files    bool
 	metadata bool
@@ -120,6 +172,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	// update fields
 	fields := tgtObj.Fields()
 	fields["author"] = etdReq.Work.Author.ComputeID
+	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = etdReq.Visibility
 	if etdReq.Visibility == "uva" {
 		fields["embargo-release"] = etdReq.EmbargoReleaseDate
@@ -247,6 +300,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	fields := tgtObj.Fields()
 	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
+	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
 		fields["embargo-release"] = oaSub.EmbargoReleaseDate
@@ -495,25 +549,20 @@ func parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*et
 	visibility := calculateVisibility(tgtObj.Fields())
 	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
 	resp := etdWorkDetails{
-		baseWorkDetails: &baseWorkDetails{
+		commonWorkDetails: &commonWorkDetails{
 			ID:             tgtObj.Id(),
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
 			PersistentLink: tgtObj.Fields()["doi"],
 			Files:          make([]librametadata.FileData, 0),
-			CreatedAt:      tgtObj.Created(),
-			ModifiedAt:     tgtObj.Modified(),
 		},
 		ETDWork: etdWork,
 	}
+	resp.commonWorkDetails.parseDates(tgtObj)
+
 	if visibility == "uva" {
 		resp.Embargo = &embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
-	}
-	if isDraft == false {
-		pubDateStr := tgtObj.Fields()["publish-date"]
-		pubDate, _ := time.Parse(time.RFC3339, pubDateStr)
-		resp.DatePublished = &pubDate
 	}
 	if canAccessFiles {
 		for _, etdFile := range tgtObj.Files() {
@@ -539,23 +588,18 @@ func parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*oaW
 	visibility := calculateVisibility(tgtObj.Fields())
 	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
 	resp := oaWorkDetails{
-		baseWorkDetails: &baseWorkDetails{
+		commonWorkDetails: &commonWorkDetails{
 			ID:             tgtObj.Id(),
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
 			PersistentLink: tgtObj.Fields()["doi"],
 			Files:          make([]librametadata.FileData, 0),
-			CreatedAt:      tgtObj.Created(),
-			ModifiedAt:     tgtObj.Modified(),
 		},
 		OAWork: oaWork,
 	}
-	if isDraft == false {
-		pubDateStr := tgtObj.Fields()["publish-date"]
-		pubDate, _ := time.Parse(time.RFC3339, pubDateStr)
-		resp.DatePublished = &pubDate
-	}
+	resp.commonWorkDetails.parseDates(tgtObj)
+
 	if visibility == "embargo" {
 		embInfo := embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
 		resp.Embargo = &embInfo

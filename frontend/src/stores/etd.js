@@ -14,7 +14,9 @@ export const useETDStore = defineStore('etd', {
       embargoReleaseVisibility: "",
       licenseID: "",
       persistentLink: "",
-      datePublished: null,
+      createdAt: null,
+      modifiedAt: null,
+      publishedAt: null,
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -57,16 +59,22 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
-      setWorkDetails( data) {
+      setWorkDetails( data ) {
          this.isDraft = data.isDraft
          delete data.isDraft
          this.visibility = data.visibility
          delete data.visibility
          this.persistentLink = data.persistentLink
          delete data.persistentLink
-         if ( data.datePublished ) {
-            this.datePublished = data.datePublished
-            delete data.datePublished
+         this.createdAt = data.createdAt
+         delete data.createdAt
+         if ( data.modifiedAt ) {
+            this.modifiedAt = data.modifiedAt
+            delete data.modifiedAt
+         }
+         if ( data.publishedAt ) {
+            this.publishedAt = data.publishedAt
+            delete data.publishedAt
          }
          if ( data.embargo ) {
             this.embargoReleaseDate = data.embargo.releaseDate
@@ -202,7 +210,7 @@ export const useETDStore = defineStore('etd', {
          this.working = true
          return axios.post(`/api/works/etd/${this.work.id}/publish`).then(()=> {
             this.isDraft = false
-            this.datePublished = new Date()
+            this.publishedAt = new Date()
             this.working = false
          }).catch( err => {
             const system = useSystemStore()

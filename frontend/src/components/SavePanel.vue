@@ -217,6 +217,9 @@ const etdSubmitClicked = (() => {
 
 <style lang="scss" scoped>
 .save-panel {
+   :deep(.p-panel-title) {
+      font-weight: normal;
+   }
    .help {
       font-size: 0.9em;
       margin-top:15px;

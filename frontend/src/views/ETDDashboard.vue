@@ -19,7 +19,7 @@
                   </template>
                </Column>
                <Column field="createdAt" header="Date Uploaded" >
-                  <template #body="slotProps">{{ $formatDate(slotProps.data.dateCreated)}}</template>
+                  <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
                </Column>
                <Column header="ORCID Status"/>
                <Column header="Visibility" >
@@ -27,16 +27,16 @@
                      <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
                   </template>
                </Column>
-               <Column field="datePublished" header="Date Published" >
+               <Column field="publishedAt" header="Date Published" >
                   <template #body="slotProps">
-                     <span v-if="slotProps.data.datePublished">{{ $formatDate(slotProps.data.datePublished)}}</span>
+                     <span v-if="slotProps.data.publishedAt">{{ $formatDate(slotProps.data.publishedAt)}}</span>
                      <span v-else class="visibility draft">Draft</span>
                   </template>
                </Column>
                <Column header="Actions" style="width:175px;">
                   <template #body="slotProps">
                      <div  class="acts">
-                        <template v-if="slotProps.data.datePublished">
+                        <template v-if="slotProps.data.publishedAt">
                            <Button class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                         <template v-else>

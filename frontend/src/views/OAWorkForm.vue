@@ -14,7 +14,7 @@
                <div class="work-header">
                <span>{{ panelTitle }}</span>
                <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
-               <span v-else><b>Published</b>: {{ $formatDate(oaRepo.datePublished) }}</span>
+               <span v-else><b>Published</b>: {{ $formatDate(oaRepo.publishedAt) }}</span>
                </div>
             </template>
             <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />

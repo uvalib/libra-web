@@ -1,8 +1,13 @@
 <template>
    <div class="scroll-body">
       <div class="form" id="etd-form-layout">
-         <div class="sidebar-col">
-            <SavePanel v-if="etdRepo.working==false"
+         <div class="sidebar-col" v-if="etdRepo.working==false">
+            <AdminPanel v-if="adminEdit"
+               type="etd"  :identifier="etdRepo.work.id" :created="etdRepo.createdAt"
+               :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt"
+               ref="savepanel"
+            />
+            <SavePanel v-else
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
                :draft="etdRepo.isDraft"  @submit="submitClicked" @cancel="cancelClicked"
@@ -14,20 +19,22 @@
             <template #header>
                <div class="work-header">
                   <span>{{ panelTitle }}</span>
-                  <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
-                  <span v-else><b>Submitted</b>: {{ $formatDate(etdRepo.datePublished) }}</span>
+                  <template v-if="adminEdit==false">
+                     <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
+                     <span v-else><b>Submitted</b>: {{ $formatDate(etdRepo.publishedAt) }}</span>
+                  </template>
                </div>
             </template>
             <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
             <FormKit v-else ref="etdForm" type="form" :actions="false" @submit="submitHandler">
-               <div class="two-col margin-bottom">
+               <div v-if="adminEdit==false" class="two-col margin-bottom">
                   <div class="readonly">
                      <label>Degree:</label>
                      <span>{{ etdRepo.work.degree }}</span>
                   </div>
                   <div class="readonly">
                      <label>Date Created:</label>
-                     <span>{{ $formatDate(etdRepo.work.createdAt) }}</span>
+                     <span>{{ $formatDate(etdRepo.createdAt) }}</span>
                   </div>
                </div>
 
@@ -179,6 +186,7 @@
 
 <script setup>
 import { ref, onBeforeMount, computed } from 'vue'
+import AdminPanel from "@/components/AdminPanel.vue"
 import SavePanel from "@/components/SavePanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
@@ -224,6 +232,10 @@ const etdForm = ref(null)
 const savepanel = ref(null)
 const nextURL =  ref("/etd")
 
+const adminEdit = computed( () => {
+   return route.path.includes("/admin")
+})
+
 const workDescribed = computed( () => {
    if ( etdForm.value ) {
      return (etdForm.value.node.context.state.valid && etdRepo.hasAdvisor )
@@ -248,7 +260,10 @@ onBeforeMount( async () => {
    }
 
    etdRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
-   if ( isNewSubmission.value == false) {
+   if ( adminEdit.value) {
+      panelTitle.value = "LibraETD Work"
+      await etdRepo.getWork( route.params.id )
+   } else if ( isNewSubmission.value == false) {
       panelTitle.value = "Edit LibraETD Work"
       await etdRepo.getWork( route.params.id )
    } else {
