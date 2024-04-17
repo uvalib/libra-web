@@ -17,6 +17,20 @@
             <td class="label">Date Published:</td>
             <td>{{ $formatDateTime(props.published) }}</td>
          </tr>
+         <template v-if="props.type == 'etd'">
+            <tr>
+               <td class="label">Plan/Program:</td>
+               <td>{{ department }}</td>
+            </tr>
+            <tr>
+               <td class="label">Degree:</td>
+               <td>{{ degree }}</td>
+            </tr>
+         </template>
+         <tr>
+            <td class="label">Visibility:</td>
+            <td>{{  system.visibilityLabel(props.type, props.visibility)  }}</td>
+         </tr>
       </table>
       <FloatLabel>
          <Textarea v-model="adminNotes" rows="5" />
@@ -32,11 +46,15 @@
 
 <script setup>
 import Panel from 'primevue/panel'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import Textarea from 'primevue/textarea'
 import FloatLabel from 'primevue/floatlabel'
+import { useSystemStore } from "@/stores/system"
 
+const system = useSystemStore()
 const adminNotes = ref("")
+const degree = ref("")
+const department = ref("")
 
 const emit = defineEmits( ['submit', 'cancel'])
 const props = defineProps({
@@ -62,8 +80,28 @@ const props = defineProps({
    published: {
       type: String,
       default: null
+   },
+   visibility: {
+      type: String,
+      required: true
+   },
+   degree: {
+      type: String,
+      default: "",
+   },
+   department: {
+      type: String,
+      default: "",
+   },
+   embargo: {
+      type: Object,
+      default: null
    }
+})
 
+onMounted( () => {
+   degree.value = props.degree
+   department.value = props.department
 })
 
 const saveClicked = (() => {

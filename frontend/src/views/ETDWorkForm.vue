@@ -4,7 +4,9 @@
          <div class="sidebar-col" v-if="etdRepo.working==false">
             <AdminPanel v-if="adminEdit"
                type="etd"  :identifier="etdRepo.work.id" :created="etdRepo.createdAt"
-               :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt"
+               :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
+               :ebmargo="{endDate: etdRepo.embargoReleaseDate, endVisibility: etdRepo.embargoReleaseVisibility}"
+               :degree="etdRepo.work.degree" :department="etdRepo.work.department"
                ref="savepanel"
             />
             <SavePanel v-else
@@ -21,21 +23,36 @@
                   <span>{{ panelTitle }}</span>
                   <template v-if="adminEdit==false">
                      <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
-                     <span v-else><b>Submitted</b>: {{ $formatDate(etdRepo.publishedAt) }}</span>
                   </template>
                </div>
             </template>
             <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
             <FormKit v-else ref="etdForm" type="form" :actions="false" @submit="submitHandler">
                <div v-if="adminEdit==false" class="two-col margin-bottom">
-                  <div class="readonly">
-                     <label>Degree:</label>
-                     <span>{{ etdRepo.work.degree }}</span>
-                  </div>
-                  <div class="readonly">
-                     <label>Date Created:</label>
-                     <span>{{ $formatDate(etdRepo.createdAt) }}</span>
-                  </div>
+                  <table class="readonly">
+                     <tr>
+                        <td class="label">Institution:</td>
+                        <td>{{ etdRepo.work.author.institution  }}</td>
+                     </tr>
+                     <tr>
+                        <td class="label">Plan / Program:</td>
+                        <td>{{ etdRepo.work.author.program  }}</td>
+                     </tr>
+                     <tr>
+                        <td class="label">Degree:</td>
+                        <td>{{ etdRepo.work.degree }}</td>
+                     </tr>
+                  </table>
+                  <table class="readonly">
+                     <tr>
+                        <td class="label">Date Created:</td>
+                        <td>{{ $formatDate(etdRepo.createdAt) }}</td>
+                     </tr>
+                     <tr v-if="etdRepo.isDraft==false">
+                        <td class="label">Date Published:</td>
+                        <td>{{ $formatDate(etdRepo.publishedAt) }}</td>
+                     </tr>
+                  </table>
                </div>
 
                <FormKit label="Title" type="text" v-model="etdRepo.work.title" validation="required" outer-class="first"/>
@@ -51,10 +68,6 @@
                         <div class="two-col">
                            <FormKit type="text" name="firstName" label="First Name" outer-class="first" validation="required"/>
                            <FormKit type="text" name="lastName" label="Last Name"  outer-class="first" validation="required"/>
-                        </div>
-                        <div class="two-col">
-                           <FormKit type="text" name="program" label="Plan / Program" validation="required"/>
-                           <FormKit type="text" name="institution" label="Institution" validation="required"/>
                         </div>
                      </div>
                   </FormKit>
@@ -427,11 +440,25 @@ const cancelClicked = (() => {
 }
 
 .form {
+   table {
+      td.label {
+         font-weight: bold;
+         text-align: right;
+         padding-right: 10px;
+      }
+   }
    .two-col {
       display: flex;
       flex-flow: row wrap;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: flex-start;
+      .prefilled {
+         margin-top: 15px;
+         label {
+            display: block;
+            margin-bottom: 5px;
+         }
+      }
       .readonly {
          label {
             display: inline-block;
@@ -447,9 +474,8 @@ const cancelClicked = (() => {
       }
    }
    .margin-bottom {
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--uvalib-grey-light);
-      padding-bottom: 20px;
+      margin: -10px 0 35px 0;
+      padding: 0px;
    }
    .margin-right {
       margin-right: 10px;
