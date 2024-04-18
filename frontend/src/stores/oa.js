@@ -16,7 +16,7 @@ export const useOAStore = defineStore('oa', {
       embargoReleaseVisibility: "",
       createdAt: null,
       modifiedAt: null,
-      publistedAt: null,
+      publishedAt: null,
       pendingFileAdd: [],
       pendingFileDel: [],
    }),
@@ -75,7 +75,7 @@ export const useOAStore = defineStore('oa', {
             delete data.modifiedAt
          }
          if ( data.publishedAt ) {
-            this.publistedAt = data.publishedAt
+            this.publishedAt = data.publishedAt
             delete data.publishedAt
          }
          if ( data.embargo ) {
@@ -222,7 +222,7 @@ export const useOAStore = defineStore('oa', {
          this.working = true
          return axios.post(`/api/works/oa/${this.work.id}/publish`).then(()=> {
             this.isDraft = false
-            this.publistedAt = new Date()
+            this.publishedAt = new Date()
             this.working = false
          }).catch( err => {
             const system = useSystemStore()

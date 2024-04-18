@@ -5,7 +5,7 @@
             <AdminPanel v-if="adminEdit"
                type="etd"  :identifier="etdRepo.work.id" :created="etdRepo.createdAt"
                :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
-               :ebmargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
+               :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
                :degree="etdRepo.work.degree" :department="etdRepo.work.department"
                ref="savepanel" @cancel="cancelClicked"
             />

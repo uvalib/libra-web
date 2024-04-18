@@ -11,7 +11,7 @@ require (
 	github.com/rs/xid v1.5.0
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240411133422-fa321d3d2147
 	github.com/uvalib/libra-metadata v0.0.0-20240415185307-75fea509a389
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240416182004-3ad91346ed46
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240417152615-5f766fefdac7
 )
 
 require (
@@ -35,8 +35,9 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.23.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6 // indirect
 	github.com/aws/smithy-go v1.20.2 // indirect
-	github.com/bytedance/sonic v1.11.5-alpha3 // indirect
-	github.com/cloudwego/base64x v0.1.2 // indirect
+	github.com/bytedance/sonic v1.11.5 // indirect
+	github.com/bytedance/sonic/loader v0.1.1 // indirect
+	github.com/cloudwego/base64x v0.1.3 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
