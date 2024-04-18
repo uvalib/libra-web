@@ -129,7 +129,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin
+		canUpdate = depositor == jwt.ComputeID || jwt.IsAdmin
 	}
 	if canUpdate == false {
 		log.Printf("INFO: unauthorized attempt to update etd work %s", workID)
@@ -171,7 +171,6 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 
 	// update fields
 	fields := tgtObj.Fields()
-	fields["author"] = etdReq.Work.Author.ComputeID
 	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = etdReq.Visibility
 	if etdReq.Visibility == "uva" {
@@ -256,7 +255,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin
+		canUpdate = depositor == jwt.ComputeID || jwt.IsAdmin
 	}
 	if canUpdate == false {
 		log.Printf("INFO: unauthorized attempt to update oa work %s", workID)
@@ -298,7 +297,6 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 
 	// update fields
 	fields := tgtObj.Fields()
-	fields["author"] = oaSub.Work.Authors[0].ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = oaSub.Visibility
@@ -511,12 +509,11 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, fields uvaeasystore.Eas
 	//    FILES: open = visible to all; uva = only visible to uva for a limited timeframe; embargo: only author and admin until date
 	visibility := calculateVisibility(fields)
 	depositor := fields["depositor"]
-	author := fields["author"]
 	isDraft, _ := strconv.ParseBool(fields["draft"])
 	resp := workAccess{files: false, metadata: true}
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		if depositor == jwt.ComputeID || depositor == jwt.Email || jwt.IsAdmin || author == jwt.ComputeID {
+		if depositor == jwt.ComputeID || jwt.IsAdmin {
 			resp.files = true
 		}
 	} else {

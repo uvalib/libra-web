@@ -72,8 +72,7 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 		fields["create-date"] = time.Now().Format(time.RFC3339)
 		fields["draft"] = "true"
 		fields["default-visibility"] = "open"
-		fields["depositor"] = student.Email
-		fields["author"] = student.ComputeID
+		fields["depositor"] = student.ComputeID
 		fields["source"] = "optional"
 		obj.SetMetadata(etdReg)
 		obj.SetFields(fields)
@@ -110,8 +109,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create easystore object")
 	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = claims.Email
-	fields["author"] = oaSub.Work.Authors[0].ComputeID
+	fields["depositor"] = claims.ComputeID
 	fields["resource-type"] = oaSub.Work.ResourceType
 	fields["create-date"] = time.Now().Format(time.RFC3339)
 	fields["draft"] = "true"
