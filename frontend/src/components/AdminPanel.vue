@@ -131,7 +131,7 @@ const embargoEndVisibility = ref("")
 const showPickEnd = ref(false)
 const endOpts = ref([{name: "Worldwide", code: "open"}, {name: "UVA Only", code: "uva"}])
 
-const emit = defineEmits( ['submit', 'cancel', 'delete'])
+const emit = defineEmits( ['save', 'cancel', 'delete'])
 const props = defineProps({
    identifier: {
       type: String,
@@ -175,6 +175,10 @@ const props = defineProps({
    embargoEndVisibility: {
       type: String,
       default: null
+   },
+   notes: {
+      type: String,
+      default: null
    }
 })
 
@@ -184,10 +188,14 @@ const visibilityOpts = computed( () => {
 })
 
 onMounted( () => {
+   adminNotes.value = props.notes
    degree.value = props.degree
    department.value = props.department
    visibility.value = props.visibility
-   embargoEndDate.value = dayjs(props.embargoEndDate).toDate()
+   embargoEndDate.value = null
+   if ( props.embargoEndDate != "") {
+      embargoEndDate.value = dayjs(props.embargoEndDate).toDate()
+   }
    embargoEndVisibility.value = props.embargoEndVisibility
 })
 
@@ -233,7 +241,15 @@ const setEmbargoEndDate = ((count, type) => {
    embargoEndDate.value = endDate
 })
 const saveClicked = (() => {
-
+   let changes = {
+      adminNotes: adminNotes.value,
+      degree: degree.value,
+      department: department.value,
+      visibility: visibility.value,
+      embargoEndDate: embargoEndDate.value,
+      embargoEndVisibility: embargoEndVisibility.value
+   }
+   emit("save", changes)
 })
 
 </script>

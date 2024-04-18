@@ -6,8 +6,8 @@
                type="etd"  :identifier="etdRepo.work.id" :created="etdRepo.createdAt"
                :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
                :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
-               :degree="etdRepo.work.degree" :department="etdRepo.work.department"
-               ref="savepanel" @cancel="cancelClicked" @delete="router.back()"
+               :degree="etdRepo.work.degree" :department="etdRepo.work.department" :notes="etdRepo.work.adminNotes"
+               ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
             />
             <SavePanel v-else
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
@@ -360,6 +360,7 @@ const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
    etdRepo.work.license = license.label
    etdRepo.work.licenseURL = license.url
 })
+
 const submitHandler = ( async () => {
    if ( isNewSubmission.value ) {
       await etdRepo.deposit( )
@@ -370,6 +371,20 @@ const submitHandler = ( async () => {
       router.push("/etd")
    }
 })
+
+const adminSaveCliced = ( async(data) => {
+   etdRepo.visibility = data.visibility
+   etdRepo.embargoReleaseDate = data.embargoEndDate
+   etdRepo.embargoReleaseVisibility = data.embargoEndVisibility
+   etdRepo.work.department = data.department
+   etdRepo.work.degree = data.degree
+   etdRepo.work.adminNotes = data.adminNotes
+   await etdRepo.update( )
+   if ( system.showError == false ) {
+      router.back()
+   }
+})
+
 const cancelClicked = (() => {
    if ( isNewSubmission.value) {
       etdRepo.cancelCreate()
