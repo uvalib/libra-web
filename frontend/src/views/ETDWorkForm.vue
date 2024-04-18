@@ -7,7 +7,7 @@
                :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
                :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
                :degree="etdRepo.work.degree" :department="etdRepo.work.department"
-               ref="savepanel" @cancel="cancelClicked"
+               ref="savepanel" @cancel="cancelClicked" @delete="router.back()"
             />
             <SavePanel v-else
                type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"

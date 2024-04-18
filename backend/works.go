@@ -397,10 +397,10 @@ func (svc *serviceContext) deleteOAWork(c *gin.Context) {
 
 func (svc *serviceContext) deleteETDWork(c *gin.Context) {
 	workID := c.Param("id")
-	log.Printf("INFO: request to delete oa work %s", workID)
-	err := svc.deleteWork(svc.Namespaces.oa, workID)
+	log.Printf("INFO: request to delete etd work %s", workID)
+	err := svc.deleteWork(svc.Namespaces.etd, workID)
 	if err != nil {
-		log.Printf("ERROR: unable to delete oa work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to delete etd work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}

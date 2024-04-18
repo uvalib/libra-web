@@ -131,7 +131,7 @@ const embargoEndVisibility = ref("")
 const showPickEnd = ref(false)
 const endOpts = ref([{name: "Worldwide", code: "open"}, {name: "UVA Only", code: "uva"}])
 
-const emit = defineEmits( ['submit', 'cancel'])
+const emit = defineEmits( ['submit', 'cancel', 'delete'])
 const props = defineProps({
    identifier: {
       type: String,
@@ -218,6 +218,7 @@ const deleteWorkClicked = ( () => {
       rejectClass: 'p-button-secondary',
       accept: (  ) => {
          admin.delete(props.type, props.identifier)
+         emit('delete')
       },
    })
 })
