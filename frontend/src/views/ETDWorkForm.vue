@@ -242,7 +242,6 @@ const etdRepo = useETDStore()
 const panelTitle = ref("Add New LibraETD Work")
 const etdForm = ref(null)
 const savepanel = ref(null)
-const nextURL =  ref("/etd")
 
 const adminEdit = computed( () => {
    return route.path.includes("/admin")
@@ -348,7 +347,6 @@ const downloadFileClicked = ( (name) => {
    etdRepo.downloadFile(name)
 })
 const submitClicked = ( async (visibility, releaseDate, releaseVisibility) => {
-   nextURL.value = "/etd"
    updateWorkModel(visibility, releaseDate, releaseVisibility)
    etdForm.value.node.submit()
 })

@@ -26,46 +26,28 @@
                <td class="label">Degree:</td>
                <td><Dropdown v-model="degree" :options="system.degrees" /></td>
             </tr>
+         </template>
+         <tr>
+            <td class="label">Visibility:</td>
+            <td>
+               <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
+            </td>
+         </tr>
+         <template v-if="showEmbargoSettings">
             <tr>
-               <td class="label">Visibility:</td>
-               <td>
-                  <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
+               <td class="label">Embargo End:</td>
+               <td class="embargo">
+                  <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
+                  <span v-else>Never</span>
+                  <Button label="Change" severity="secondary" @click="showPickEnd = true"/>
                </td>
             </tr>
-            <template v-if="visibility == 'uva'">
-               <tr>
-                  <td class="label">Embargo End:</td>
-                  <td class="embargo">
-                     <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
-                     <span v-else>Never</span>
-                     <Button label="Change" severity="secondary" @click="showPickEnd = true"/>
-                  </td>
-               </tr>
-               <tr>
-                  <td class="label">End Visibility:</td>
-                  <td>{{ system.visibilityLabel('etd',embargoEndVisibility) }}</td>
-               </tr>
-            </template>
-         </template>
-         <template v-else>
             <tr>
-               <td class="label">Visibility:</td>
+               <td class="label">End Visibility:</td>
                <td>
-                  <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @chage="visibilityChanged()"/>
+                  <span v-if="props.type=='etd'">{{ system.visibilityLabel('etd',embargoEndVisibility) }}</span>
+                  <Dropdown v-else v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/>
                </td>
-               <template v-if="visibility == 'embargo'">
-                  <tr>
-                     <td class="label">Embargo End:</td>
-                     <td class="embargo">
-                        {{ $formatDate(embargoEndDate) }}
-                        <Button label="Change" severity="secondary" @click="showPickEnd = true"/>
-                     </td>
-                  </tr>
-                  <tr>
-                     <td class="label">End Visibility:</td>
-                     <td><Dropdown v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/></td>
-                  </tr>
-               </template>
             </tr>
          </template>
       </table>
@@ -129,7 +111,7 @@ const visibility = ref("")
 const embargoEndDate = ref(null)
 const embargoEndVisibility = ref("")
 const showPickEnd = ref(false)
-const endOpts = ref([{name: "Worldwide", code: "open"}, {name: "UVA Only", code: "uva"}])
+const endOpts = ref([{label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}])
 
 const emit = defineEmits( ['save', 'cancel', 'delete'])
 const props = defineProps({
@@ -185,6 +167,10 @@ const props = defineProps({
 const visibilityOpts = computed( () => {
    if (props.type == "oa") return system.oaVisibility
    return system.etdVisibility
+})
+const showEmbargoSettings = computed( () => {
+   if ( props.type == 'etd') return visibility.value == 'uva'
+   return visibility.value == 'embargo'
 })
 
 onMounted( () => {
@@ -243,11 +229,13 @@ const setEmbargoEndDate = ((count, type) => {
 const saveClicked = (() => {
    let changes = {
       adminNotes: adminNotes.value,
-      degree: degree.value,
-      department: department.value,
       visibility: visibility.value,
       embargoEndDate: embargoEndDate.value,
       embargoEndVisibility: embargoEndVisibility.value
+   }
+   if ( props.type == "etd") {
+      changes.degree = degree.value
+      changes.department = department.value
    }
    emit("save", changes)
 })
@@ -302,6 +290,7 @@ const saveClicked = (() => {
          font-weight: bold;
          text-align: right;
          padding-right: 10px;
+         white-space: nowrap;
       }
       td.embargo {
          display: flex;

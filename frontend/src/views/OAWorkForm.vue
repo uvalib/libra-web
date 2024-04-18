@@ -1,8 +1,14 @@
 <template>
    <div class="scroll-body">
       <div class="form" id="oa-form-layout">
-         <div class="sidebar-col">
-            <SavePanel v-if="oaRepo.working==false"
+         <div class="sidebar-col" :class="{admin: adminEdit}" v-if="oaRepo.working==false">
+            <AdminPanel v-if="adminEdit"
+               type="oa"  :identifier="oaRepo.work.id" :created="oaRepo.createdAt"
+               :modified="oaRepo.modifiedAt" :published="oaRepo.publishedAt" :visibility="oaRepo.visibility"
+               :embargoEndDate="oaRepo.embargoReleaseDate" :embargoEndVisibility="oaRepo.embargoReleaseVisibility"
+               :notes="oaRepo.work.adminNotes" ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
+            />
+            <SavePanel v-else
                type="oa" :create="isNewSubmission" :described="workDescribed" :files="oaRepo.work.files.length > 0 || oaRepo.pendingFileAdd.length > 0"
                :visibility="oaRepo.visibility" :releaseDate="oaRepo.embargoReleaseDate" :releaseVisibility="oaRepo.embargoReleaseVisibility"
                :draft="oaRepo.isDraft" @submit="submitClicked" @cancel="cancelClicked" ref="savepanel"
@@ -13,8 +19,10 @@
             <template #header>
                <div class="work-header">
                <span>{{ panelTitle }}</span>
-               <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
-               <span v-else><b>Published</b>: {{ $formatDate(oaRepo.publishedAt) }}</span>
+               <template v-if="adminEdit==false">
+                  <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
+                  <span v-else><b>Published</b>: {{ $formatDate(oaRepo.publishedAt) }}</span>
+               </template>
                </div>
             </template>
             <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
@@ -222,6 +230,7 @@
 
 <script setup>
 import { ref, onBeforeMount, computed } from 'vue'
+import AdminPanel from "@/components/AdminPanel.vue"
 import SavePanel from "@/components/SavePanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
@@ -262,10 +271,13 @@ const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
 const oaRepo = useOAStore()
-
 const oaForm = ref(null)
 const savepanel = ref(null)
 const panelTitle = ref("Add New LibraOpen Work")
+
+const adminEdit = computed( () => {
+   return route.path.includes("/admin")
+})
 
 const workDescribed = computed( () => {
    if ( oaForm.value ) {
@@ -291,7 +303,10 @@ onBeforeMount( async () => {
    }
 
    oaRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
-   if ( isNewSubmission.value == false) {
+   if ( adminEdit.value) {
+      panelTitle.value = "LibraOpen Work"
+      await oaRepo.getWork( route.params.id )
+   } else if ( isNewSubmission.value == false) {
       panelTitle.value = "Edit LibraOpen Work"
       await oaRepo.getWork( route.params.id )
    } else {
@@ -434,6 +449,19 @@ const submitHandler = ( async () => {
       router.push("/oa")
    }
 })
+
+const adminSaveCliced = ( async(data) => {
+   oaRepo.visibility = data.visibility
+   oaRepo.embargoReleaseDate = data.embargoEndDate
+   oaRepo.embargoReleaseVisibility = data.embargoEndVisibility
+   oaRepo.work.adminNotes = data.adminNotes
+   await oaRepo.update( )
+   if ( system.showError == false ) {
+      router.back()
+   }
+})
+
+
 const cancelClicked = (() => {
    if ( isNewSubmission.value) {
       oaRepo.cancelCreate()
@@ -452,6 +480,10 @@ const cancelClicked = (() => {
    }
    .sidebar-col {
       width: 400px;
+      margin-right: 25px;
+   }
+   .sidebar-col.admin {
+      width: 450px;
       margin-right: 25px;
    }
    .main-form {
