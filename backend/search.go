@@ -164,10 +164,7 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 		}
 
 		userHit := userSearchHit{searchHit: hit}
-		visibility := obj.Fields()["default-visibility"]
-		if visibility == "embargo" {
-			visibility = calculateVisibility(obj.Fields())
-		}
+		visibility := svc.calculateVisibility(obj)
 		userHit.Visibility = visibility
 
 		resp = append(resp, userHit)

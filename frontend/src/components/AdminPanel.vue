@@ -151,7 +151,7 @@ const props = defineProps({
       default: "",
    },
    embargoEndDate: {
-      type: String,
+      type: Date,
       default: null
    },
    embargoEndVisibility: {
@@ -178,10 +178,7 @@ onMounted( () => {
    degree.value = props.degree
    department.value = props.department
    visibility.value = props.visibility
-   embargoEndDate.value = null
-   if ( props.embargoEndDate != "") {
-      embargoEndDate.value = dayjs(props.embargoEndDate).toDate()
-   }
+   embargoEndDate.value = new Date(props.embargoEndDate)
    embargoEndVisibility.value = props.embargoEndVisibility
 })
 

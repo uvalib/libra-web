@@ -10,7 +10,7 @@
                ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
             />
             <SavePanel v-else
-               type="etd" :create="isNewSubmission" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
+               type="etd" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
                :draft="etdRepo.isDraft"  @submit="submitClicked" @cancel="cancelClicked"
                ref="savepanel"
@@ -19,7 +19,7 @@
          <Panel class="main-form">
             <template #header>
                <div class="work-header">
-                  <span>{{ panelTitle }}</span>
+                  <span>LibraETD Work</span>
                   <template v-if="adminEdit==false">
                      <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
                   </template>
@@ -157,7 +157,7 @@
 
                <FormKit label="Notes" type="textarea" v-model="etdRepo.work.notes" rows="10"/>
 
-               <template v-if="isNewSubmission==false && etdRepo.work.files.length > 0">
+               <template v-if="etdRepo.work.files.length > 0">
                   <label class="libra-form-label">Previously Uploaded Files</label>
                   <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
                         stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
@@ -180,7 +180,7 @@
                   </DataTable>
                </template>
                <label class="libra-form-label">Files</label>
-               <FileUpload name="file" :url="`/api/upload/${uploadToken}`"
+               <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
                   @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                   @removeUploadedFile="fileRemoved($event)"
                   :multiple="true" :withCredentials="true" :auto="true"
@@ -212,7 +212,6 @@ import { useConfirm } from "primevue/useconfirm"
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 import { usePinnable } from '@/composables/pin'
-import dayjs from 'dayjs'
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
    const formEle = document.getElementById("etd-form-layout")
@@ -239,7 +238,6 @@ const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
 const etdRepo = useETDStore()
-const panelTitle = ref("Add New LibraETD Work")
 const etdForm = ref(null)
 const savepanel = ref(null)
 
@@ -253,15 +251,6 @@ const workDescribed = computed( () => {
    }
    return false
 })
-const isNewSubmission = computed(() => {
-   return route.params.id == "new"
-})
-const uploadToken = computed( () => {
-   if ( isNewSubmission.value) {
-      return etdRepo.depositToken
-   }
-   return etdRepo.work.id
-})
 
 onBeforeMount( async () => {
    document.title = "LibraETD"
@@ -269,17 +258,7 @@ onBeforeMount( async () => {
       router.push("/forbidden")
       return
    }
-
-   etdRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
-   if ( adminEdit.value) {
-      panelTitle.value = "LibraETD Work"
-      await etdRepo.getWork( route.params.id )
-   } else if ( isNewSubmission.value == false) {
-      panelTitle.value = "Edit LibraETD Work"
-      await etdRepo.getWork( route.params.id )
-   } else {
-      await etdRepo.getDepositToken()
-   }
+   await etdRepo.getWork( route.params.id )
 })
 
 const uploadRequested = ( (request) => {
@@ -352,7 +331,7 @@ const submitClicked = ( async (visibility, releaseDate, releaseVisibility) => {
 })
 const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
    etdRepo.visibility = visibility
-   etdRepo.embargoReleaseDate =  dayjs(releaseDate).format("YYYY-MM-DD")
+   etdRepo.embargoReleaseDate =  releaseDate
    etdRepo.embargoReleaseVisibility =  releaseVisibility
    let license = system.licenseDetail("etd", etdRepo.licenseID)
    etdRepo.work.license = license.label
@@ -360,11 +339,7 @@ const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
 })
 
 const submitHandler = ( async () => {
-   if ( isNewSubmission.value ) {
-      await etdRepo.deposit( )
-   } else {
-      await etdRepo.update( )
-   }
+   await etdRepo.update( )
    if ( system.showError == false ) {
       router.push("/etd")
    }
@@ -384,13 +359,8 @@ const adminSaveCliced = ( async(data) => {
 })
 
 const cancelClicked = (() => {
-   if ( isNewSubmission.value) {
-      etdRepo.cancelCreate()
-   } else {
-      etdRepo.cancelEdit()
-   }
+   etdRepo.cancelEdit()
    router.back()
-
 })
 </script>
 

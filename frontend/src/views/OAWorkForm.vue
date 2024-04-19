@@ -244,7 +244,6 @@ import WaitSpinner from "@/components/WaitSpinner.vue"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { useConfirm } from "primevue/useconfirm"
-import dayjs from 'dayjs'
 
 usePinnable("user-header", "scroll-body", ( (isPinned) => {
    const formEle = document.getElementById("oa-form-layout")
@@ -301,8 +300,6 @@ onBeforeMount( async () => {
       router.push("/forbidden")
       return
    }
-
-   oaRepo.initSubmission(user.computeID, user.firstName, user.lastName, user.department[0])
    if ( adminEdit.value) {
       panelTitle.value = "LibraOpen Work"
       await oaRepo.getWork( route.params.id )
@@ -310,7 +307,7 @@ onBeforeMount( async () => {
       panelTitle.value = "Edit LibraOpen Work"
       await oaRepo.getWork( route.params.id )
    } else {
-      await oaRepo.getDepositToken()
+      await oaRepo.initDeposit(user.computeID, user.firstName, user.lastName, user.department[0])
    }
 })
 
@@ -429,7 +426,7 @@ const downloadFileClicked = ( (name) => {
 const submitClicked = ( (visibility, releaseDate, releaseVisibility ) => {
    // update work submission with other details from items that are not directly part of the metadata record
    oaRepo.visibility = visibility
-   oaRepo.embargoReleaseDate =  dayjs(releaseDate).format("YYYY-MM-DD")
+   oaRepo.embargoReleaseDate =  releaseDate
    oaRepo.embargoReleaseVisibility =  releaseVisibility
 
    let license = system.licenseDetail("oa", oaRepo.licenseID)

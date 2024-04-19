@@ -6,11 +6,10 @@ export const useETDStore = defineStore('etd', {
    state: () => ({
       working: false,
       error: "",
-      depositToken: "",
       work: {},
       isDraft: true,
       visibility: "",
-      embargoReleaseDate: "",
+      embargoReleaseDate: null,
       embargoReleaseVisibility: "",
       licenseID: "",
       persistentLink: "",
@@ -59,6 +58,7 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
+
       setWorkDetails( data ) {
          this.isDraft = data.isDraft
          delete data.isDraft
@@ -93,48 +93,17 @@ export const useETDStore = defineStore('etd', {
             this.licenseID = lic.value
          }
       },
-      initSubmission(compID, firstName, lastName, program) {
-         this.work.title = "",
-         this.work.author = {computeID: compID, firstName: firstName, lastName: lastName, program: program, institution: "University of Virginia"},
-         this.work.advisors = [{computeID: "", firstName: "", lastName: "", department: "", institution: "University of Virginia", msg: ""}]
-         this.work.abstract = ""
-         this.work.license = ""
-         this.work.licenseURL = ""
-         this.work.language = ""
-         this.work.keywords = []
-         this.work.relatedURLs = []
-         this.work.sponsors = []
-         this.work.notes = ""
-         this.work.degree = "MA (Master of Arts)"
-         this.work.createdAt = new Date()
-         this.work.files = []
 
-         this.licenseID = ""
-         this.visibility = ""
-         this.embargoReleaseDate = ""
-         this.embargoReleaseVisibility = ""
-         this.pendingFileAdd = []
-         this.pendingFileDel = []
-      },
-      async getDepositToken() {
-         this.depositToken = ""
-         return axios.get("/api/token").then(response => {
-            this.depositToken = response.data
-         }).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
-         })
-      },
-      cancelCreate() {
-         axios.post(`/api/cancel/${this.depositToken}`)
-         this.depositToken = ""
-      },
       cancelEdit() {
-         axios.post(`/api/cancel/${this.work.id}`)
+         if ( this.pendingFileAdd.length > 0) {
+            axios.post(`/api/cancel/${this.work.id}`)
+         }
       },
+
       addFile( file ) {
          this.pendingFileAdd.push( file )
       },
+
       removeFile( file) {
          let pendingIdx = this.pendingFileAdd.findIndex( f => f == file )
          if ( pendingIdx > -1) {
@@ -153,6 +122,7 @@ export const useETDStore = defineStore('etd', {
             }
          }
       },
+
       async downloadFile( name ) {
          return axios.get(`/api/works/etd/${this.work.id}/files/${name}`,{responseType: "blob"}).then((response) => {
             let ct = response.headers["content-type"]
@@ -171,23 +141,7 @@ export const useETDStore = defineStore('etd', {
             system.setError( error)
          })
       },
-      async deposit() {
-         this.working = true
-         let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, visibility: this.visibility,
-            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
-         }
-         return axios.post(`/api/submit/etd/${this.depositToken}`, payload).then(response => {
-            this.work = response.data
-            this.working = false
-            this.pendingFileAdd = []
-            this.pendingFileDel = []
-         }).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
-            this.working = false
-         })
-      },
+
       async update( ) {
          this.working = true
          let payload = {
@@ -206,6 +160,7 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
+
       async publish(  ) {
          this.working = true
          return axios.post(`/api/works/etd/${this.work.id}/publish`).then(()=> {
@@ -218,13 +173,5 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
-      async deleteWork( id ) {
-         this.working = true
-         return axios.delete(`/api/works/etd/${id}`).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
-            this.working = false
-         })
-      }
    }
 })

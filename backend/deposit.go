@@ -15,11 +15,11 @@ import (
 )
 
 type depositSettings struct {
-	Visibility               string   `json:"visibility"`
-	EmbargoReleaseDate       string   `json:"embargoReleaseDate,omitempty"`
-	EmbargoReleaseVisibility string   `json:"embargoReleaseVisibility,omitempty"`
-	AddFiles                 []string `json:"addFiles"`
-	DelFiles                 []string `json:"delFiles"`
+	Visibility               string     `json:"visibility"`
+	EmbargoReleaseDate       *time.Time `json:"embargoReleaseDate,omitempty"`
+	EmbargoReleaseVisibility string     `json:"embargoReleaseVisibility,omitempty"`
+	AddFiles                 []string   `json:"addFiles"`
+	DelFiles                 []string   `json:"delFiles"`
 }
 
 type oaDepositRequest struct {
@@ -87,7 +87,7 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
 }
 
-func (svc *serviceContext) oaSubmit(c *gin.Context) {
+func (svc *serviceContext) oaDeposit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received oa deposit request for %s", token)
 	var oaSub oaDepositRequest
@@ -115,7 +115,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	fields["draft"] = "true"
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
-		fields["embargo-release"] = oaSub.EmbargoReleaseDate
+		fields["embargo-release"] = oaSub.EmbargoReleaseDate.Format(time.RFC3339)
 		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
 	}
 
@@ -142,7 +142,7 @@ func (svc *serviceContext) oaSubmit(c *gin.Context) {
 	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
 	os.RemoveAll(uploadDir)
 
-	resp, err := parseOAWork(newObj, true)
+	resp, err := svc.parseOAWork(newObj, true)
 	if err != nil {
 		log.Printf("ERROR: unable to parse newly deposited oa work: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())

@@ -97,7 +97,7 @@ const props = defineProps({
    },
    create: {
       type: Boolean,
-      required: true,
+      default: false,
    },
    files: {
       type: Boolean,
@@ -108,8 +108,8 @@ const props = defineProps({
       required: true
    },
    releaseDate: {
-      type: String,
-      default: ""
+      type: Date,
+      default: null
    },
    releaseVisibility: {
       type: String,
@@ -143,12 +143,8 @@ const limitedDurations = ref([
 
 onMounted( () => {
    visibility.value = props.visibility
-   if ( props.releaseDate != "") {
-      releaseDate.value = dayjs(props.releaseDate, "YYYY-MM-DD").toDate()
-   }
-   if ( props.releaseVisibility != "") {
-      releaseVisibility.value = props.releaseVisibility
-   }
+   releaseDate.value = new Date(props.releaseDate)
+   releaseVisibility.value = props.releaseVisibility
    agree.value = !props.create
 })
 

@@ -12,7 +12,7 @@ export const useOAStore = defineStore('oa', {
       isDraft: true,
       visibility: "open",
       persistentLink: "",
-      embargoReleaseDate: "",
+      embargoReleaseDate: null,
       embargoReleaseVisibility: "",
       createdAt: null,
       modifiedAt: null,
@@ -95,7 +95,7 @@ export const useOAStore = defineStore('oa', {
             this.licenseID = lic.value
          }
       },
-      initSubmission(compID, firstName, lastName, department) {
+      async initDeposit(compID, firstName, lastName, department) {
          this.error = ""
 
          this.work.resourceType = "Book"
@@ -125,8 +125,7 @@ export const useOAStore = defineStore('oa', {
          this.embargoReleaseVisibility = ""
          this.pendingFileAdd = []
          this.pendingFileDel = []
-      },
-      async getDepositToken() {
+
          this.depositToken = ""
          return axios.get("/api/token").then(response => {
             this.depositToken = response.data
@@ -187,7 +186,7 @@ export const useOAStore = defineStore('oa', {
             work: this.work, addFiles: this.pendingFileAdd, visibility: this.visibility,
             embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
-         return axios.post(`/api/submit/oa/${this.depositToken}`, payload).then(response => {
+         return axios.post(`/api/deposit/${this.depositToken}`, payload).then(response => {
             this.work = response.data
             if ( this.work.keywords.length == 0) this.work.keywords.push("")
             if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")

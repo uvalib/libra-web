@@ -18,8 +18,8 @@ import (
 )
 
 type embargoData struct {
-	ReleaseDate       string `json:"releaseDate"`
-	ReleaseVisibility string `json:"releaseVisibility"`
+	ReleaseDate       *time.Time `json:"releaseDate"`
+	ReleaseVisibility string     `json:"releaseVisibility"`
 }
 
 type commonWorkDetails struct {
@@ -57,6 +57,19 @@ func (detail *commonWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) 
 		}
 		detail.ModifiedAt = &modDate
 	}
+
+	embargoDateStr, exist := esObj.Fields()["embargo-release"]
+	if exist {
+		var releaseDate *time.Time
+		parsed, err := time.Parse(time.RFC3339, embargoDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse work %s release date [%s]: %s", esObj.Id(), embargoDateStr, err.Error())
+		} else {
+			releaseDate = &parsed
+		}
+		embInfo := embargoData{ReleaseDate: releaseDate, ReleaseVisibility: esObj.Fields()["embargo-release-visibility"]}
+		detail.Embargo = &embInfo
+	}
 }
 
 type oaWorkDetails struct {
@@ -89,14 +102,14 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: check access to ea work %s", workID)
-	access := svc.canAccessWork(c, tgtObj.Fields())
+	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
 		log.Printf("INFO: access to etd work %s is forbidden", workID)
 		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
 		return
 	}
 
-	etdWork, err := parseETDWork(tgtObj, access.files)
+	etdWork, err := svc.parseETDWork(tgtObj, access.files)
 	if err != nil {
 		log.Printf("ERROR: unable to parse etd work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -174,13 +187,22 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = etdReq.Visibility
 	if etdReq.Visibility == "uva" {
-		fields["embargo-release"] = etdReq.EmbargoReleaseDate
-		fields["embargo-release-visibility"] = etdReq.EmbargoReleaseVisibility
+		if etdReq.EmbargoReleaseDate == nil {
+			log.Printf("INFO: etd work %s set for a forever embargo", tgtObj.Id())
+			fields["embargo-release"] = ""
+			delete(fields, "embargo-release-visibility")
+		} else {
+			fields["embargo-release"] = etdReq.EmbargoReleaseDate.Format(time.RFC3339)
+			fields["embargo-release-visibility"] = etdReq.EmbargoReleaseVisibility
+		}
+	} else {
+		delete(fields, "embargo-release")
+		delete(fields, "embargo-release-visibility")
 	}
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
-	resp, err := parseETDWork(updatedObj, true)
+	resp, err := svc.parseETDWork(updatedObj, true)
 	if err != nil {
 		log.Printf("ERROR: unable to parse updated etd work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -215,14 +237,14 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: check access to ea work %s", workID)
-	access := svc.canAccessWork(c, tgtObj.Fields())
+	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
 		log.Printf("INFO: access to oa work %s is forbidden", workID)
 		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
 		return
 	}
 
-	oaWork, err := parseOAWork(tgtObj, access.files)
+	oaWork, err := svc.parseOAWork(tgtObj, access.files)
 	if err != nil {
 		log.Printf("ERROR: unable to parse oa work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -301,13 +323,23 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = oaSub.Visibility
 	if oaSub.Visibility == "embargo" {
-		fields["embargo-release"] = oaSub.EmbargoReleaseDate
-		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
+		if oaSub.EmbargoReleaseDate == nil {
+			log.Printf("INFO: oa work %s set for a forever embargo", tgtObj.Id())
+			fields["embargo-release"] = ""
+			delete(fields, "embargo-release-visibility")
+		} else {
+			fields["embargo-release"] = oaSub.EmbargoReleaseDate.Format(time.RFC3339)
+			fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
+		}
+	} else {
+		delete(fields, "embargo-release")
+		delete(fields, "embargo-release-visibility")
 	}
+
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
-	resp, err := parseOAWork(updatedObj, true)
+	resp, err := svc.parseOAWork(updatedObj, true)
 	if err != nil {
 		log.Printf("ERROR: unable to parse updated oa work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -363,20 +395,25 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 	return fromUVA
 }
 
-func calculateVisibility(fields uvaeasystore.EasyStoreObjectFields) string {
+func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObject) string {
+	fields := tgtObj.Fields()
 	visibility := fields["default-visibility"]
-	if visibility != "embargo" {
-		return visibility
-	}
-	releaseDateStr := fields["embargo-release"]
-	releaseDate, err := time.Parse("2006-01-02", releaseDateStr)
-	if err != nil {
-		log.Printf("ERROR: unable to parse embargo release date %s: %s", releaseDateStr, err.Error())
-		return visibility
-	}
+	if tgtObj.Namespace() == svc.Namespaces.oa && visibility == "embargo" || tgtObj.Namespace() == svc.Namespaces.etd && visibility == "uva" {
+		releaseDateStr := fields["embargo-release"]
+		if releaseDateStr == "" {
+			// no release date means forever embargoed; just return the default visibility (embargo or uva)
+			return visibility
+		}
 
-	if time.Now().After(releaseDate) {
-		return fields["embargo-release-visibility"]
+		releaseDate, err := time.Parse(time.RFC3339, releaseDateStr)
+		if err != nil {
+			log.Printf("ERROR: unable to parse embargo release date [%s]: %s", releaseDateStr, err.Error())
+			return visibility
+		}
+
+		if time.Now().After(releaseDate) {
+			return fields["embargo-release-visibility"]
+		}
 	}
 	return visibility
 }
@@ -468,7 +505,7 @@ func (svc *serviceContext) doFileDownload(c *gin.Context, namespace, workID, tgt
 }
 
 func (svc *serviceContext) publishWork(namespace string, workID string) error {
-	log.Printf("INFO: get work %s %s", namespace, workID)
+	log.Printf("INFO: publish %s work %s", namespace, workID)
 	tgtObj, err := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
 		return fmt.Errorf("unable to get work %s", workID)
@@ -503,11 +540,12 @@ func (svc *serviceContext) unpublishWork(namespace string, workID string) error 
 	return nil
 }
 
-func (svc *serviceContext) canAccessWork(c *gin.Context, fields uvaeasystore.EasyStoreObjectFields) workAccess {
+func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.EasyStoreObject) workAccess {
 	// enforce visibility; (admins/authors can always view all)
 	//    METADATA: visible to all - except draft content is author/admin only
 	//    FILES: open = visible to all; uva = only visible to uva for a limited timeframe; embargo: only author and admin until date
-	visibility := calculateVisibility(fields)
+	fields := tgtObj.Fields()
+	visibility := svc.calculateVisibility(tgtObj)
 	depositor := fields["depositor"]
 	isDraft, _ := strconv.ParseBool(fields["draft"])
 	resp := workAccess{files: false, metadata: true}
@@ -533,7 +571,7 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, fields uvaeasystore.Eas
 	return resp
 }
 
-func parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*etdWorkDetails, error) {
+func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*etdWorkDetails, error) {
 	mdBytes, err := tgtObj.Metadata().Payload()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
@@ -543,7 +581,7 @@ func parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*et
 		return nil, fmt.Errorf("unable to parse payload: %s", err.Error())
 	}
 
-	visibility := calculateVisibility(tgtObj.Fields())
+	visibility := svc.calculateVisibility(tgtObj)
 	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
 	resp := etdWorkDetails{
 		commonWorkDetails: &commonWorkDetails{
@@ -558,9 +596,6 @@ func parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*et
 	}
 	resp.commonWorkDetails.parseDates(tgtObj)
 
-	if visibility == "uva" {
-		resp.Embargo = &embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
-	}
 	if canAccessFiles {
 		for _, etdFile := range tgtObj.Files() {
 			log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
@@ -572,7 +607,7 @@ func parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*et
 	return &resp, nil
 }
 
-func parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*oaWorkDetails, error) {
+func (svc *serviceContext) parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*oaWorkDetails, error) {
 	mdBytes, err := tgtObj.Metadata().Payload()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
@@ -582,7 +617,7 @@ func parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*oaW
 		return nil, fmt.Errorf("unable to parse payload: %s", err.Error())
 	}
 
-	visibility := calculateVisibility(tgtObj.Fields())
+	visibility := svc.calculateVisibility(tgtObj)
 	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
 	resp := oaWorkDetails{
 		commonWorkDetails: &commonWorkDetails{
@@ -596,11 +631,6 @@ func parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*oaW
 		OAWork: oaWork,
 	}
 	resp.commonWorkDetails.parseDates(tgtObj)
-
-	if visibility == "embargo" {
-		embInfo := embargoData{ReleaseDate: tgtObj.Fields()["embargo-release"], ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
-		resp.Embargo = &embInfo
-	}
 
 	if canAccessFiles {
 		for _, oaFile := range tgtObj.Files() {
