@@ -5,6 +5,9 @@ tmp/*
 *~
 *.bak
 bin
+.vscode
+go.work*
+__debug*
 # Ignore application configuration
 /config.yml
 dist/
@@ -12,6 +15,7 @@ dist/
 /src
 /cmd/viewsrv/vendor
 env.*
+.env*
 web/test.html
 info.txt
 run.sh
