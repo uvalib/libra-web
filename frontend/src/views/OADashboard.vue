@@ -36,7 +36,7 @@
                      <span v-else class="visibility draft">Draft</span>
                   </template>
                </Column>
-               <Column header="Actions" style="max-width:120px">
+               <Column header="Actions" style="max-width:130px">
                   <template #body="slotProps">
                      <div  class="acts">
                         <Button class="action" icon="pi pi-file-edit" label="Edit Work" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>

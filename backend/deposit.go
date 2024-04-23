@@ -14,7 +14,27 @@ import (
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
-type depositSettings struct {
+// Current set of field names used by libra/easystore:
+// "admin-notes": any related administrator notes.
+// "author": work author, often the depositor too.
+// "create-date": timestamp, date the work was created.
+// "modify-date": timestamp, date the work was modified.
+// "depositor": work depositor, not necessarily the author.
+// "doi": the work DOI/permanent resource link.
+// "disposition": indicates work disposition, currently only "imported" to reflect work imported from the existing Libra repository.
+// "draft": values "true" or "false" to indicate if a work is a draft or if it has been published
+// "embargo-release": timestamp, when embargo expires (if appropriate).
+// "embargo-release-visibility": visibility after embargo expires (if appropriate).
+// "invitation-sent": timestamp that indicates when an "invitation to deposit" email was sent.
+// "publish-date": timestamp when an OA work goes from private to public or when a user clicks Publish on an ETD work.
+// "resource-type": type of work, libraOpen only.
+// "sis-sent": timestamp, indicates notification sent to SIS. LibraETD only.
+// "source-id": source of the thesis, a unique SIS or Optional identifier. LibraETD only.
+// "source": source of the thesis, "sis" or "optional".
+// "submitted-sent" timestamp that indicates when a "successfully submitted" email was sent.
+// "visibility": work visibility, either "open", "uva" or "restricted".
+
+type updateSettings struct {
 	Visibility               string     `json:"visibility"`
 	EmbargoReleaseDate       *time.Time `json:"embargoReleaseDate,omitempty"`
 	EmbargoReleaseVisibility string     `json:"embargoReleaseVisibility,omitempty"`
@@ -22,14 +42,14 @@ type depositSettings struct {
 	DelFiles                 []string   `json:"delFiles"`
 }
 
-type oaDepositRequest struct {
+type oaUpdateRequest struct {
 	Work librametadata.OAWork `json:"work"`
-	depositSettings
+	updateSettings
 }
 
-type etdDepositRequest struct {
+type etdUpdateRequest struct {
 	Work librametadata.ETDWork `json:"work"`
-	depositSettings
+	updateSettings
 }
 
 type registrationRequest struct {
@@ -90,7 +110,7 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 func (svc *serviceContext) oaDeposit(c *gin.Context) {
 	token := c.Param("token")
 	log.Printf("INFO: received oa deposit request for %s", token)
-	var oaSub oaDepositRequest
+	var oaSub oaUpdateRequest
 	err := c.ShouldBindJSON(&oaSub)
 	if err != nil {
 		log.Printf("ERROR: bad payload in oa deposit request: %s", err.Error())

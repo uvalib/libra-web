@@ -155,7 +155,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	if cfg.easyStore.mode == "sqlite" {
 		config := uvaeasystore.DatastoreSqliteConfig{
 			DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
-			Log:        log.Default(),
+			// Log:        log.Default(),
 			BusName:    busName,
 			SourceName: cfg.eventSourceName,
 		}

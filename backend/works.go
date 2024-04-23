@@ -122,7 +122,7 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: request to update etd work %s", workID)
-	var etdReq etdDepositRequest
+	var etdReq etdUpdateRequest
 	err := c.ShouldBindJSON(&etdReq)
 	if err != nil {
 		log.Printf("ERROR: bad payload in etd update request: %s", err.Error())
@@ -257,7 +257,7 @@ func (svc *serviceContext) getOAWork(c *gin.Context) {
 func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: request to update oa work %s", workID)
-	var oaSub oaDepositRequest
+	var oaSub oaUpdateRequest
 	err := c.ShouldBindJSON(&oaSub)
 	if err != nil {
 		log.Printf("ERROR: bad payload in oa update request: %s", err.Error())
@@ -274,10 +274,11 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	canUpdate := false
+	var claims *jwtClaims
 	if isSignedIn(c) {
-		jwt := getJWTClaims(c)
+		claims = getJWTClaims(c)
 		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == jwt.ComputeID || jwt.IsAdmin
+		canUpdate = depositor == claims.ComputeID || claims.IsAdmin
 	}
 	if canUpdate == false {
 		log.Printf("INFO: unauthorized attempt to update oa work %s", workID)
@@ -286,6 +287,7 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	// update the metadata with newly submitted info
+	svc.auditOAWorkUpdate(claims.ComputeID, oaSub, tgtObj)
 	tgtObj.SetMetadata(oaSub.Work)
 
 	// get a list of the files currently  attached to the work and remove those that have been deleted
@@ -512,6 +514,9 @@ func (svc *serviceContext) publishWork(namespace string, workID string) error {
 	}
 
 	fields := tgtObj.Fields()
+	if fields["draft"] == "false" {
+		return fmt.Errorf("%s is already published", workID)
+	}
 	fields["draft"] = "false"
 	fields["publish-date"] = time.Now().Format(time.RFC3339)
 	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
@@ -530,6 +535,9 @@ func (svc *serviceContext) unpublishWork(namespace string, workID string) error 
 	}
 
 	fields := tgtObj.Fields()
+	if fields["draft"] == "true" {
+		return fmt.Errorf("%s is not published", workID)
+	}
 	fields["draft"] = "true"
 	delete(fields, "publish-date")
 	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
