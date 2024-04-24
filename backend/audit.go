@@ -18,12 +18,24 @@ type auditContext struct {
 	newValue  reflect.Value
 }
 
-func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdateRequest, original uvaeasystore.EasyStoreObject) {
-	origWork, err := svc.parseOAWork(original, true)
+func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
+	origWork, err := svc.parseOAWork(origObj, true)
 	if err != nil {
-		log.Printf("ERROR: unable to parse original work %s to generate audit events: %s", original.Id(), err.Error())
+		log.Printf("ERROR: unable to parse easystore oa work %s to generate audit events: %s", origObj.Id(), err.Error())
 	}
 
+	// first check for changes in visibility (field instead of metadata)
+	if origObj.Fields()["default-visibility"] != oaUpdate.Visibility {
+		auditEvt := uvalibrabus.UvaAuditEvent{
+			Who:       computeID,
+			FieldName: "default-visibility",
+			Before:    origObj.Fields()["default-visibility"],
+			After:     oaUpdate.Visibility,
+		}
+		svc.publishAuditEvent(svc.Namespaces.oa, origObj.Id(), auditEvt)
+	}
+
+	// next, use reflection to determine any metadata changes and report them individually
 	updateVal := reflect.ValueOf(&oaUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.OAWork).Elem()
 	for fieldIdx := 0; fieldIdx < origVal.NumField(); fieldIdx++ {
@@ -35,7 +47,7 @@ func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdate
 
 		auditCtx := auditContext{computeID: computeID,
 			namespace: svc.Namespaces.oa,
-			workID:    original.Id(),
+			workID:    origObj.Id(),
 			fieldName: fieldName,
 			origValue: origVal.Field(fieldIdx),
 			newValue:  updateVal.Field(fieldIdx),
