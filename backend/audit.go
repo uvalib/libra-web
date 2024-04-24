@@ -18,6 +18,28 @@ type auditContext struct {
 	newValue  reflect.Value
 }
 
+func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
+	origWork, err := svc.parseETDWork(origObj, true)
+	if err != nil {
+		log.Printf("ERROR: unable to parse easystore etd work %s to generate audit events: %s", origObj.Id(), err.Error())
+	}
+
+	// first check for changes in visibility (field instead of metadata)
+	if origObj.Fields()["default-visibility"] != etdUpdate.Visibility {
+		auditEvt := uvalibrabus.UvaAuditEvent{
+			Who:       computeID,
+			FieldName: "default-visibility",
+			Before:    origObj.Fields()["default-visibility"],
+			After:     etdUpdate.Visibility,
+		}
+		svc.publishAuditEvent(svc.Namespaces.etd, origObj.Id(), auditEvt)
+	}
+
+	updateVal := reflect.ValueOf(&etdUpdate.Work).Elem()
+	origVal := reflect.ValueOf(origWork.ETDWork).Elem()
+	svc.auditWork(computeID, svc.Namespaces.etd, origObj.Id(), origVal, updateVal)
+}
+
 func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
 	origWork, err := svc.parseOAWork(origObj, true)
 	if err != nil {
@@ -35,9 +57,18 @@ func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdate
 		svc.publishAuditEvent(svc.Namespaces.oa, origObj.Id(), auditEvt)
 	}
 
-	// next, use reflection to determine any metadata changes and report them individually
 	updateVal := reflect.ValueOf(&oaUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.OAWork).Elem()
+	svc.auditWork(computeID, svc.Namespaces.etd, origObj.Id(), origVal, updateVal)
+}
+
+func (svc *serviceContext) auditWork(computeID string, namespace string, workID string, origVal reflect.Value, updateVal reflect.Value) {
+	// use reflection to determine any metadata changes and report them individually
+	// there are 4 categories of data in the work metadata to deal with:
+	//     1: string
+	//     2: ContributorData
+	//     3: []string
+	//     4: []ContributorData
 	for fieldIdx := 0; fieldIdx < origVal.NumField(); fieldIdx++ {
 		fieldName := origVal.Type().Field(fieldIdx).Name
 		if fieldName == "SchemaVersion" {
@@ -46,8 +77,8 @@ func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdate
 		}
 
 		auditCtx := auditContext{computeID: computeID,
-			namespace: svc.Namespaces.oa,
-			workID:    origObj.Id(),
+			namespace: namespace,
+			workID:    workID,
 			fieldName: fieldName,
 			origValue: origVal.Field(fieldIdx),
 			newValue:  updateVal.Field(fieldIdx),
@@ -58,6 +89,9 @@ func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdate
 			svc.auditSliceField(auditCtx)
 		case reflect.String:
 			svc.auditStringField(auditCtx)
+		case reflect.Struct:
+			// NOTE: right now contributor is the ONLY nested struct. this needs to change if that changes
+			svc.auditContributorField(auditCtx)
 		}
 	}
 }
@@ -75,6 +109,10 @@ func (svc *serviceContext) auditStringField(auditCtx auditContext) {
 		After:     newStr,
 	}
 	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+}
+
+func (svc *serviceContext) auditContributorField(auditCtx auditContext) {
+	// todo
 }
 
 func (svc *serviceContext) auditSliceField(auditCtx auditContext) {

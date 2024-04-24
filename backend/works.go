@@ -139,10 +139,10 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	}
 
 	canUpdate := false
-	if isSignedIn(c) {
-		jwt := getJWTClaims(c)
+	claims := getJWTClaims(c)
+	if claims != nil {
 		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == jwt.ComputeID || jwt.IsAdmin
+		canUpdate = depositor == claims.ComputeID || claims.IsAdmin
 	}
 	if canUpdate == false {
 		log.Printf("INFO: unauthorized attempt to update etd work %s", workID)
@@ -151,6 +151,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	}
 
 	// update the metadata with newly submitted info
+	svc.auditETDWorkUpdate(claims.ComputeID, etdReq, tgtObj)
 	tgtObj.SetMetadata(etdReq.Work)
 
 	// get a list of the files currently  attached to the work and remove those that have been deleted
@@ -274,9 +275,8 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	}
 
 	canUpdate := false
-	var claims *jwtClaims
-	if isSignedIn(c) {
-		claims = getJWTClaims(c)
+	claims := getJWTClaims(c)
+	if claims != nil {
 		depositor := tgtObj.Fields()["depositor"]
 		canUpdate = depositor == claims.ComputeID || claims.IsAdmin
 	}
