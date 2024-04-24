@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"strings"
@@ -81,7 +82,7 @@ func (svc *serviceContext) auditWork(computeID string, namespace string, workID 
 			workID:    workID,
 			fieldName: fieldName,
 			origValue: origVal.Field(fieldIdx),
-			newValue:  updateVal.Field(fieldIdx),
+			newValue:  updateVal.FieldByName(fieldName),
 		}
 		kind := origVal.Field(fieldIdx).Kind()
 		switch kind {
@@ -91,7 +92,7 @@ func (svc *serviceContext) auditWork(computeID string, namespace string, workID 
 			svc.auditStringField(auditCtx)
 		case reflect.Struct:
 			// NOTE: right now contributor is the ONLY nested struct. this needs to change if that changes
-			svc.auditContributorField(auditCtx)
+			svc.auditContributorField(auditCtx, -1)
 		}
 	}
 }
@@ -111,8 +112,26 @@ func (svc *serviceContext) auditStringField(auditCtx auditContext) {
 	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 }
 
-func (svc *serviceContext) auditContributorField(auditCtx auditContext) {
-	// todo
+func (svc *serviceContext) auditContributorField(auditCtx auditContext, contribIdx int) {
+	// all data in contributor is string; simple checks are all thats needed
+	for fieldIdx := 0; fieldIdx < auditCtx.origValue.NumField(); fieldIdx++ {
+		fieldName := auditCtx.origValue.Type().Field(fieldIdx).Name
+		origFieldValue := auditCtx.origValue.Field(fieldIdx).String()
+		newFieldValue := auditCtx.newValue.FieldByName(fieldName).String()
+		if origFieldValue != newFieldValue {
+			changeFieldName := fmt.Sprintf("%s.%s", auditCtx.fieldName, fieldName)
+			if contribIdx > -1 {
+				changeFieldName = fmt.Sprintf("%s[%d].%s", auditCtx.fieldName, contribIdx, fieldName)
+			}
+			auditEvt := uvalibrabus.UvaAuditEvent{
+				Who:       auditCtx.computeID,
+				FieldName: changeFieldName,
+				Before:    origFieldValue,
+				After:     newFieldValue,
+			}
+			svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+		}
+	}
 }
 
 func (svc *serviceContext) auditSliceField(auditCtx auditContext) {
@@ -130,7 +149,17 @@ func (svc *serviceContext) auditSliceField(auditCtx auditContext) {
 }
 
 func (svc *serviceContext) auditStructSlice(auditCtx auditContext) {
-	// TODO
+	for idx := 0; idx < auditCtx.origValue.Len(); idx++ {
+		contribAuditCtx := auditContext{
+			computeID: auditCtx.computeID,
+			namespace: auditCtx.namespace,
+			workID:    auditCtx.workID,
+			fieldName: auditCtx.fieldName,
+			origValue: auditCtx.origValue.Index(idx),
+			newValue:  auditCtx.newValue.Index(idx),
+		}
+		svc.auditContributorField(contribAuditCtx, idx)
+	}
 }
 
 func (svc *serviceContext) auditStringSlice(auditCtx auditContext) {
