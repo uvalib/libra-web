@@ -197,7 +197,7 @@ func (svc *serviceContext) publishAuditEvent(nameSpace, workID string, audit uva
 	if svc.Events.DevMode {
 		log.Printf("INFO: dev mode work %s:%s send audit event data [%s] to bus [%s] with source [%s]", nameSpace, workID, auditDetail, svc.Events.BusName, svc.Events.EventSource)
 	} else {
-		err := svc.Events.Bus.PublishEvent(evt)
+		err := svc.Events.Bus.PublishEvent(&evt)
 		if err != nil {
 			log.Printf("ERROR: unable to publish audit event %v : %s", evt, err.Error())
 		}

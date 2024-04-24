@@ -235,7 +235,7 @@ func (svc *serviceContext) publishEvent(eventName, namespace, oid string) {
 	if svc.Events.DevMode {
 		log.Printf("INFO: dev mode send %+v to bus [%s] with source [%s]", ev, svc.Events.BusName, svc.Events.EventSource)
 	} else {
-		err := svc.Events.Bus.PublishEvent(ev)
+		err := svc.Events.Bus.PublishEvent(&ev)
 		if err != nil {
 			log.Printf("ERROR: unable to publish event %s %s - %s: %s", eventName, namespace, oid, err.Error())
 		}
