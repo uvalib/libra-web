@@ -270,7 +270,9 @@ const fileRemoved = ( event => {
    etdRepo.removeFile( event.file.name )
 })
 const fileUploaded = ( (event) => {
-   etdRepo.addFile( event.files[0].name )
+   event.files.forEach( f => {
+      etdRepo.addFile( f.name )
+   })
 })
 
 const inputLabel = ( (lbl, idx) => {

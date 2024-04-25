@@ -347,7 +347,9 @@ const fileRemoved = ( event => {
    oaRepo.removeFile( event.file.name )
 })
 const fileUploaded = ( (event) => {
-   oaRepo.addFile( event.files[0].name )
+   event.files.forEach( f => {
+      oaRepo.addFile( f.name )
+   })
 })
 
 const inputLabel = ( (lbl, idx) => {
