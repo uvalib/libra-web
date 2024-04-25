@@ -108,7 +108,7 @@ const props = defineProps({
       required: true
    },
    releaseDate: {
-      type: Date,
+      type: String,
       default: null
    },
    releaseVisibility: {

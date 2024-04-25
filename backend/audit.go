@@ -114,11 +114,10 @@ func (svc *serviceContext) auditStringField(auditCtx auditContext) {
 
 func (svc *serviceContext) auditContributorField(auditCtx auditContext, contribIdx int) {
 	// all data in contributor is string; simple checks are all thats needed
-	for fieldIdx := 0; fieldIdx < auditCtx.origValue.NumField(); fieldIdx++ {
-		fieldName := auditCtx.origValue.Type().Field(fieldIdx).Name
-		origFieldValue := auditCtx.origValue.Field(fieldIdx).String()
-		newFieldValue := auditCtx.newValue.FieldByName(fieldName).String()
-		if origFieldValue != newFieldValue {
+	log.Printf("INFO: orig %+v vs new %+v", auditCtx.origValue, auditCtx.newValue)
+	if auditCtx.origValue.IsValid() == false {
+		for fieldIdx := 0; fieldIdx < auditCtx.newValue.NumField(); fieldIdx++ {
+			fieldName := auditCtx.newValue.Type().Field(fieldIdx).Name
 			changeFieldName := fmt.Sprintf("%s.%s", auditCtx.fieldName, fieldName)
 			if contribIdx > -1 {
 				changeFieldName = fmt.Sprintf("%s[%d].%s", auditCtx.fieldName, contribIdx, fieldName)
@@ -126,10 +125,32 @@ func (svc *serviceContext) auditContributorField(auditCtx auditContext, contribI
 			auditEvt := uvalibrabus.UvaAuditEvent{
 				Who:       auditCtx.computeID,
 				FieldName: changeFieldName,
-				Before:    origFieldValue,
-				After:     newFieldValue,
+				Before:    "",
+				After:     auditCtx.newValue.Field(fieldIdx).String(),
 			}
 			svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+		}
+	} else {
+		for fieldIdx := 0; fieldIdx < auditCtx.origValue.NumField(); fieldIdx++ {
+			fieldName := auditCtx.origValue.Type().Field(fieldIdx).Name
+			origFieldValue := auditCtx.origValue.Field(fieldIdx).String()
+			newFieldValue := ""
+			if auditCtx.newValue.IsValid() {
+				newFieldValue = auditCtx.newValue.FieldByName(fieldName).String()
+			}
+			if origFieldValue != newFieldValue {
+				changeFieldName := fmt.Sprintf("%s.%s", auditCtx.fieldName, fieldName)
+				if contribIdx > -1 {
+					changeFieldName = fmt.Sprintf("%s[%d].%s", auditCtx.fieldName, contribIdx, fieldName)
+				}
+				auditEvt := uvalibrabus.UvaAuditEvent{
+					Who:       auditCtx.computeID,
+					FieldName: changeFieldName,
+					Before:    origFieldValue,
+					After:     newFieldValue,
+				}
+				svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+			}
 		}
 	}
 }
@@ -149,16 +170,40 @@ func (svc *serviceContext) auditSliceField(auditCtx auditContext) {
 }
 
 func (svc *serviceContext) auditStructSlice(auditCtx auditContext) {
+	if auditCtx.origValue.Len() == 0 && auditCtx.newValue.Len() == 0 {
+		return
+	}
+
 	for idx := 0; idx < auditCtx.origValue.Len(); idx++ {
+		var newVal reflect.Value
+		if idx < auditCtx.newValue.Len() {
+			newVal = auditCtx.newValue.Index(idx)
+		}
 		contribAuditCtx := auditContext{
 			computeID: auditCtx.computeID,
 			namespace: auditCtx.namespace,
 			workID:    auditCtx.workID,
 			fieldName: auditCtx.fieldName,
 			origValue: auditCtx.origValue.Index(idx),
-			newValue:  auditCtx.newValue.Index(idx),
+			newValue:  newVal,
 		}
 		svc.auditContributorField(contribAuditCtx, idx)
+	}
+
+	if auditCtx.newValue.Len() > auditCtx.origValue.Len() {
+		log.Printf("INFO: new array has %d more entries than original", (auditCtx.newValue.Len() - auditCtx.origValue.Len()))
+		for idx := auditCtx.origValue.Len(); idx < auditCtx.newValue.Len(); idx++ {
+			var emptyVal reflect.Value
+			contribAuditCtx := auditContext{
+				computeID: auditCtx.computeID,
+				namespace: auditCtx.namespace,
+				workID:    auditCtx.workID,
+				fieldName: auditCtx.fieldName,
+				origValue: emptyVal,
+				newValue:  auditCtx.newValue.Index(idx),
+			}
+			svc.auditContributorField(contribAuditCtx, idx)
+		}
 	}
 }
 

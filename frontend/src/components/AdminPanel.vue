@@ -64,28 +64,28 @@
             <Button label="Save" @click="saveClicked()" />
          </span>
       </div>
-   </Panel>
-   <Dialog v-model:visible="showPickEnd" :modal="true" header="Set Embargo End Date" style="width:fit-content" position="top">
-      <div class="embargo-date">
-         <p>Use one of the quick helper buttons or pick a custom end date</p>
-         <div class="datepick">
-            <Calendar v-model="embargoEndDate" inline showWeek />
-            <div class="helpers">
-               <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
-               <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
-               <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
-               <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
-               <Button label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
-               <Button label="Forever" severity="secondary" @click="embargoEndDate = null"/>
+      <Dialog v-model:visible="showPickEnd" :modal="true" header="Set Embargo End Date" style="width:fit-content" position="top">
+         <div class="embargo-date">
+            <p>Use one of the quick helper buttons or pick a custom end date</p>
+            <div class="datepick">
+               <Calendar v-model="embargoEndDate" inline showWeek />
+               <div class="helpers">
+                  <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
+                  <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
+                  <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
+                  <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
+                  <Button label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
+                  <Button label="Forever" severity="secondary" @click="embargoEndDate = null"/>
+               </div>
+            </div>
+            <div class="controls">
+               <span v-if="embargoEndDate" ><b>Embargo end date</b>: {{ $formatDate(embargoEndDate) }}</span>
+               <span v-else>Embargo does not expire</span>
+               <Button label="OK" @click="showPickEnd=false"/>
             </div>
          </div>
-         <div class="controls">
-            <span v-if="embargoEndDate" ><b>Embargo end date</b>: {{ $formatDate(embargoEndDate) }}</span>
-            <span v-else>Embargo does not expire</span>
-            <Button label="OK" @click="showPickEnd=false"/>
-         </div>
-      </div>
-   </Dialog>
+      </Dialog>
+   </Panel>
 </template>
 
 <script setup>
@@ -151,7 +151,7 @@ const props = defineProps({
       default: "",
    },
    embargoEndDate: {
-      type: Date,
+      type: String,
       default: null
    },
    embargoEndVisibility: {
