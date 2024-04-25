@@ -177,7 +177,6 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 			return
 		}
 		esFiles = append(esFiles, addedFiles...)
-		log.Printf("INFO: updated files %+v", esFiles)
 		tgtObj.SetFiles(esFiles)
 		log.Printf("INFO: cleanup upload directory %s", uploadDir)
 		os.RemoveAll(uploadDir)
@@ -313,7 +312,6 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 			return
 		}
 		esFiles = append(esFiles, addedFiles...)
-		log.Printf("INFO: updated files %+v", esFiles)
 		tgtObj.SetFiles(esFiles)
 		log.Printf("INFO: cleanup upload directory %s", uploadDir)
 		os.RemoveAll(uploadDir)

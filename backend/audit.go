@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/uvalib/easystore/uvaeasystore"
@@ -30,6 +31,7 @@ func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpd
 	}
 
 	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], etdUpdate.Visibility)
+	svc.auditFiles(auditCtx, origObj.Files(), etdUpdate.AddFiles, etdUpdate.DelFiles)
 
 	updateVal := reflect.ValueOf(&etdUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.ETDWork).Elem()
@@ -50,6 +52,7 @@ func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdate
 	}
 
 	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], oaUpdate.Visibility)
+	svc.auditFiles(auditCtx, origObj.Files(), oaUpdate.AddFiles, oaUpdate.DelFiles)
 
 	updateVal := reflect.ValueOf(&oaUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.OAWork).Elem()
@@ -66,6 +69,31 @@ func (svc *serviceContext) auditVisibiliy(auditCtx auditContext, origVis string,
 		}
 		svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 	}
+}
+
+func (svc *serviceContext) auditFiles(auditCtx auditContext, origFiles []uvaeasystore.EasyStoreBlob, added, deleted []string) {
+	log.Printf("INFO: audit files; added %v, deleted %v", added, deleted)
+	if len(added) == 0 && len(deleted) == 0 {
+		return
+	}
+	orig := make([]string, 0)
+	updated := make([]string, 0)
+	for _, esBlob := range origFiles {
+		fileName := esBlob.Name()
+		orig = append(orig, fileName)
+		if slices.Contains(deleted, fileName) == false {
+			updated = append(updated, fileName)
+		}
+	}
+
+	updated = append(updated, added...)
+	auditEvt := uvalibrabus.UvaAuditEvent{
+		Who:       auditCtx.computeID,
+		FieldName: "files",
+		Before:    strings.Join(orig, ","),
+		After:     strings.Join(updated, ","),
+	}
+	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 }
 
 func (svc *serviceContext) auditWork(auditCtx auditContext, origVal reflect.Value, updateVal reflect.Value) {

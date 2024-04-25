@@ -257,6 +257,7 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
       if ( isPinned ) {
          panelEle.style.top = `65px` // HACK: top padding + height of user toolbar
          panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
+         // FIXME this breaks with the admin panel - it is wider. the sidebar-col collapses
          panelEle.classList.add("pinned")
       } else {
          panelEle.classList.remove("pinned")
