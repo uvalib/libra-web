@@ -14,9 +14,6 @@ type auditContext struct {
 	computeID string
 	namespace string
 	workID    string
-	fieldName string
-	origValue reflect.Value
-	newValue  reflect.Value
 }
 
 func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
@@ -25,20 +22,18 @@ func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpd
 		log.Printf("ERROR: unable to parse easystore etd work %s to generate audit events: %s", origObj.Id(), err.Error())
 	}
 
-	// first check for changes in visibility (field instead of metadata)
-	if origObj.Fields()["default-visibility"] != etdUpdate.Visibility {
-		auditEvt := uvalibrabus.UvaAuditEvent{
-			Who:       computeID,
-			FieldName: "default-visibility",
-			Before:    origObj.Fields()["default-visibility"],
-			After:     etdUpdate.Visibility,
-		}
-		svc.publishAuditEvent(svc.Namespaces.etd, origObj.Id(), auditEvt)
+	// setup an audit context that contains common data needed by all audit logic
+	auditCtx := auditContext{
+		computeID: computeID,
+		namespace: svc.Namespaces.etd,
+		workID:    origObj.Id(),
 	}
+
+	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], etdUpdate.Visibility)
 
 	updateVal := reflect.ValueOf(&etdUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.ETDWork).Elem()
-	svc.auditWork(computeID, svc.Namespaces.etd, origObj.Id(), origVal, updateVal)
+	svc.auditWork(auditCtx, origVal, updateVal)
 }
 
 func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
@@ -47,23 +42,33 @@ func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdate
 		log.Printf("ERROR: unable to parse easystore oa work %s to generate audit events: %s", origObj.Id(), err.Error())
 	}
 
-	// first check for changes in visibility (field instead of metadata)
-	if origObj.Fields()["default-visibility"] != oaUpdate.Visibility {
-		auditEvt := uvalibrabus.UvaAuditEvent{
-			Who:       computeID,
-			FieldName: "default-visibility",
-			Before:    origObj.Fields()["default-visibility"],
-			After:     oaUpdate.Visibility,
-		}
-		svc.publishAuditEvent(svc.Namespaces.oa, origObj.Id(), auditEvt)
+	// setup an audit context that contains common data needed by all audit logic
+	auditCtx := auditContext{
+		computeID: computeID,
+		namespace: svc.Namespaces.oa,
+		workID:    origObj.Id(),
 	}
+
+	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], oaUpdate.Visibility)
 
 	updateVal := reflect.ValueOf(&oaUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.OAWork).Elem()
-	svc.auditWork(computeID, svc.Namespaces.etd, origObj.Id(), origVal, updateVal)
+	svc.auditWork(auditCtx, origVal, updateVal)
 }
 
-func (svc *serviceContext) auditWork(computeID string, namespace string, workID string, origVal reflect.Value, updateVal reflect.Value) {
+func (svc *serviceContext) auditVisibiliy(auditCtx auditContext, origVis string, newVis string) {
+	if origVis != newVis {
+		auditEvt := uvalibrabus.UvaAuditEvent{
+			Who:       auditCtx.computeID,
+			FieldName: "default-visibility",
+			Before:    origVis,
+			After:     newVis,
+		}
+		svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+	}
+}
+
+func (svc *serviceContext) auditWork(auditCtx auditContext, origVal reflect.Value, updateVal reflect.Value) {
 	// use reflection to determine any metadata changes and report them individually
 	// there are 4 categories of data in the work metadata to deal with:
 	//     1: string
@@ -77,71 +82,65 @@ func (svc *serviceContext) auditWork(computeID string, namespace string, workID 
 			continue
 		}
 
-		auditCtx := auditContext{computeID: computeID,
-			namespace: namespace,
-			workID:    workID,
-			fieldName: fieldName,
-			origValue: origVal.Field(fieldIdx),
-			newValue:  updateVal.FieldByName(fieldName),
-		}
+		origValue := origVal.Field(fieldIdx)
+		newValue := updateVal.FieldByName(fieldName)
 		kind := origVal.Field(fieldIdx).Kind()
 		switch kind {
 		case reflect.Slice:
-			svc.auditSliceField(auditCtx)
+			svc.auditSliceField(auditCtx, fieldName, origValue, newValue)
 		case reflect.String:
-			svc.auditStringField(auditCtx)
+			svc.auditStringField(auditCtx, fieldName, origValue, newValue)
 		case reflect.Struct:
 			// NOTE: right now contributor is the ONLY nested struct. this needs to change if that changes
-			svc.auditContributorField(auditCtx, -1)
+			svc.auditContributorField(auditCtx, fieldName, origValue, newValue, -1)
 		}
 	}
 }
 
-func (svc *serviceContext) auditStringField(auditCtx auditContext) {
-	origStr := auditCtx.origValue.String()
-	newStr := auditCtx.newValue.String()
+func (svc *serviceContext) auditStringField(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value) {
+	origStr := origValue.String()
+	newStr := newValue.String()
 	if origStr == newStr {
 		return
 	}
 	auditEvt := uvalibrabus.UvaAuditEvent{
 		Who:       auditCtx.computeID,
-		FieldName: auditCtx.fieldName,
+		FieldName: fieldName,
 		Before:    origStr,
 		After:     newStr,
 	}
 	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 }
 
-func (svc *serviceContext) auditContributorField(auditCtx auditContext, contribIdx int) {
+func (svc *serviceContext) auditContributorField(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value, contribIdx int) {
 	// all data in contributor is string; simple checks are all thats needed
-	log.Printf("INFO: orig %+v vs new %+v", auditCtx.origValue, auditCtx.newValue)
-	if auditCtx.origValue.IsValid() == false {
-		for fieldIdx := 0; fieldIdx < auditCtx.newValue.NumField(); fieldIdx++ {
-			fieldName := auditCtx.newValue.Type().Field(fieldIdx).Name
-			changeFieldName := fmt.Sprintf("%s.%s", auditCtx.fieldName, fieldName)
+	if origValue.IsValid() == false {
+		for fieldIdx := 0; fieldIdx < newValue.NumField(); fieldIdx++ {
+			contribField := newValue.Type().Field(fieldIdx).Name
+			changeFieldName := fmt.Sprintf("%s.%s", fieldName, contribField)
 			if contribIdx > -1 {
-				changeFieldName = fmt.Sprintf("%s[%d].%s", auditCtx.fieldName, contribIdx, fieldName)
+				changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, contribIdx, contribField)
 			}
 			auditEvt := uvalibrabus.UvaAuditEvent{
 				Who:       auditCtx.computeID,
 				FieldName: changeFieldName,
 				Before:    "",
-				After:     auditCtx.newValue.Field(fieldIdx).String(),
+				After:     newValue.Field(fieldIdx).String(),
 			}
 			svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 		}
 	} else {
-		for fieldIdx := 0; fieldIdx < auditCtx.origValue.NumField(); fieldIdx++ {
-			fieldName := auditCtx.origValue.Type().Field(fieldIdx).Name
-			origFieldValue := auditCtx.origValue.Field(fieldIdx).String()
+		for fieldIdx := 0; fieldIdx < origValue.NumField(); fieldIdx++ {
+			contribField := origValue.Type().Field(fieldIdx).Name
+			origFieldValue := origValue.Field(fieldIdx).String()
 			newFieldValue := ""
-			if auditCtx.newValue.IsValid() {
-				newFieldValue = auditCtx.newValue.FieldByName(fieldName).String()
+			if newValue.IsValid() {
+				newFieldValue = newValue.FieldByName(contribField).String()
 			}
 			if origFieldValue != newFieldValue {
-				changeFieldName := fmt.Sprintf("%s.%s", auditCtx.fieldName, fieldName)
+				changeFieldName := fmt.Sprintf("%s.%s", fieldName, contribField)
 				if contribIdx > -1 {
-					changeFieldName = fmt.Sprintf("%s[%d].%s", auditCtx.fieldName, contribIdx, fieldName)
+					changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, contribIdx, contribField)
 				}
 				auditEvt := uvalibrabus.UvaAuditEvent{
 					Who:       auditCtx.computeID,
@@ -155,66 +154,50 @@ func (svc *serviceContext) auditContributorField(auditCtx auditContext, contribI
 	}
 }
 
-func (svc *serviceContext) auditSliceField(auditCtx auditContext) {
-	if auditCtx.origValue.Len() == 0 && auditCtx.newValue.Len() == 0 {
+func (svc *serviceContext) auditSliceField(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value) {
+	if origValue.Len() == 0 && newValue.Len() == 0 {
 		return
 	}
 
-	if auditCtx.origValue.Len() > 0 && auditCtx.origValue.Index(0).Kind() == reflect.String ||
-		auditCtx.newValue.Len() > 0 && auditCtx.newValue.Index(0).Kind() == reflect.String {
-		svc.auditStringSlice(auditCtx)
+	if origValue.Len() > 0 && origValue.Index(0).Kind() == reflect.String ||
+		newValue.Len() > 0 && newValue.Index(0).Kind() == reflect.String {
+		svc.auditStringSlice(auditCtx, fieldName, origValue, newValue)
 	} else {
 		// the only other type of slice used is a slice of structs
-		svc.auditStructSlice(auditCtx)
+		svc.auditStructSlice(auditCtx, fieldName, origValue, newValue)
 	}
 }
 
-func (svc *serviceContext) auditStructSlice(auditCtx auditContext) {
-	if auditCtx.origValue.Len() == 0 && auditCtx.newValue.Len() == 0 {
+func (svc *serviceContext) auditStructSlice(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value) {
+	if origValue.Len() == 0 && newValue.Len() == 0 {
 		return
 	}
 
-	for idx := 0; idx < auditCtx.origValue.Len(); idx++ {
+	for idx := 0; idx < origValue.Len(); idx++ {
 		var newVal reflect.Value
-		if idx < auditCtx.newValue.Len() {
-			newVal = auditCtx.newValue.Index(idx)
+		if idx < newValue.Len() {
+			newVal = newValue.Index(idx)
 		}
-		contribAuditCtx := auditContext{
-			computeID: auditCtx.computeID,
-			namespace: auditCtx.namespace,
-			workID:    auditCtx.workID,
-			fieldName: auditCtx.fieldName,
-			origValue: auditCtx.origValue.Index(idx),
-			newValue:  newVal,
-		}
-		svc.auditContributorField(contribAuditCtx, idx)
+		svc.auditContributorField(auditCtx, fieldName, origValue.Index(idx), newVal, idx)
 	}
 
-	if auditCtx.newValue.Len() > auditCtx.origValue.Len() {
-		log.Printf("INFO: new array has %d more entries than original", (auditCtx.newValue.Len() - auditCtx.origValue.Len()))
-		for idx := auditCtx.origValue.Len(); idx < auditCtx.newValue.Len(); idx++ {
+	if newValue.Len() > origValue.Len() {
+		log.Printf("INFO: new array has %d more entries than original", (newValue.Len() - origValue.Len()))
+		for idx := origValue.Len(); idx < newValue.Len(); idx++ {
 			var emptyVal reflect.Value
-			contribAuditCtx := auditContext{
-				computeID: auditCtx.computeID,
-				namespace: auditCtx.namespace,
-				workID:    auditCtx.workID,
-				fieldName: auditCtx.fieldName,
-				origValue: emptyVal,
-				newValue:  auditCtx.newValue.Index(idx),
-			}
-			svc.auditContributorField(contribAuditCtx, idx)
+			svc.auditContributorField(auditCtx, fieldName, emptyVal, newValue.Index(idx), idx)
 		}
 	}
 }
 
-func (svc *serviceContext) auditStringSlice(auditCtx auditContext) {
+func (svc *serviceContext) auditStringSlice(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value) {
 	var orig []string
-	for i := 0; i < auditCtx.origValue.Len(); i++ {
-		orig = append(orig, auditCtx.origValue.Index(i).String())
+	for i := 0; i < origValue.Len(); i++ {
+		orig = append(orig, origValue.Index(i).String())
 	}
 	var upd []string
-	for i := 0; i < auditCtx.newValue.Len(); i++ {
-		upd = append(upd, auditCtx.newValue.Index(i).String())
+	for i := 0; i < newValue.Len(); i++ {
+		upd = append(upd, newValue.Index(i).String())
 	}
 
 	if reflect.DeepEqual(orig, upd) {
@@ -223,7 +206,7 @@ func (svc *serviceContext) auditStringSlice(auditCtx auditContext) {
 
 	auditEvt := uvalibrabus.UvaAuditEvent{
 		Who:       auditCtx.computeID,
-		FieldName: auditCtx.fieldName,
+		FieldName: fieldName,
 		Before:    strings.Join(orig, "|"),
 		After:     strings.Join(upd, "|"),
 	}
