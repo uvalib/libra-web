@@ -154,32 +154,15 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	svc.auditETDWorkUpdate(claims.ComputeID, etdReq, tgtObj)
 	tgtObj.SetMetadata(etdReq.Work)
 
-	// get a list of the files currently  attached to the work and remove those that have been deleted
-	esFiles := tgtObj.Files()
-	for _, fn := range etdReq.DelFiles {
-		for fIdx, origF := range esFiles {
-			if origF.Name() == fn {
-				log.Printf("INFO: remove file %s from etd work %s", fn, workID)
-				esFiles = append(esFiles[:fIdx], esFiles[fIdx+1:]...)
-				break
-			}
-		}
-	}
-
-	// newly uploaded files are in a tmp dir named by the ID of the OA work
-	if len(etdReq.AddFiles) > 0 {
-		log.Printf("INFO: adding %v to etd work %s", etdReq.AddFiles, workID)
-		uploadDir := path.Join("/tmp", workID)
-		addedFiles, err := getSubmittedFiles(uploadDir, etdReq.AddFiles)
+	// update files if necessary
+	if len(etdReq.AddFiles) != 0 || len(etdReq.DelFiles) != 0 {
+		esFiles, err := svc.updateWorkFiles(tgtObj.Id(), tgtObj.Files(), etdReq.AddFiles, etdReq.DelFiles)
 		if err != nil {
-			log.Printf("ERROR: unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
+			log.Printf("ERROR: %s", err.Error())
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
-		esFiles = append(esFiles, addedFiles...)
 		tgtObj.SetFiles(esFiles)
-		log.Printf("INFO: cleanup upload directory %s", uploadDir)
-		os.RemoveAll(uploadDir)
 	}
 
 	// update fields
@@ -289,32 +272,15 @@ func (svc *serviceContext) oaUpdate(c *gin.Context) {
 	svc.auditOAWorkUpdate(claims.ComputeID, oaSub, tgtObj)
 	tgtObj.SetMetadata(oaSub.Work)
 
-	// get a list of the files currently  attached to the work and remove those that have been deleted
-	esFiles := tgtObj.Files()
-	for _, fn := range oaSub.DelFiles {
-		for fIdx, origF := range esFiles {
-			if origF.Name() == fn {
-				log.Printf("INFO: remove file %s from oa work %s", fn, workID)
-				esFiles = append(esFiles[:fIdx], esFiles[fIdx+1:]...)
-				break
-			}
-		}
-	}
-
-	// newly uploaded files are in a tmp dir named by the ID of the OA work
-	if len(oaSub.AddFiles) > 0 {
-		log.Printf("INFO: adding %v to oa work %s", oaSub.AddFiles, workID)
-		uploadDir := path.Join("/tmp", workID)
-		addedFiles, err := getSubmittedFiles(uploadDir, oaSub.AddFiles)
+	// update files if necessary
+	if len(oaSub.AddFiles) != 0 || len(oaSub.DelFiles) != 0 {
+		esFiles, err := svc.updateWorkFiles(tgtObj.Id(), tgtObj.Files(), oaSub.AddFiles, oaSub.DelFiles)
 		if err != nil {
-			log.Printf("ERROR: unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
+			log.Printf("ERROR: %s", err.Error())
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
-		esFiles = append(esFiles, addedFiles...)
 		tgtObj.SetFiles(esFiles)
-		log.Printf("INFO: cleanup upload directory %s", uploadDir)
-		os.RemoveAll(uploadDir)
 	}
 
 	// update fields
@@ -379,6 +345,39 @@ func (svc *serviceContext) unpublishETDWork(c *gin.Context) {
 		return
 	}
 	c.String(http.StatusOK, "unpublished")
+}
+
+func (svc *serviceContext) updateWorkFiles(workID string, origFiles []uvaeasystore.EasyStoreBlob, addFiles, delFiles []string) ([]uvaeasystore.EasyStoreBlob, error) {
+	//  generate a list of files; start a new list and only add those
+	// from the original work that are not on the deleted list
+	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
+	for _, currBlob := range origFiles {
+		add := true
+		for _, delFn := range delFiles {
+			if delFn == currBlob.Name() {
+				add = false
+				break
+			}
+		}
+		if add {
+			esFiles = append(esFiles, currBlob)
+		}
+	}
+
+	// newly uploaded files are in a tmp dir named by the ID of the OA work
+	if len(addFiles) > 0 {
+		log.Printf("INFO: adding %v to work %s", addFiles, workID)
+		uploadDir := path.Join("/tmp", workID)
+		addedFiles, err := getSubmittedFiles(uploadDir, addFiles)
+		if err != nil {
+			log.Printf("ERROR: unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
+			return nil, fmt.Errorf("unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
+		}
+		esFiles = append(esFiles, addedFiles...)
+		log.Printf("INFO: cleanup upload directory %s", uploadDir)
+		os.RemoveAll(uploadDir)
+	}
+	return esFiles, nil
 }
 
 func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
