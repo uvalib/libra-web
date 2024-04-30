@@ -35,7 +35,7 @@
          </tr>
          <template v-if="showEmbargoSettings">
             <tr>
-               <td class="label">Embargo End:</td>
+               <td class="label">End Date:</td>
                <td class="embargo">
                   <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
                   <span v-else>Never</span>
@@ -51,10 +51,10 @@
             </tr>
          </template>
       </table>
-      <FloatLabel>
-         <Textarea v-model="adminNotes" rows="5" />
-         <label>Admin Notes</label>
-      </FloatLabel>
+      <div>
+         <label for="admin-notes">Admin Notes</label>
+         <Textarea id="admin-notes" v-model="adminNotes" rows="5" />
+      </div>
 
       <div class="button-bar">
          <Button v-if="props.published" label="Unpublish" severity="warning" icon="pi pi-eye-slash" @click="unpublishWorkClicked()"/>
@@ -166,11 +166,22 @@ const props = defineProps({
 
 const visibilityOpts = computed( () => {
    if (props.type == "oa") return system.oaVisibility
-   return system.etdVisibility
+
+   // admins get the notmal ETD visibility options plus embargo
+   // note: copy the array with slice to avoid updating the data in the system store
+   let etdVis = system.etdVisibility.slice()
+   etdVis.push({
+      "label": "Embargo",
+      "value": "embargo",
+      "oa": false,
+      "etd": true}
+   )
+   return etdVis
 })
 const showEmbargoSettings = computed( () => {
+   if ( visibility.value == 'embargo' ) return true
    if ( props.type == 'etd') return visibility.value == 'uva'
-   return visibility.value == 'embargo'
+   return false
 })
 
 onMounted( () => {
@@ -183,7 +194,7 @@ onMounted( () => {
 })
 
 const visibilityChanged = (() => {
-   if ( (props.type == "etd" && visibility.value == "uva") || (props.type == "oa" && visibility.value == "embargo")) {
+   if ( (props.type == "etd" && visibility.value == "uva") || visibility.value == "embargo") {
       embargoEndVisibility.value = "open"
       setEmbargoEndDate(6, "month")
    }
@@ -277,6 +288,12 @@ const saveClicked = (() => {
 .admin-panel {
    :deep(.p-panel-title) {
       font-weight: normal;
+   }
+   label {
+      font-size: 0.9em;
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px 0;
    }
    table {
       font-size: 0.9em;

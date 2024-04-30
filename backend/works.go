@@ -169,12 +169,13 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	fields := tgtObj.Fields()
 	fields["modify-date"] = time.Now().Format(time.RFC3339)
 	fields["default-visibility"] = etdReq.Visibility
-	if etdReq.Visibility == "uva" {
+	if etdReq.Visibility == "uva" || etdReq.Visibility == "embargo" {
 		if etdReq.EmbargoReleaseDate == nil {
 			log.Printf("INFO: etd work %s set for a forever embargo", tgtObj.Id())
 			fields["embargo-release"] = ""
 			delete(fields, "embargo-release-visibility")
 		} else {
+			// FIXME - FOR UVA VISIBILITY, ENSURE RELEASE DATE IS SOONER THAN 5 YEARS. IF NOT, ERROR
 			fields["embargo-release"] = etdReq.EmbargoReleaseDate.Format(time.RFC3339)
 			fields["embargo-release-visibility"] = etdReq.EmbargoReleaseVisibility
 		}
@@ -397,7 +398,10 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObject) string {
 	fields := tgtObj.Fields()
 	visibility := fields["default-visibility"]
-	if tgtObj.Namespace() == svc.Namespaces.oa && visibility == "embargo" || tgtObj.Namespace() == svc.Namespaces.etd && visibility == "uva" {
+	// both ETD and OA can have an embaro period when files can only be accessed by admin/author
+	// only ETD works can have uva visibility for a limited time
+	// in either case, the date is held in embargo-release and the visibility in embargo-release-visibility
+	if visibility == "embargo" || tgtObj.Namespace() == svc.Namespaces.etd && visibility == "uva" {
 		releaseDateStr := fields["embargo-release"]
 		if releaseDateStr == "" {
 			// no release date means forever embargoed; just return the default visibility (embargo or uva)

@@ -18,16 +18,22 @@
       </Fieldset>
       <Fieldset legend="Visibility">
          <!-- note; use props.visibility here to capture the visibility when the work was loaded, not when changed during edit -->
-         <div v-if="props.visibility == 'embargo' && props.draft == false" class="embargo no-pad">
-            <span class="embargo-note">This work is under embargo.</span>
-            <p>Files will be unavavilble to others until:</p>
-            <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
-            <p>After that, files will be be available:</p>
-            <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
-            <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
-         </div>
+         <template v-if="props.visibility == 'embargo'">
+            <div v-if="props.type=='etd'">
+               <div class="embargo-note">This work is under embargo.</div>
+               <div class="embargo-note">Files will NOT be available to anyone until {{ $formatDate(releaseDate) }}.</div>
+            </div>
+            <div v-else class="embargo no-pad">
+               <div class="embargo-note">This work is under embargo.</div>
+               <div class="embargo-note">Files will NOT be available to anyone until:</div>
+               <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
+               <div class="embargo-note">After that, files will be be available:</div>
+               <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+               <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
+            </div>
+         </template>
          <div v-else v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
-            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" />
+            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" @update:model-value="visibilityUpdated"/>
             <label :for="v.value" class="left-margin visibility" :class="v.value">{{ v.label }}</label>
             <div v-if="showLicense(v)" class="license">
                <a :href="v.license.url">{{ v.license.label }}</a>
@@ -38,7 +44,7 @@
                <p>After that, files will be be available worldwide.</p>
             </div>
             <div v-if="showOAEmbargo(v)" class="embargo">
-               <p>Files will be unavavilble to others until:</p>
+               <p>Files will NOT be available to anyone until:</p>
                <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
                <p>After that, files will be be available:</p>
                <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
@@ -58,14 +64,8 @@
          </label>
       </div>
       <div class="button-bar">
-         <template v-if="props.type=='oa'">
-            <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
-            <Button label="Submit" @click="oaSubmitClicked()" :disabled="!canSubmit"/>
-         </template>
-         <template v-else>
-            <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
-            <Button label="Save" @click="etdSubmitClicked()" :disabled="!canSubmit"/>
-         </template>
+         <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
+         <Button label="Submit" @click="submitClicked()" :disabled="!canSubmit"/>
       </div>
    </Panel>
 </template>
@@ -160,6 +160,14 @@ const canSubmit = computed(() =>{
    return agree.value == true && visibility.value != "" && props.files
 })
 
+const visibilityUpdated = (() => {
+   if (visibility.value == "embargo") {
+      releaseVisibility.value = "open"
+      releaseDate.value = new Date()
+      releaseDate.value.setMonth( releaseDate.value.getMonth() + 6)
+   }
+})
+
 const liftEmbargo = ( () => {
    confirm.require({
       message: `Are you sure you want to lift the embargo on this work?`,
@@ -179,34 +187,41 @@ const showLicense = ( (vis) => {
    }
    return false
 })
+
 const showETDEmbargo = ((vis) =>{
    if (props.type == "oa") return false
    return (vis.value == 'uva' && visibility.value == vis.value)
 })
+
 const showOAEmbargo = ((vis) =>{
    if (props.type == "etd") return false
    return (vis.value == 'embargo' && visibility.value == vis.value)
 })
 
-const oaSubmitClicked = (() => {
-   if ( visibility.value == "embargo") {
-      emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
-   } else {
-      emit('submit', visibility.value)
-   }
-})
-const etdSubmitClicked = (() => {
-   if ( visibility.value == "uva") {
-      let endDate = new Date()
-      if ( limitedDuration.value == "6-months") {
-         endDate.setMonth( endDate.getMonth()+6)
+const submitClicked = (() => {
+   if ( props.type == "etd") {
+      if ( visibility.value == "embargo") {
+         // this can only be set by admin and cannot change; these values are copied from
+         // the props and converted to dates as the backed expets a date, not a string
+         emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
+      } else if (visibility.value == "uva") {
+         // FIXME this will go away once the date UI is replaced with the date picker admin uses
+         if ( limitedDuration.value == "6-months") {
+            endDate.setMonth( endDate.getMonth()+6)
+         } else {
+            let numYears = parseInt(limitedDuration.value.split("-")[0], 10)
+            endDate.setFullYear( endDate.getFullYear()+numYears)
+         }
+         emit("submit", visibility.value, endDate, "open")
       } else {
-         let numYears = parseInt(limitedDuration.value.split("-")[0], 10)
-         endDate.setFullYear( endDate.getFullYear()+numYears)
+         emit('submit', visibility.value)
       }
-      emit("submit", visibility.value, endDate, "open")
    } else {
-      emit("submit", visibility.value)
+      if ( visibility.value == "embargo") {
+         emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
+      } else {
+         emit('submit', visibility.value)
+      }
    }
 })
 </script>
@@ -215,6 +230,9 @@ const etdSubmitClicked = (() => {
 .save-panel {
    :deep(.p-panel-title) {
       font-weight: normal;
+   }
+   .embargo-note {
+      margin: 4px 0;
    }
    .help {
       font-size: 0.9em;
