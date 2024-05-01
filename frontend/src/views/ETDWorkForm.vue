@@ -3,7 +3,7 @@
       <div class="form" id="etd-form-layout">
          <div class="sidebar-col" :class="{admin: adminEdit}" v-if="etdRepo.working==false">
             <AdminPanel v-if="adminEdit"
-               type="etd"  :identifier="etdRepo.work.id" :created="etdRepo.createdAt"
+               type="etd"  :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
                :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
                :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
                :degree="etdRepo.work.degree" :department="etdRepo.work.department" :notes="etdRepo.work.adminNotes"

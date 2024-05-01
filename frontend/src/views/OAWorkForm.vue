@@ -3,7 +3,7 @@
       <div class="form" id="oa-form-layout">
          <div class="sidebar-col" :class="{admin: adminEdit}" v-if="oaRepo.working==false">
             <AdminPanel v-if="adminEdit"
-               type="oa"  :identifier="oaRepo.work.id" :created="oaRepo.createdAt"
+               type="oa"  :identifier="oaRepo.work.id" :created="oaRepo.createdAt" :depositor="oaRepo.depositor"
                :modified="oaRepo.modifiedAt" :published="oaRepo.publishedAt" :visibility="oaRepo.visibility"
                :embargoEndDate="oaRepo.embargoReleaseDate" :embargoEndVisibility="oaRepo.embargoReleaseVisibility"
                :notes="oaRepo.work.adminNotes" ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"

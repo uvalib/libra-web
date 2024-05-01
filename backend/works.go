@@ -30,6 +30,7 @@ type commonWorkDetails struct {
 	Visibility     string                   `json:"visibility"`
 	Embargo        *embargoData             `json:"embargo,omitempty"`
 	Files          []librametadata.FileData `json:"files"`
+	Depositor      string                   `json:"depositor"`
 	CreatedAt      time.Time                `json:"createdAt"`
 	ModifiedAt     *time.Time               `json:"modifiedAt,omitempty"`
 	PublishedAt    *time.Time               `json:"publishedAt,omitempty"`
@@ -598,6 +599,7 @@ func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, can
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
+			Depositor:      tgtObj.Fields()["depositor"],
 			PersistentLink: tgtObj.Fields()["doi"],
 			Files:          make([]librametadata.FileData, 0),
 		},
@@ -634,6 +636,7 @@ func (svc *serviceContext) parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canA
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
+			Depositor:      tgtObj.Fields()["depositor"],
 			PersistentLink: tgtObj.Fields()["doi"],
 			Files:          make([]librametadata.FileData, 0),
 		},

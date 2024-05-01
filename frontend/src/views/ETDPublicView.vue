@@ -10,10 +10,19 @@
       <template v-else>
          <div class="files">
             <Fieldset legend="Files">
+               <template  v-if="etdRepo.visibility == 'embargo'">
+                  <span class="file-embargo">
+                    This item is restricted to abstract view only until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
+                  </span>
+                  <span  v-if="etdRepo.isDraft" class="file-embargo author">
+                     The files listed below will NOT be available to anyone until the embargo date has passed.
+                  </span>
+               </template>
                <span  v-if="etdRepo.visibility == 'uva'" class="file-embargo">
                   This item is restricted to UVA until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
                </span>
-               <div class="file" v-for="file in etdRepo.work.files">
+
+               <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
                   <div class="name">{{ file.name }}</div>
                   <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
                   <Button icon="pi pi-cloud-download" label="Download" severity="secondary" @click="downloadFileClicked(file.name)"/>
@@ -280,6 +289,14 @@ div.public-work {
          margin: 10px 0 10px 10px;
          font-style: italic;
          font-size: 1.15em;
+      }
+      .file-embargo.author {
+         padding: 5px 10px;
+         font-size: 0.9em;
+         font-style: normal;
+         background: var(--uvalib-yellow-light);
+         border: 1px solid var(--uvalib-yellow-dark);
+         border-radius: 4px;
       }
       .file {
          margin: 10px 0 0 10px;

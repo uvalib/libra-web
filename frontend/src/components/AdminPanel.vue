@@ -6,6 +6,10 @@
             <td>{{ props.identifier }}</td>
          </tr>
          <tr>
+            <td class="label">Depositor:</td>
+            <td>{{ props.depositor }}</td>
+         </tr>
+         <tr>
             <td class="label">Created:</td>
             <td>{{ $formatDateTime(props.created) }}</td>
          </tr>
@@ -92,13 +96,11 @@
 import Panel from 'primevue/panel'
 import { ref, onMounted, computed } from 'vue'
 import Textarea from 'primevue/textarea'
-import FloatLabel from 'primevue/floatlabel'
 import Dropdown from 'primevue/dropdown'
 import Dialog from 'primevue/dialog'
 import Calendar from 'primevue/calendar'
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
-import dayjs from 'dayjs'
 import { useConfirm } from "primevue/useconfirm"
 
 const confirm = useConfirm()
@@ -125,6 +127,10 @@ const props = defineProps({
       validator(value) {
          return ['oa', 'etd'].includes(value)
       },
+   },
+   depositor: {
+      type: String,
+      required: true
    },
    created: {
       type: String,

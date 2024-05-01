@@ -13,6 +13,7 @@ export const useETDStore = defineStore('etd', {
       embargoReleaseVisibility: "",
       licenseID: "",
       persistentLink: "",
+      depositor: "",
       createdAt: null,
       modifiedAt: null,
       publishedAt: null,
@@ -64,6 +65,8 @@ export const useETDStore = defineStore('etd', {
          delete data.isDraft
          this.visibility = data.visibility
          delete data.visibility
+         this.depositor = data.depositor
+         delete data.depositor
          this.persistentLink = data.persistentLink
          delete data.persistentLink
          this.createdAt = data.createdAt

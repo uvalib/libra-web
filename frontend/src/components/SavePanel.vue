@@ -241,14 +241,14 @@ const submitClicked = (() => {
    div.embargo.no-pad {
       margin: 0 0 0 0;
    }
+   .embargo-note {
+      font-style: italic;
+      font-weight: bold;
+      color: #bababa;
+   }
    div.embargo {
       font-size: 0.9em;
       margin: 15px 0 30px 30px;
-      .embargo-note {
-         font-style: italic;
-         font-weight: bold;
-         color: #bababa;
-      }
       button {
          width: 100%;
          margin-top: 15px;

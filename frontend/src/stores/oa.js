@@ -14,6 +14,7 @@ export const useOAStore = defineStore('oa', {
       persistentLink: "",
       embargoReleaseDate: null,
       embargoReleaseVisibility: "",
+      depositor: "",
       createdAt: null,
       modifiedAt: null,
       publishedAt: null,
@@ -66,6 +67,8 @@ export const useOAStore = defineStore('oa', {
          delete data.isDraft
          this.visibility = data.visibility
          delete data.visibility
+         this.depositor = data.depositor
+         delete data.depositor
          this.persistentLink = data.persistentLink
          delete data.persistentLink
          this.createdAt = data.createdAt
