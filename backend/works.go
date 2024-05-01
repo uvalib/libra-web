@@ -567,23 +567,30 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 	visibility := svc.calculateVisibility(tgtObj)
 	depositor := fields["depositor"]
 	isDraft, _ := strconv.ParseBool(fields["draft"])
+	log.Printf("INFO: check if work %s with visibility %s can be accessed", tgtObj.Id(), visibility)
 	resp := workAccess{files: false, metadata: true}
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
+		log.Printf("INFO: work %s accessed by signed in user %s", tgtObj.Id(), jwt.ComputeID)
 		if depositor == jwt.ComputeID || jwt.IsAdmin {
+			log.Printf("INFO: user %s is admin or author of work %s and has full access", jwt.ComputeID, tgtObj.Id())
 			resp.files = true
 		}
 	} else {
 		if isDraft {
+			log.Printf("INFO: work %s is a draft cannot be accessed", tgtObj.Id())
 			resp.metadata = false
 		} else {
 			if visibility == "open" {
+				log.Printf("INFO: work %s is public and is fully visibile", tgtObj.Id())
 				resp.files = true
 			} else if visibility == "embargo" {
 				// embargo work files are only visible to admin / author. that us handled above
+				log.Printf("INFO: work %s is embargoed and only metadata is visible", tgtObj.Id())
 				resp.files = false
 			} else {
 				resp.files = svc.isFromUVA(c)
+				log.Printf("INFO: work %s is limited to uva users; user uva status %t", tgtObj.Id(), resp.files)
 			}
 		}
 	}
