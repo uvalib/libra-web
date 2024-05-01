@@ -176,8 +176,17 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 			fields["embargo-release"] = ""
 			delete(fields, "embargo-release-visibility")
 		} else {
-			// FIXME - FOR UVA VISIBILITY, ENSURE RELEASE DATE IS SOONER THAN 5 YEARS. IF NOT, ERROR
-			fields["embargo-release"] = etdReq.EmbargoReleaseDate.Format(time.RFC3339)
+			// For non-admin users, visibility muast be public within 5 years per provost
+			endDateStr := etdReq.EmbargoReleaseDate.Format(time.RFC3339)
+			if etdReq.Visibility == "uva" && claims.IsAdmin == false {
+				maxDate := time.Now().AddDate(5, 0, 0) // now + 5 years
+				if etdReq.EmbargoReleaseDate.After(maxDate) {
+					log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", endDateStr)
+					c.String(http.StatusBadRequest, "limited visibilty end date must be less than five years from today")
+					return
+				}
+			}
+			fields["embargo-release"] = endDateStr
 			fields["embargo-release-visibility"] = etdReq.EmbargoReleaseVisibility
 		}
 	} else {

@@ -206,6 +206,7 @@ const submitClicked = (() => {
          emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
       } else if (visibility.value == "uva") {
          // FIXME this will go away once the date UI is replaced with the date picker admin uses
+         let endDate = new Date()
          if ( limitedDuration.value == "6-months") {
             endDate.setMonth( endDate.getMonth()+6)
          } else {
