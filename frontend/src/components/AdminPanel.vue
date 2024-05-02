@@ -43,7 +43,7 @@
                <td class="embargo">
                   <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
                   <span v-else>Never</span>
-                  <Button label="Change" severity="secondary" @click="showPickEnd = true"/>
+                  <DatePickerDialog :type="props.type" :endDate="embargoEndDate" :admin="true" :visibility="visibility" @picked="endDatePicked"/>
                </td>
             </tr>
             <tr>
@@ -68,27 +68,6 @@
             <Button label="Save" @click="saveClicked()" />
          </span>
       </div>
-      <Dialog v-model:visible="showPickEnd" :modal="true" header="Set Embargo End Date" style="width:fit-content" position="top">
-         <div class="embargo-date">
-            <p>Use one of the quick helper buttons or pick a custom end date</p>
-            <div class="datepick">
-               <Calendar v-model="embargoEndDate" inline showWeek />
-               <div class="helpers">
-                  <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
-                  <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
-                  <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
-                  <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
-                  <Button label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
-                  <Button label="Forever" severity="secondary" @click="embargoEndDate = null"/>
-               </div>
-            </div>
-            <div class="controls">
-               <span v-if="embargoEndDate" ><b>Embargo end date</b>: {{ $formatDate(embargoEndDate) }}</span>
-               <span v-else>Embargo does not expire</span>
-               <Button label="OK" @click="showPickEnd=false"/>
-            </div>
-         </div>
-      </Dialog>
    </Panel>
 </template>
 
@@ -97,8 +76,7 @@ import Panel from 'primevue/panel'
 import { ref, onMounted, computed } from 'vue'
 import Textarea from 'primevue/textarea'
 import Dropdown from 'primevue/dropdown'
-import Dialog from 'primevue/dialog'
-import Calendar from 'primevue/calendar'
+import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
 import { useConfirm } from "primevue/useconfirm"
@@ -112,7 +90,6 @@ const department = ref("")
 const visibility = ref("")
 const embargoEndDate = ref(null)
 const embargoEndVisibility = ref("")
-const showPickEnd = ref(false)
 const endOpts = ref([{label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}])
 
 const emit = defineEmits( ['save', 'cancel', 'delete'])
@@ -202,8 +179,13 @@ onMounted( () => {
 const visibilityChanged = (() => {
    if ( (props.type == "etd" && visibility.value == "uva") || visibility.value == "embargo") {
       embargoEndVisibility.value = "open"
-      setEmbargoEndDate(6, "month")
+      embargoEndDate.value = new Date()
+      embargoEndDate.value.setMonth( embargoEndDate.value.getMonth() + 6)
    }
+})
+
+const endDatePicked = ( (newDate) => {
+   embargoEndDate.value = newDate
 })
 
 const unpublishWorkClicked = ( () => {
@@ -231,15 +213,6 @@ const deleteWorkClicked = ( () => {
    })
 })
 
-const setEmbargoEndDate = ((count, type) => {
-   let endDate = new Date()
-   if (type=="month") {
-      endDate.setMonth( endDate.getMonth() + count)
-   } else {
-      endDate.setFullYear( endDate.getFullYear() + count)
-   }
-   embargoEndDate.value = endDate
-})
 const saveClicked = (() => {
    let changes = {
       adminNotes: adminNotes.value,
@@ -262,33 +235,6 @@ const saveClicked = (() => {
       margin:0 0 15px 0;
       padding:0;
       text-align: center;
-   }
-   .datepick {
-      display: flex;
-      flex-flow: row nowrap;
-      .helpers {
-         display: flex;
-         flex-direction: column;
-         margin-left: 15px;
-         button {
-            margin-bottom: 5px;
-            font-size: 0.85em;
-            padding: 4px 10px;
-         }
-      }
-   }
-   .controls {
-      margin-top:10px;
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-      align-items: center;
-   }
-   :deep(.p-datepicker-today) {
-      span {
-         background: white;
-         border: 1px solid var(--uvalib-grey-light);
-      }
    }
 }
 .admin-panel {
@@ -317,10 +263,6 @@ const saveClicked = (() => {
          flex-flow: row nowrap;
          justify-content: space-between;
          align-items: center;
-         button {
-            font-size: 0.8em;
-            padding: 3px 10px;
-         }
       }
       :deep(.p-dropdown ) {
          width: 300px;
@@ -329,9 +271,6 @@ const saveClicked = (() => {
             padding: 4px 8px;
          }
       }
-   }
-   .p-float-label {
-      margin-top: 15px;
    }
    .p-inputtextarea {
       width: 100%;

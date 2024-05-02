@@ -151,9 +151,14 @@ export const useETDStore = defineStore('etd', {
             work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility,
             embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
+         if ( typeof this.embargoReleaseDate === "string") {
+            console.log("DATE IS A STRING")
+         } else {
+            console.log("NOT A STRING!!!")
+         }
          let url = `/api/works/etd/${this.work.id}`
          return axios.put(url, payload).then(response => {
-            this.work = response.data
+            this.setWorkDetails( response.data )
             this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []

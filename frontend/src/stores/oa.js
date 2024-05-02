@@ -210,7 +210,7 @@ export const useOAStore = defineStore('oa', {
             embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
          }
          return axios.put(`/api/works/oa/${this.work.id}`, payload).then(response => {
-            this.work = response.data
+            this.setWorkDetails(response.data)
             this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []

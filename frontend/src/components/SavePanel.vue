@@ -38,10 +38,12 @@
             <div v-if="showLicense(v)" class="license">
                <a :href="v.license.url">{{ v.license.label }}</a>
             </div>
-            <div  v-if="showETDEmbargo(v)" class="embargo">
-               <p>Files will be available to UVA only for:</p>
-               <Dropdown v-model="limitedDuration" :options="limitedDurations" optionLabel="label" optionValue="value" />
-               <p>After that, files will be be available worldwide.</p>
+            <div  v-if="showETDEmbargo(v)" class="limited">
+               <div class="note">Files available to UVA only until:</div>
+               <div class="date-row">
+                  <span>{{ $formatDate(releaseDate) }}</span>
+               </div>
+               <div class="note">After that, files will be be available worldwide.</div>
             </div>
             <div v-if="showOAEmbargo(v)" class="embargo">
                <p>Files will NOT be available to anyone until:</p>
@@ -135,10 +137,6 @@ const agree = ref(false)
 
 const oaVisibilities = ref([
    {label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}
-])
-const limitedDurations = ref([
-   {label: "6 Months", value: "6-months"}, {label: "1 Year", value: "1-year"},
-   {label: "2 Years", value: "2-years"}, {label: "5 Years", value: "5-years"}
 ])
 
 onMounted( () => {
@@ -247,23 +245,22 @@ const submitClicked = (() => {
       font-weight: bold;
       color: #bababa;
    }
+   div.limited {
+      font-size: 0.9em;
+      margin: 15px 0 0px 30px;
+      .date-row {
+         margin-bottom: 10px;
+         display: flex;
+         flex-flow: row nowrap;
+         justify-content: space-between;
+      }
+      .note {
+         margin-bottom: 5px;
+      }
+   }
    div.embargo {
       font-size: 0.9em;
       margin: 15px 0 30px 30px;
-      button {
-         width: 100%;
-         margin-top: 15px;
-      }
-      p {
-         margin: 10px 0 2px 0;
-         padding: 0;
-      }
-      .p-calendar, .p-dropdown {
-         width: 100%;
-         .p-inputtext {
-            margin-bottom: 0;
-         }
-      }
    }
    .requirement {
       display: flex;
