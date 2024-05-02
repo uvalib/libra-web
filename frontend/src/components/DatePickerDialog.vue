@@ -4,19 +4,19 @@
       <div class="embargo-date">
          <div class="help">Use one of the quick helper buttons or pick a custom end date</div>
          <div class="datepick">
-            <Calendar v-model="endDate" inline :minDate="new Date()" />
+            <Calendar v-model="endDate" inline :minDate="new Date()" :maxDate="tenYears"/>
             <div class="helpers">
                <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
                <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
                <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
                <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
-               <Button label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
-               <Button label="Forever" severity="secondary" @click="embargoEndDate = null"/>
+               <Button v-if="showTenYear" label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
+               <Button v-if="props.admin && props.visibility=='embargo'" label="Forever" severity="secondary" @click="endDate = null"/>
             </div>
          </div>
          <div class="controls">
             <span v-if="endDate" ><b>End date</b>: {{ $formatDate(endDate) }}</span>
-            <span v-else>Embargo does not expire</span>
+            <span v-else>No expiration date</span>
             <span>
                <Button severity="secondary" label="Cancel" @click="isOpen=false"/>
                <Button label="OK" @click="okClicked"/>
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import Dialog from 'primevue/dialog'
 import Calendar from 'primevue/calendar'
 
@@ -36,6 +36,14 @@ const props = defineProps({
    admin: {
       type: Boolean,
       default: false
+   },
+   department: {
+      type: String,
+      default: ""
+   },
+   degree: {
+      type: String,
+      default: ""
    },
    type: {
       type: String,
@@ -55,6 +63,16 @@ const props = defineProps({
 })
 const isOpen = ref(false)
 const endDate = ref()
+
+const showTenYear = computed( () => {
+   if ( props.admin) return true
+   return (props.degree == 'Creative Writing' && props.degree == 'MFA (Master of Fine Arts)')
+})
+const tenYears = computed( () => {
+   let d = new Date()
+   d.setFullYear( d.getFullYear() + 10)
+   return d
+})
 
 const show = (() => {
    isOpen.value = true

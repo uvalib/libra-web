@@ -43,7 +43,8 @@
                <td class="embargo">
                   <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
                   <span v-else>Never</span>
-                  <DatePickerDialog :type="props.type" :endDate="embargoEndDate" :admin="true" :visibility="visibility" @picked="endDatePicked"/>
+                  <DatePickerDialog :type="props.type" :endDate="embargoEndDate" :admin="true"
+                     :visibility="visibility" @picked="endDatePicked" :degree="degree" :department="department"/>
                </td>
             </tr>
             <tr>
@@ -226,17 +227,9 @@ const saveClicked = (() => {
    }
    emit("save", changes)
 })
-
 </script>
 
 <style lang="scss" scoped>
-.embargo-date {
-   p {
-      margin:0 0 15px 0;
-      padding:0;
-      text-align: center;
-   }
-}
 .admin-panel {
    :deep(.p-panel-title) {
       font-weight: normal;
