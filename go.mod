@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/rs/xid v1.5.0
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20240424183643-2cd1c98a69ec
-	github.com/uvalib/libra-metadata v0.0.0-20240415185307-75fea509a389
+	github.com/uvalib/libra-metadata v0.0.0-20240503181708-ee9b39eacf84
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240424181938-23a2768958e8
 )
 

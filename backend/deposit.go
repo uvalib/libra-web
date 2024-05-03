@@ -84,9 +84,9 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 	log.Printf("INFO: %s requests deposit registrations %+v", claims.ComputeID, regReq)
 	for _, student := range regReq.Students {
 		author := librametadata.ContributorData{ComputeID: student.ComputeID,
-			FirstName: student.FirstName, LastName: student.LastName, Program: regReq.Department,
+			FirstName: student.FirstName, LastName: student.LastName, Department: regReq.Department,
 			Institution: "University of Virginia"}
-		etdReg := librametadata.ETDWork{Department: regReq.Department, Degree: regReq.Degree, Author: author}
+		etdReg := librametadata.ETDWork{Program: regReq.Department, Degree: regReq.Degree, Author: author}
 		obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 		fields := uvaeasystore.DefaultEasyStoreFields()
 		fields["create-date"] = time.Now().Format(time.RFC3339)

@@ -130,8 +130,8 @@ github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65E
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20240424183643-2cd1c98a69ec h1:fQtQMiWw0jXJw92H8i2nFKTxZ+bgt978ZJ9zXEETMag=
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20240424183643-2cd1c98a69ec/go.mod h1:7M0hEkOeLqG9KVrJyXiLgBPDf7/xzX3uxHtzQ8ltTGg=
-github.com/uvalib/libra-metadata v0.0.0-20240415185307-75fea509a389 h1:cv6g98ryW8lnHVrb1xMQSunnAJMQG483O8X2c8hPWHo=
-github.com/uvalib/libra-metadata v0.0.0-20240415185307-75fea509a389/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
+github.com/uvalib/libra-metadata v0.0.0-20240503181708-ee9b39eacf84 h1:062Kz1EjhrTxKRkhCkWzZ4B13w6M8N56W3OxTVVnyvo=
+github.com/uvalib/libra-metadata v0.0.0-20240503181708-ee9b39eacf84/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240424181938-23a2768958e8 h1:qpq+dwHg8xFy5bCABr757v/GVEby7Z0t9G7j8Bb0ulk=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20240424181938-23a2768958e8/go.mod h1:3zlSCNudbHP3Lj7BGfTju+2uSlWnDQ2uuLJev/ku8tg=
 golang.org/x/arch v0.0.0-20210923205945-b76863e36670/go.mod h1:5om86z9Hs0C8fWVUuoMHwpExlXzs5Tkyp9hOrfG7pp8=
