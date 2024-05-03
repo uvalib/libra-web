@@ -45,6 +45,8 @@ func main() {
 		api.POST("/cancel/:token", svc.cancelSubmission)
 		api.POST("/deposit/:token", svc.oaDeposit)
 
+		api.GET("/audits/:namespace/:id", svc.getAudits)
+
 		// After initial submission, the work is referenced by the permanent ID
 		api.GET("/works/oa/:id", svc.getOAWork)
 		api.GET("/works/oa/:id/files/:name", svc.downloadOAFile)

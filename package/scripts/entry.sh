@@ -33,6 +33,7 @@ cd bin; ./libra-web \
    -etdnamespace ${ETD_NAMESPACE} \
    -busname      ${BUS_NAME} \
    -eventsrc     ${EVENT_SRC_NAME} \
+   -auditqueryurl ${AUDIT_QUERY_URL} \
    ${ES_CONFIG}
 
 #

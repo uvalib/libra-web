@@ -30,15 +30,16 @@ type eventContext struct {
 
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
-	Version      string
-	HTTPClient   *http.Client
-	EasyStore    uvaeasystore.EasyStore
-	Events       eventContext
-	UserService  userServiceCfg
-	JWTKey       string
-	DevAuthUser  string
-	Namespaces   namespaceConfig
-	UVAWhiteList []*net.IPNet
+	Version       string
+	HTTPClient    *http.Client
+	EasyStore     uvaeasystore.EasyStore
+	Events        eventContext
+	UserService   userServiceCfg
+	JWTKey        string
+	DevAuthUser   string
+	Namespaces    namespaceConfig
+	UVAWhiteList  []*net.IPNet
+	AuditQueryURL string
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -221,6 +222,8 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		}
 		ctx.Events.Bus = bus
 	}
+
+	ctx.AuditQueryURL = cfg.auditQueryURL
 
 	return &ctx
 }

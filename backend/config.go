@@ -31,6 +31,7 @@ type namespaceConfig struct {
 type configData struct {
 	port            int
 	userService     userServiceCfg
+	auditQueryURL   string
 	devAuthUser     string
 	devBus          bool
 	jwtKey          string
@@ -45,6 +46,7 @@ func getConfiguration() *configData {
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
+	flag.StringVar(&config.auditQueryURL, "auditqueryurl", "", "Query URL for the audit service")
 
 	// dev mode
 	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")
@@ -81,6 +83,9 @@ func getConfiguration() *configData {
 	if config.userService.URL == "" {
 		log.Fatal("Parameter userws is required")
 	}
+	if config.auditQueryURL == "" {
+		log.Fatal("Parameter auditqueryurl is required")
+	}
 	if config.busName == "" {
 		log.Fatal("Parameter busname is required")
 	}
@@ -93,6 +98,7 @@ func getConfiguration() *configData {
 
 	log.Printf("[CONFIG] port          = [%d]", config.port)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
+	log.Printf("[CONFIG] auditqueryurl = [%s]", config.auditQueryURL)
 	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
 	log.Printf("[CONFIG] oanamespace   = [%s]", config.namespace.oa)
 	log.Printf("[CONFIG] etdnamespace  = [%s]", config.namespace.etd)

@@ -3,11 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"reflect"
 	"slices"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
+	librametadata "github.com/uvalib/libra-metadata"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
@@ -15,6 +18,58 @@ type auditContext struct {
 	computeID string
 	namespace string
 	workID    string
+}
+
+func (svc *serviceContext) getAudits(c *gin.Context) {
+	workID := c.Param("id")
+	namespaceParam := c.Param("namespace")
+	namespace := ""
+
+	// Check Namespace
+	if svc.Namespaces.etd == namespaceParam || svc.Namespaces.oa == namespaceParam {
+		namespace = namespaceParam
+	} else {
+		log.Printf("Invalid Namespace provided %s", namespaceParam)
+		c.String(http.StatusBadRequest, "invalid namespace")
+		return
+	}
+
+	// Get Easystore obj
+	tgtObj, eserr := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.AllComponents)
+	if eserr != nil {
+		log.Printf("ERROR: unable to get %s work %s: %s", namespace, workID, eserr.Error())
+		if strings.Contains(eserr.Error(), "not exist") {
+			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
+		} else {
+			c.String(http.StatusInternalServerError, eserr.Error())
+		}
+		return
+	}
+
+	//log.Printf("INFO: check access to work %s", workID)
+	access := svc.canAccessWork(c, tgtObj)
+	if access.metadata == false {
+		log.Printf("INFO: access to work %s is forbidden", tgtObj)
+		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+		return
+	}
+
+	// get audit records
+	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.AuditQueryURL, namespace, workID))
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Message)
+		return
+	}
+
+	fmt.Printf("Audit response: %s\n", resp)
+	auditEvents, auditErr := librametadata.AuditsFromBytes(resp)
+	if auditErr != nil {
+		c.String(http.StatusInternalServerError, auditErr.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, auditEvents)
+
 }
 
 func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
