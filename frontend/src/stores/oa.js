@@ -155,7 +155,6 @@ export const useOAStore = defineStore('oa', {
             this.pendingFileAdd.splice(pendingIdx, 1)
             axios.delete(`/api/${this.depositToken}/${file}`)
          } else {
-            console.log("delete previously added file "+file)
             // This file has already been submitted. remove it from the files
             // list. When the update is submitted the files will be replaced with those in the file list
             let idx = this.work.files.findIndex( f => f.name == file)

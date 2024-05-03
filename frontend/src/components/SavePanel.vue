@@ -17,21 +17,25 @@
          </div>
       </Fieldset>
       <Fieldset legend="Visibility">
-         <!-- note; use props.visibility here to capture the visibility when the work was loaded, not when changed during edit -->
-         <template v-if="props.visibility == 'embargo'">
-            <div v-if="props.type=='etd'">
-               <div class="embargo-note">This work is under embargo.</div>
-               <div class="embargo-note">Files will NOT be available to anyone until {{ $formatDate(releaseDate) }}.</div>
+         <div v-if="props.visibility == 'embargo' && props.type=='etd'">
+            <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
+            <div class="embargo-note">This work is under embargo.</div>
+            <div class="embargo-note">Files will NOT be available to anyone until {{ $formatDate(releaseDate) }}.</div>
+         </div>
+         <div v-else-if="props.visibility == 'embargo' && props.type=='oa' && props.draft == false" class="embargo no-pad">
+            <!-- Users and admins set an embargo for OA works. In this case show a different UI after publication. -->
+            <div>This work is under embargo.</div>
+            <div>Files will NOT be available to anyone until:</div>
+            <div class="embargo-date">
+               <span>{{ $formatDate(releaseDate) }}</span>
+               <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false" :visibility="props.visibility" @picked="endDatePicked" />
             </div>
-            <div v-else class="embargo no-pad">
-               <div class="embargo-note">This work is under embargo.</div>
-               <div class="embargo-note">Files will NOT be available to anyone until:</div>
-               <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
-               <div class="embargo-note">After that, files will be be available:</div>
+            <div>After that, files will be be available:</div>
+            <div class="embargo-col">
                <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
                <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
             </div>
-         </template>
+         </div>
          <div v-else v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
             <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" @update:model-value="visibilityUpdated"/>
             <label :for="v.value" class="left-margin visibility" :class="v.value">{{ v.label }}</label>
@@ -40,16 +44,24 @@
             </div>
             <div  v-if="showETDEmbargo(v)" class="limited">
                <div class="note">Files available to UVA only until:</div>
-               <div class="date-row">
+               <div class="embargo-date small">
                   <span>{{ $formatDate(releaseDate) }}</span>
+                  <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false"
+                     :visibility="props.visibility" @picked="endDatePicked"
+                     :degree="props.degree" :department="props.department" />
                </div>
                <div class="note">After that, files will be be available worldwide.</div>
             </div>
             <div v-if="showOAEmbargo(v)" class="embargo">
-               <p>Files will NOT be available to anyone until:</p>
-               <Calendar v-model="releaseDate" showIcon iconDisplay="input" dateFormat="yy-mm-dd"/>
-               <p>After that, files will be be available:</p>
-               <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+               <div>Files will NOT be available to anyone until:</div>
+               <div class="embargo-date small">
+                  <span>{{ $formatDate(releaseDate) }}</span>
+                  <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false" :visibility="props.visibility" @picked="endDatePicked" />
+               </div>
+               <div class="embargo-col">
+                  <div>After that, files will be be available:</div>
+                  <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+               </div>
             </div>
          </div>
       </Fieldset>
@@ -74,20 +86,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import Checkbox from 'primevue/checkbox'
 import Fieldset from 'primevue/fieldset'
 import RadioButton from 'primevue/radiobutton'
-import Calendar from 'primevue/calendar'
 import Dropdown from 'primevue/dropdown'
 import Panel from 'primevue/panel'
 import { useSystemStore } from "@/stores/system"
 import { useConfirm } from "primevue/useconfirm"
 
-import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-dayjs.extend(customParseFormat)
-
-const confirm = useConfirm()
 const emit = defineEmits( ['submit', 'cancel'])
 const props = defineProps({
    type: {
@@ -124,16 +131,23 @@ const props = defineProps({
    described: {
       type: Boolean,
       required: true
-   }
+   },
+   degree: {
+      type: String,
+      default: "",
+   },
+   department: {
+      type: String,
+      default: "",
+   },
 })
 
+const confirm = useConfirm()
 const system = useSystemStore()
 const visibility = ref(props.visibility)
 const releaseVisibility = ref("open")
-const releaseDate = ref(new Date())
-const limitedDuration = ref("6-months")
+const releaseDate = ref("")
 const agree = ref(false)
-
 
 const oaVisibilities = ref([
    {label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}
@@ -141,7 +155,7 @@ const oaVisibilities = ref([
 
 onMounted( () => {
    visibility.value = props.visibility
-   releaseDate.value = new Date(props.releaseDate)
+   releaseDate.value = props.releaseDate
    releaseVisibility.value = props.releaseVisibility
    agree.value = !props.create
 })
@@ -158,11 +172,16 @@ const canSubmit = computed(() =>{
    return agree.value == true && visibility.value != "" && props.files
 })
 
+const endDatePicked = ( (newDate) => {
+   releaseDate.value = newDate
+})
+
 const visibilityUpdated = (() => {
-   if (visibility.value == "embargo") {
+   if (visibility.value == "embargo" || visibility.value == "uva" && props.type == "etd") {
       releaseVisibility.value = "open"
-      releaseDate.value = new Date()
-      releaseDate.value.setMonth( releaseDate.value.getMonth() + 6)
+      let endDate = new Date()
+      endDate.setMonth( endDate.getMonth() + 6)
+      releaseDate.value = endDate.toJSON()
    }
 })
 
@@ -173,7 +192,8 @@ const liftEmbargo = ( () => {
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
       accept: (  ) => {
-         releaseDate.value = new Date()
+         const now = new Date()
+         releaseDate.value = now.toJSON()
          emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
       },
    })
@@ -197,31 +217,7 @@ const showOAEmbargo = ((vis) =>{
 })
 
 const submitClicked = (() => {
-   if ( props.type == "etd") {
-      if ( visibility.value == "embargo") {
-         // this can only be set by admin and cannot change; these values are copied from
-         // the props and converted to dates as the backed expets a date, not a string
-         emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
-      } else if (visibility.value == "uva") {
-         // FIXME this will go away once the date UI is replaced with the date picker admin uses
-         let endDate = new Date()
-         if ( limitedDuration.value == "6-months") {
-            endDate.setMonth( endDate.getMonth()+6)
-         } else {
-            let numYears = parseInt(limitedDuration.value.split("-")[0], 10)
-            endDate.setFullYear( endDate.getFullYear()+numYears)
-         }
-         emit("submit", visibility.value, endDate, "open")
-      } else {
-         emit('submit', visibility.value)
-      }
-   } else {
-      if ( visibility.value == "embargo") {
-         emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
-      } else {
-         emit('submit', visibility.value)
-      }
-   }
+   emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
 })
 </script>
 
@@ -240,10 +236,26 @@ const submitClicked = (() => {
    div.embargo.no-pad {
       margin: 0 0 0 0;
    }
-   .embargo-note {
-      font-style: italic;
-      font-weight: bold;
-      color: #bababa;
+   .embargo-date {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+   }
+   .embargo-date.small {
+      margin: 10px 0;
+   }
+   .embargo-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      button{
+         margin-top: 20px;
+      }
+      .p-dropdown {
+         margin-top: 5px;
+      }
    }
    div.limited {
       font-size: 0.9em;
@@ -260,7 +272,7 @@ const submitClicked = (() => {
    }
    div.embargo {
       font-size: 0.9em;
-      margin: 15px 0 30px 30px;
+      margin: 15px 0 0px 30px;
    }
    .requirement {
       display: flex;
@@ -294,6 +306,7 @@ const submitClicked = (() => {
       }
       label.left-margin {
          margin-left: 10px;
+         width: 250px;
       }
    }
    .agree {

@@ -12,8 +12,8 @@
             <SavePanel v-else
                type="etd" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
-               :draft="etdRepo.isDraft"  @submit="submitClicked" @cancel="cancelClicked"
-               ref="savepanel"
+               :draft="etdRepo.isDraft" :degree="etdRepo.work.degree" :department="etdRepo.work.department"
+               ref="savepanel" @submit="submitClicked" @cancel="cancelClicked"
             />
          </div>
          <Panel class="main-form">

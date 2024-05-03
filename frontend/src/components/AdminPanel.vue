@@ -89,7 +89,7 @@ const adminNotes = ref("")
 const degree = ref("")
 const department = ref("")
 const visibility = ref("")
-const embargoEndDate = ref(null)
+const embargoEndDate = ref("")
 const embargoEndVisibility = ref("")
 const endOpts = ref([{label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}])
 
@@ -173,15 +173,16 @@ onMounted( () => {
    degree.value = props.degree
    department.value = props.department
    visibility.value = props.visibility
-   embargoEndDate.value = new Date(props.embargoEndDate)
+   embargoEndDate.value = props.embargoEndDate
    embargoEndVisibility.value = props.embargoEndVisibility
 })
 
 const visibilityChanged = (() => {
    if ( (props.type == "etd" && visibility.value == "uva") || visibility.value == "embargo") {
       embargoEndVisibility.value = "open"
-      embargoEndDate.value = new Date()
-      embargoEndDate.value.setMonth( embargoEndDate.value.getMonth() + 6)
+      let endDate = new Date()
+      endDate.setMonth( endDate.getMonth() + 6)
+      embargoEndDate.value = endDate.toJSON()
    }
 })
 

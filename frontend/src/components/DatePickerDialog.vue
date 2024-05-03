@@ -57,7 +57,7 @@ const props = defineProps({
       required: true
    },
    endDate: {
-      type: Date,
+      type: String,
       default: null
    },
 })
@@ -76,11 +76,11 @@ const tenYears = computed( () => {
 
 const show = (() => {
    isOpen.value = true
-   endDate.value = props.endDate
+   endDate.value = new Date(props.endDate)
 })
 
 const okClicked = (() => {
-   emit("picked", endDate.value)
+   emit("picked", endDate.value.toJSON() )
    isOpen.value = false
 })
 

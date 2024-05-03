@@ -436,9 +436,12 @@ const submitClicked = ( (visibility, releaseDate, releaseVisibility ) => {
    oaRepo.work.license = license.label
    oaRepo.work.licenseURL = license.url
 
+   // Get the forkmit root node and manually call submit to trigger the automated form validations
+   // if the validations are successful, formkit submitHandler will be called and submit the updates
    const node = oaForm.value.node
    node.submit()
 })
+
 const submitHandler = ( async () => {
    if ( isNewSubmission.value ) {
       await oaRepo.deposit( )
