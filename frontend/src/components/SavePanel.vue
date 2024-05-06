@@ -48,7 +48,7 @@
                   <span>{{ $formatDate(releaseDate) }}</span>
                   <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false"
                      :visibility="props.visibility" @picked="endDatePicked"
-                     :degree="props.degree" :department="props.department" />
+                     :degree="props.degree" :program="props.program" />
                </div>
                <div class="note">After that, files will be be available worldwide.</div>
             </div>
@@ -66,7 +66,7 @@
          </div>
       </Fieldset>
       <div class="agree">
-         <Checkbox inputId="agree-cb" v-model="agree" :binary="true" :disabled="props.create == false" />
+         <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
          <label v-if="type=='oa'" for="agree-cb">
             By saving this work, I agree to the
             <a href="https://www.library.virginia.edu/libra/open/libra-deposit-license" target="_blank">Libra Deposit Agreement</a>
@@ -136,7 +136,7 @@ const props = defineProps({
       type: String,
       default: "",
    },
-   department: {
+   program: {
       type: String,
       default: "",
    },
@@ -157,7 +157,7 @@ onMounted( () => {
    visibility.value = props.visibility
    releaseDate.value = props.releaseDate
    releaseVisibility.value = props.releaseVisibility
-   agree.value = !props.create
+   agree.value = false
 })
 
 const visibilityOptions = computed( () => {

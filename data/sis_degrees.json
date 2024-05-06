@@ -1,0 +1,54 @@
+[
+   {
+     "sisKey": "DNP",
+     "degree": "DNP (Doctor of Nursing Practice)"
+   },
+   {
+     "sisKey": "EDD",
+     "degree": "EDD (Doctor of Education)"
+   },
+   {
+     "sisKey": "MA",
+     "degree": "MA (Master of Arts)"
+   },
+   {
+     "sisKey": "MAPE",
+     "degree": "MAPE (Master of Arts in Physics Education)"
+   },
+   {
+     "sisKey": "MAR",
+     "degree": "MAR (Master of Architecture)"
+   },
+   {
+     "sisKey": "MARH",
+     "degree": "MARH (Master of Architectural History)"
+   },
+   {
+     "sisKey": "ME",
+     "degree": "ME (Master of Engineering)"
+   },
+   {
+    "sisKey": "MED",
+    "program": "MED (Master of Education)"
+   },
+   {
+     "sisKey": "MFA",
+     "degree": "MFA (Master of Fine Arts)"
+   },
+   {
+     "sisKey": "MS",
+     "degree": "MS (Master of Science)"
+   },
+   {
+     "sisKey": "MUEP",
+     "degree": "MUEP (Master of Urban and Environmental Planning)"
+   },
+   {
+     "sisKey": "PHD",
+     "degree": "PHD (Doctor of Philosophy)"
+   },
+   {
+     "sisKey": "SJD",
+     "degree": "SJD (Doctor of Juridical Science)"
+   }
+]

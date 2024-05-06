@@ -37,7 +37,7 @@ const props = defineProps({
       type: Boolean,
       default: false
    },
-   department: {
+   program: {
       type: String,
       default: ""
    },
@@ -66,7 +66,7 @@ const endDate = ref()
 
 const showTenYear = computed( () => {
    if ( props.admin) return true
-   return (props.degree == 'Creative Writing' && props.degree == 'MFA (Master of Fine Arts)')
+   return ( props.program.includes('Creative Writing') && props.degree == 'MFA (Master of Fine Arts)' )
 })
 const tenYears = computed( () => {
    let d = new Date()

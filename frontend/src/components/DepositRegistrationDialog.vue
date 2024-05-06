@@ -2,12 +2,12 @@
    <Button @click="show" label="ETD Deposit Registration"/>
    <Dialog v-model:visible="isOpen" :modal="true" header="ETD Deposit Registration" position="top">
       <div class="row">
-         <label>Department:</label>
-         <Dropdown v-model="department" :options="system.departments" />
+         <label>Program:</label>
+         <Dropdown v-model="program" :options="system.optPrograms" />
       </div>
       <div class="row">
          <label>Degree:</label>
-         <Dropdown v-model="degree" :options="system.degrees" />
+         <Dropdown v-model="degree" :options="system.optDegrees" />
       </div>
       <FieldSet legend="User List">
          <div class="lookup">
@@ -44,18 +44,18 @@ const system = useSystemStore()
 const admin = useAdminStore()
 
 const isOpen = ref(false)
-const department = ref("")
+const program = ref("")
 const degree = ref("")
 const computeID = ref("")
 const userError = ref("")
 const users = ref([])
 
 const submitDisabled = computed( () => {
-   return department.value == "" || degree.value == "" || users.value.length == 0
+   return program.value == "" || degree.value == "" || users.value.length == 0
 })
 const show = (() => {
    isOpen.value = true
-   department.value = ""
+   program.value = ""
    degree.value = ""
    computeID.value = ""
    userError.value = ""
@@ -96,7 +96,7 @@ const cancelClicked = ( () => {
 })
 
 const submitRegistration = ( async () => {
-   await admin.addRegistrations(department.value, degree.value, users.value)
+   await admin.addRegistrations(program.value, degree.value, users.value)
    if (system.error == "") {
       isOpen.value = false
    }

@@ -13,13 +13,8 @@ export const useAdminStore = defineStore('admin', {
       clearAll() {
          this.hits = []
       },
-      async addRegistrations( department, degree, users ) {
-         let students = []
-         users.forEach( u => {
-            u.department = department
-            students.push(u)
-         })
-         return axios.post(`/api/admin/register`, {department: department, degree: degree, students: students}).catch( err => {
+      async addRegistrations( program, degree, students ) {
+         return axios.post(`/api/admin/register`, {program: program, degree: degree, students: students}).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
          })

@@ -53,14 +53,13 @@ type etdUpdateRequest struct {
 }
 
 type registrationRequest struct {
-	Department string `json:"department"`
-	Degree     string `json:"degree"`
-	Students   []struct {
-		ComputeID  string `json:"computeID"`
-		Email      string `json:"email"`
-		FirstName  string `json:"firstName"`
-		LastName   string `json:"lastName"`
-		Department string `json:"department"`
+	Program  string `json:"program"`
+	Degree   string `json:"degree"`
+	Students []struct {
+		ComputeID string `json:"computeID"`
+		Email     string `json:"email"`
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
 	} `json:"students"`
 }
 
@@ -84,9 +83,8 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 	log.Printf("INFO: %s requests deposit registrations %+v", claims.ComputeID, regReq)
 	for _, student := range regReq.Students {
 		author := librametadata.ContributorData{ComputeID: student.ComputeID,
-			FirstName: student.FirstName, LastName: student.LastName, Department: regReq.Department,
-			Institution: "University of Virginia"}
-		etdReg := librametadata.ETDWork{Program: regReq.Department, Degree: regReq.Degree, Author: author}
+			FirstName: student.FirstName, LastName: student.LastName, Institution: "University of Virginia"}
+		etdReg := librametadata.ETDWork{Program: regReq.Program, Degree: regReq.Degree, Author: author}
 		obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
 		fields := uvaeasystore.DefaultEasyStoreFields()
 		fields["create-date"] = time.Now().Format(time.RFC3339)

@@ -1,0 +1,521 @@
+[
+  {
+    "sisKey": "ADMIN-EDD",
+    "program": "Administration and Supervision - School of Education and Human Development"
+  },
+  {
+    "sisKey": "ADMIN-MED",
+    "program": "Administration and Supervision - School of Education and Human Development"
+  },
+  {
+    "sisKey": "ANTHRO-PHD",
+    "program": "Anthropology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ARCH-MAR",
+    "program": "Architecture - School of Architecture"
+  },
+  {
+    "sisKey": "ARH-MARH",
+    "program": "Architectural History - School of Architecture"
+  },
+  {
+    "sisKey": "ARTARC-MA",
+    "program": "History of Art and Architecture - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ARTARC-PHD",
+    "program": "History of Art and Architecture - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ASTRON-PHD",
+    "program": "Astronomy - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "BIOL-MA",
+    "program": "Biology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "BIOL-MS",
+    "program": "Biology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "BIOL-PHD",
+    "program": "Biology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "BIOMEN-ME",
+    "program": "Biomedical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "BIOMEN-MS",
+    "program": "Biomedical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "BIOMEN-PHD",
+    "program": "Biomedical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "BIOMOL-PHD",
+    "program": "Biochemistry and Molecular Genetics - School of Medicine"
+  },
+  {
+    "sisKey": "BIOP-PHD",
+    "program": "Biophysics - School of Medicine"
+  },
+  {
+    "sisKey": "CELL-PHD",
+    "program": "Cell Biology - School of Medicine"
+  },
+  {
+    "sisKey": "CHEM-MS",
+    "program": "Chemistry - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "CHEM-PHD",
+    "program": "Chemistry - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "CHEMEN-CGE",
+    "program": "Chemical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CHEMEN-ME",
+    "program": "Chemical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CHEMEN-MS",
+    "program": "Chemical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CHEMEN-PHD",
+    "program": "Chemical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CIVIL-CGE",
+    "program": "Civil Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CIVIL-ME",
+    "program": "Civil Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CIVIL-MS",
+    "program": "Civil Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CIVIL-PHD",
+    "program": "Civil Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "CLAS-PHD",
+    "program": "Classics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "CLNPSY-PHD",
+    "program": "Clinical Psychology - School of Education and Human Development"
+  },
+  {
+    "sisKey": "COMPEN-ME",
+    "program": "Computer Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "COMPEN-MS",
+    "program": "Computer Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "COMPEN-PHD",
+    "program": "Computer Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "COMPSC-MCS",
+    "program": "Computer Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "COMPSC-MS",
+    "program": "Computer Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "COMPSC-PHD",
+    "program": "Computer Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "COUNS-EDD",
+    "program": "Counselor Education - School of Education and Human Development"
+  },
+  {
+    "sisKey": "COUNS-MED",
+    "program": "Counselor Education - School of Education and Human Development"
+  },
+  {
+    "sisKey": "CURRIN-EDD",
+    "program": "Curriculum and Instruction - School of Education and Human Development"
+  },
+  {
+    "sisKey": "CURRIN-MED",
+    "program": "Curriculum and Instruction - School of Education and Human Development"
+  },
+  {
+    "sisKey": "Civil & Env Engr",
+    "program": "Civil Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "DRAMA-MFA",
+    "program": "Drama - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EASIAN-MA",
+    "program": "East Asian Studies - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ECON-PHD",
+    "program": "Economics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EDPSYC-EDD",
+    "program": "Educational Psychology - School of Education and Human Development"
+  },
+  {
+    "sisKey": "EDPSYC-MED",
+    "program": "Educational Psychology - School of Education and Human Development"
+  },
+  {
+    "sisKey": "EDUC-PHD",
+    "program": "Education - School of Education and Human Development"
+  },
+  {
+    "sisKey": "ELECT-CGE",
+    "program": "Electrical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ELECT-ME",
+    "program": "Electrical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ELECT-MS",
+    "program": "Electrical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ELECT-PHD",
+    "program": "Electrical Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ENGL-MA",
+    "program": "English - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ENGL-PHD",
+    "program": "English - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ENGPHY-CGE",
+    "program": "Engineering Physics - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ENGPHY-MEP",
+    "program": "Engineering Physics - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ENGPHY-MS",
+    "program": "Engineering Physics - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "ENGPHY-PHD",
+    "program": "Engineering Physics - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "EVSC-MA",
+    "program": "Environmental Sciences - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EVSC-MS",
+    "program": "Environmental Sciences - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EVSC-PHD",
+    "program": "Environmental Sciences - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EXPATH-PHD",
+    "program": "Experimental Pathology - School of Medicine"
+  },
+  {
+    "sisKey": "FORAFF-MA",
+    "program": "Foreign Affairs - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "FORAFF-PHD",
+    "program": "Foreign Affairs - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "FRENCH-PHD",
+    "program": "French - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "GERMAN-MS",
+    "program": "German - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "GERMAN-PHD",
+    "program": "German - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "GOVT-MA",
+    "program": "Government - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "GOVT-PHD",
+    "program": "Government - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "HIGHED-EDD",
+    "program": "Higher Education - School of Education and Human Development"
+  },
+  {
+    "sisKey": "HIGHED-MED",
+    "program": "Higher Education - School of Education and Human Development"
+  },
+  {
+    "sisKey": "HIST-MA",
+    "program": "History - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "HIST-PHD",
+    "program": "History - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ITAL-MA",
+    "program": "Italian - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "KINES-MED",
+    "program": "Kinesiology - School of Education and Human Development"
+  },
+  {
+    "sisKey": "MAE-CGE",
+    "program": "Mechanical and Aerospace Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MAE-ME",
+    "program": "Mechanical and Aerospace Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MAE-MS",
+    "program": "Mechanical and Aerospace Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MAE-PHD",
+    "program": "Mechanical and Aerospace Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MATH-PHD",
+    "program": "Mathematics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "MATSC-CGE",
+    "program": "Materials Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MATSC-MMSE",
+    "program": "Materials Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MATSCI-MS",
+    "program": "Materials Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MATSCI-PHD",
+    "program": "Materials Science - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "MICRO-PHD",
+    "program": "Microbiology - School of Medicine"
+  },
+  {
+    "sisKey": "MUSIC-PHD",
+    "program": "Music - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "NEURO-PHD",
+    "program": "Neuroscience - School of Medicine"
+  },
+  {
+    "sisKey": "NURS-DNP",
+    "program": "Nursing Practice - School of Nursing"
+  },
+  {
+    "sisKey": "NURS-PHD",
+    "program": "Nursing - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "PHARM-PHD",
+    "program": "Pharmacology - School of Medicine"
+  },
+  {
+    "sisKey": "PHIL-PHD",
+    "program": "Philosophy - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "PHY-PHD",
+    "program": "Physiology - School of Medicine"
+  },
+  {
+    "sisKey": "PHYS-MS",
+    "program": "Physics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "PHYS-PHD",
+    "program": "Physics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "PLAN-MUEP",
+    "program": "Urban and Environmental Planning - School of Architecture"
+  },
+  {
+    "sisKey": "PSYCH-MA",
+    "program": "Psychology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "PSYCH-PHD",
+    "program": "Psychology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "RELIG-MA",
+    "program": "Religious Studies - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "RELIG-PHD",
+    "program": "Religious Studies - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SLAVIC-MA",
+    "program": "Slavic Languages and Literatures - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SLAVIC-PHD",
+    "program": "Slavic Languages and Literatures - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SOCIOL-MA",
+    "program": "Sociology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SOCIOL-PHD",
+    "program": "Sociology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SPAN-PHD",
+    "program": "Spanish - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SPATH-MED",
+    "program": "Communication Sciences and Disorders - School of Education and Human Development"
+  },
+  {
+    "sisKey": "SPCED-MED",
+    "program": "Special Education - School of Education and Human Development"
+  },
+  {
+    "sisKey": "STATS-PHD",
+    "program": "Statistics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SYSTEM-AM",
+    "program": "Systems Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "SYSTEM-CGE",
+    "program": "Systems Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "SYSTEM-ME",
+    "program": "Systems Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "SYSTEM-MS",
+    "program": "Systems Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "SYSTEM-PHD",
+    "program": "Systems Engineering - School of Engineering and Applied Science"
+  },
+  {
+    "sisKey": "University of Virginia Libraries",
+    "program": "University of Virginia Library"
+  },
+  {
+    "sisKey": "WRITE-MFA",
+    "program": "Creative Writing - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "ANTHRO-MA",
+    "program": "Anthropology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "BIOLPS-MS",
+    "program": "Biological and Physical Sciences - School of Medicine"
+  },
+  {
+    "sisKey": "CLAS-MA",
+    "program": "Classics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EDPOL-EDD",
+    "program": "Education Policy Studies - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "FRENCH-MA",
+    "program": "French - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "GERMAN-MA",
+    "program": "German - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "KINES-EDD",
+    "program": "Kinesiology - School of Education and Human Development"
+  },
+  {
+    "sisKey": "LAW-SJD",
+    "program": "Law - School of Law"
+  },
+  {
+    "sisKey": "MATH-MA",
+    "program": "Mathematics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "MATH-MS",
+    "program": "Mathematics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "MESA-MA"
+  },
+  {
+    "sisKey": "MUSIC-MA",
+    "program": "Music - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "PHYS-MAPE",
+    "program": "Physics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "SPAN-MA",
+    "program": "Spanish - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "STATS-MS",
+    "program": "Statistics - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "BUSADM-PHD",
+    "program": "Business Administration - Darden School of Business"
+  },
+  {
+    "sisKey": "CONSTR-PHD",
+    "program": "Constructed Environment - School of Architecture"
+  },
+  {
+    "sisKey": "MECULTE-MA",
+    "program": "Media, Culture, and Technology - Graduate School of Arts and Sciences"
+  }
+]

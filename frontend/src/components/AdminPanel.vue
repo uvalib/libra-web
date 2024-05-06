@@ -23,12 +23,12 @@
          </tr>
          <template v-if="props.type == 'etd'">
             <tr>
-               <td class="label">Plan/Program:</td>
-               <td><Dropdown v-model="department" :options="system.departments" /></td>
+               <td class="label">Program:</td>
+               <td><Dropdown v-model="program" :options="programs" /></td>
             </tr>
             <tr>
                <td class="label">Degree:</td>
-               <td><Dropdown v-model="degree" :options="system.degrees" /></td>
+               <td><Dropdown v-model="degree" :options="degrees" /></td>
             </tr>
          </template>
          <tr>
@@ -44,7 +44,7 @@
                   <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
                   <span v-else>Never</span>
                   <DatePickerDialog :type="props.type" :endDate="embargoEndDate" :admin="true"
-                     :visibility="visibility" @picked="endDatePicked" :degree="degree" :department="department"/>
+                     :visibility="visibility" @picked="endDatePicked" :degree="degree" :program="program"/>
                </td>
             </tr>
             <tr>
@@ -87,7 +87,7 @@ const admin = useAdminStore()
 const system = useSystemStore()
 const adminNotes = ref("")
 const degree = ref("")
-const department = ref("")
+const program = ref("")
 const visibility = ref("")
 const embargoEndDate = ref("")
 const embargoEndVisibility = ref("")
@@ -105,6 +105,10 @@ const props = defineProps({
       validator(value) {
          return ['oa', 'etd'].includes(value)
       },
+   },
+   source: {
+      type: String,
+      default: "",
    },
    depositor: {
       type: String,
@@ -130,7 +134,7 @@ const props = defineProps({
       type: String,
       default: "",
    },
-   department: {
+   program: {
       type: String,
       default: "",
    },
@@ -146,6 +150,16 @@ const props = defineProps({
       type: String,
       default: null
    }
+})
+
+const programs = computed( () =>{
+   if (props.source == "sis") return system.sisPrograms
+   return system.optPrograms
+})
+
+const degrees = computed( () =>{
+   if (props.source == "sis") return system.sisDegrees
+   return system.optDegrees
 })
 
 const visibilityOpts = computed( () => {
@@ -171,7 +185,7 @@ const showEmbargoSettings = computed( () => {
 onMounted( () => {
    adminNotes.value = props.notes
    degree.value = props.degree
-   department.value = props.department
+   program.value = props.program
    visibility.value = props.visibility
    embargoEndDate.value = props.embargoEndDate
    embargoEndVisibility.value = props.embargoEndVisibility
@@ -224,7 +238,7 @@ const saveClicked = (() => {
    }
    if ( props.type == "etd") {
       changes.degree = degree.value
-      changes.department = department.value
+      changes.program = program.value
    }
    emit("save", changes)
 })

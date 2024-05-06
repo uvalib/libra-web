@@ -11,7 +11,7 @@ export const useSystemStore = defineStore('system', {
       resourceTypes: [],
       namespaces: [],
       degrees: [],
-      departments: [],
+      programs: [],
       error: "",
       showError: false,
       toast: {
@@ -30,6 +30,14 @@ export const useSystemStore = defineStore('system', {
             }
             return ns
          }
+      },
+      oaNamespace: state => {
+         let tgtNS = state.namespaces.find( ns => ns.label == "LibraOA")
+         return tgtNS.namespace
+      },
+      etdNamespace: state => {
+         let tgtNS = state.namespaces.find( ns => ns.label == "LibraETD")
+         return tgtNS.namespace
       },
       visibilityLabel: state => {
          return (mode, key) => {
@@ -76,6 +84,18 @@ export const useSystemStore = defineStore('system', {
       etdVisibility: state => {
          return state.visibility.filter( rt => rt.etd == true)
       },
+      sisDegrees: state => {
+         return state.degrees.filter( d => d.type == "sis").map( d => d.degree)
+      },
+      optDegrees: state => {
+         return state.degrees.filter( d => d.type == "optional").map( d => d.degree)
+      },
+      sisPrograms: state => {
+         return state.programs.filter( d => d.type == "sis").map( d => d.program)
+      },
+      optPrograms: state => {
+         return state.programs.filter( d => d.type == "optional").map( d => d.program)
+      },
    },
    actions: {
       async getConfig() {
@@ -88,8 +108,7 @@ export const useSystemStore = defineStore('system', {
             this.visibility = response.data.visibility
             this.namespaces = response.data.namespaces
             this.degrees = response.data.degrees
-            this.departments = response.data.departments
-            console.log("CONFIGURE SUCCESS")
+            this.programs = response.data.programs
          }).catch( err => {
             this.setError(  err )
          })

@@ -3,16 +3,16 @@
       <div class="form" id="etd-form-layout">
          <div class="sidebar-col" :class="{admin: adminEdit}" v-if="etdRepo.working==false">
             <AdminPanel v-if="adminEdit"
-               type="etd"  :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
+               type="etd" :source="etdRepo.source" :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
                :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
                :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
-               :degree="etdRepo.work.degree" :department="etdRepo.work.department" :notes="etdRepo.work.adminNotes"
+               :degree="etdRepo.work.degree" :program="etdRepo.work.program" :notes="etdRepo.work.adminNotes"
                ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
             />
             <SavePanel v-else
                type="etd" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
                :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
-               :draft="etdRepo.isDraft" :degree="etdRepo.work.degree" :department="etdRepo.work.department"
+               :draft="etdRepo.isDraft" :degree="etdRepo.work.degree" :program="etdRepo.work.program"
                ref="savepanel" @submit="submitClicked" @cancel="cancelClicked"
             />
          </div>
@@ -34,8 +34,8 @@
                         <td>{{ etdRepo.work.author.institution  }}</td>
                      </tr>
                      <tr>
-                        <td class="label">Plan / Program:</td>
-                        <td>{{ etdRepo.work.author.program  }}</td>
+                        <td class="label">Program:</td>
+                        <td>{{ etdRepo.work.program  }}</td>
                      </tr>
                      <tr>
                         <td class="label">Degree:</td>
@@ -351,7 +351,7 @@ const adminSaveCliced = ( async(data) => {
    etdRepo.visibility = data.visibility
    etdRepo.embargoReleaseDate = data.embargoEndDate
    etdRepo.embargoReleaseVisibility = data.embargoEndVisibility
-   etdRepo.work.department = data.department
+   etdRepo.work.program = data.program
    etdRepo.work.degree = data.degree
    etdRepo.work.adminNotes = data.adminNotes
    await etdRepo.update( )

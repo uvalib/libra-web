@@ -85,6 +85,18 @@ type libraNamespace struct {
 	Namespace string `json:"namespace"`
 }
 
+type etdDegree struct {
+	Type   string `json:"type"` // optional or sis
+	SISKey string `json:"sisKey,omitempty"`
+	Degree string `json:"degree"`
+}
+
+type etdProgram struct {
+	Type    string `json:"type"` // optional or sis
+	SISKey  string `json:"sisKey,omitempty"`
+	Program string `json:"program"`
+}
+
 type configResponse struct {
 	Version        string           `json:"id"`
 	RessourceTypes []resourceType   `json:"resourceTypes"`
@@ -92,8 +104,8 @@ type configResponse struct {
 	Languages      []language       `json:"languages"`
 	Visibility     []visibility     `json:"visibility"`
 	Namespaces     []libraNamespace `json:"namespaces"`
-	Departments    []string         `json:"departments"`
-	Degrees        []string         `json:"degrees"`
+	Programs       []etdProgram     `json:"programs"`
+	Degrees        []etdDegree      `json:"degrees"`
 }
 
 // InitializeService sets up the service context for all API handlers
@@ -288,29 +300,13 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraETD", Namespace: svc.Namespaces.etd})
 	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraOpen", Namespace: svc.Namespaces.oa})
 
-	log.Printf("INFO: departments")
-	bytes, err := os.ReadFile("./data/departments.json")
+	err := loadETDConfig(&resp)
 	if err != nil {
-		log.Printf("ERROR: unable to load departments: %s", err.Error())
-	} else {
-		err = json.Unmarshal(bytes, &resp.Departments)
-		if err != nil {
-			log.Printf("ERROR: unable to parse departments: %s", err.Error())
-		}
-	}
-
-	bytes, err = os.ReadFile("./data/degrees.json")
-	if err != nil {
-		log.Printf("ERROR: unable to load degrees: %s", err.Error())
-	} else {
-		err = json.Unmarshal(bytes, &resp.Degrees)
-		if err != nil {
-			log.Printf("ERROR: unable to parse degrees: %s", err.Error())
-		}
+		log.Printf("ERROR: unable to load etd config: %s", err.Error())
 	}
 
 	log.Printf("INFO: load languages")
-	bytes, err = os.ReadFile("./data/languages.json")
+	bytes, err := os.ReadFile("./data/languages.json")
 	if err != nil {
 		log.Printf("ERROR: unable to load languages: %s", err.Error())
 	} else {
@@ -354,6 +350,66 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func loadETDConfig(cfg *configResponse) error {
+	log.Printf("INFO: load opt programs")
+	var optPrograms []string
+	bytes, err := os.ReadFile("./data/opt_programs.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, &optPrograms)
+	if err != nil {
+		return err
+	}
+	for _, p := range optPrograms {
+		cfg.Programs = append(cfg.Programs, etdProgram{Type: "optional", Program: p})
+	}
+
+	log.Printf("INFO: load sis programs")
+	var sisPrograms []etdProgram
+	bytes, err = os.ReadFile("./data/sis_programs.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, &sisPrograms)
+	if err != nil {
+		return err
+	}
+	for _, p := range sisPrograms {
+		cfg.Programs = append(cfg.Programs, etdProgram{Type: "sis", Program: p.Program, SISKey: p.SISKey})
+	}
+
+	log.Printf("INFO: load opt degrees")
+	var optDegrees []string
+	bytes, err = os.ReadFile("./data/opt_degrees.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, &optDegrees)
+	if err != nil {
+		return err
+	}
+	for _, d := range optDegrees {
+		cfg.Degrees = append(cfg.Degrees, etdDegree{Type: "optional", Degree: d})
+	}
+
+	log.Printf("INFO: load sis degrees")
+	var sisDegrees []etdDegree
+	bytes, err = os.ReadFile("./data/sis_degrees.json")
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(bytes, &sisDegrees)
+	if err != nil {
+		return err
+	}
+	for _, d := range sisDegrees {
+		cfg.Degrees = append(cfg.Degrees, etdDegree{Type: "sis", Degree: d.Degree, SISKey: d.SISKey})
+	}
+
+	return nil
 }
 
 func (svc *serviceContext) lookupVersion() map[string]string {
