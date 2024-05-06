@@ -192,7 +192,7 @@
 
             </FormKit>
 
-            <AuditPanel v-if="!etdRepo.working" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
+            <AuditsPanel v-if="!etdRepo.working" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
          </Panel>
       </div>
    </div>
@@ -201,6 +201,7 @@
 <script setup>
 import { ref, onBeforeMount, computed } from 'vue'
 import AdminPanel from "@/components/AdminPanel.vue"
+import AuditsPanel from '@/components/AuditsPanel.vue'
 import SavePanel from "@/components/SavePanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
