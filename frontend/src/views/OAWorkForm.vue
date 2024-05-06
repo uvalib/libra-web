@@ -223,6 +223,8 @@
                </FileUpload>
 
             </FormKit>
+
+            <AuditsPanel v-if="!oaRepo.working" :workID="oaRepo.work.id" :namespace="system.oaNamespace"/>
          </Panel>
       </div>
    </div>
@@ -232,6 +234,7 @@
 import { ref, onBeforeMount, computed } from 'vue'
 import AdminPanel from "@/components/AdminPanel.vue"
 import SavePanel from "@/components/SavePanel.vue"
+import AuditsPanel from "@/components/AuditsPanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useOAStore } from "@/stores/oa"

@@ -191,6 +191,8 @@
                </FileUpload>
 
             </FormKit>
+
+            <AuditPanel v-if="!etdRepo.working" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
          </Panel>
       </div>
    </div>
