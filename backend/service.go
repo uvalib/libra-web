@@ -81,6 +81,7 @@ type resourceType struct {
 }
 
 type libraNamespace struct {
+	Type      string `json:"type"` // oa or etd
 	Label     string `json:"label"`
 	Namespace string `json:"namespace"`
 }
@@ -297,8 +298,8 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	resp := configResponse{Version: ver}
 
 	log.Printf("INFO: get nameapaces")
-	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraETD", Namespace: svc.Namespaces.etd})
-	resp.Namespaces = append(resp.Namespaces, libraNamespace{Label: "LibraOpen", Namespace: svc.Namespaces.oa})
+	resp.Namespaces = append(resp.Namespaces, libraNamespace{Type: "etd", Label: "LibraETD", Namespace: svc.Namespaces.etd})
+	resp.Namespaces = append(resp.Namespaces, libraNamespace{Type: "oa", Label: "LibraOpen", Namespace: svc.Namespaces.oa})
 
 	err := loadETDConfig(&resp)
 	if err != nil {

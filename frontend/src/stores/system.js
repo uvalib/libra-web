@@ -32,11 +32,11 @@ export const useSystemStore = defineStore('system', {
          }
       },
       oaNamespace: state => {
-         let tgtNS = state.namespaces.find( ns => ns.label == "LibraOA")
+         let tgtNS = state.namespaces.find( ns => ns.type == "oa")
          return tgtNS.namespace
       },
       etdNamespace: state => {
-         let tgtNS = state.namespaces.find( ns => ns.label == "LibraETD")
+         let tgtNS = state.namespaces.find( ns => ns.type == "etd")
          return tgtNS.namespace
       },
       visibilityLabel: state => {
