@@ -81,6 +81,8 @@ type oaWorkDetails struct {
 type etdWorkDetails struct {
 	*commonWorkDetails
 	*librametadata.ETDWork
+	Source   string `json:"source,omitempty"`
+	SourceID string `json:"sourceID,omitempty"`
 }
 
 type workAccess struct {
@@ -622,6 +624,8 @@ func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, can
 		ETDWork: etdWork,
 	}
 	resp.commonWorkDetails.parseDates(tgtObj)
+	resp.Source = tgtObj.Fields()["source"]
+	resp.SourceID = tgtObj.Fields()["source-id"]
 
 	if canAccessFiles {
 		for _, etdFile := range tgtObj.Files() {
