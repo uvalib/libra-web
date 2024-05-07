@@ -5,7 +5,7 @@
 
     <DataTable v-else :value="auditStore.audits"
       tableStyle="min-width: 20rem" size="small" stripedRows
-      :lazy="false" :paginator="true" :rows="10" :rowsPerPageOptions="[10,25,50]"
+      :lazy="false" :paginator="true" :rows="5" :rowsPerPageOptions="[5,10,25]"
       paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
       currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="top"
     >

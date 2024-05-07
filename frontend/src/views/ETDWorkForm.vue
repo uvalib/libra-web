@@ -1,21 +1,21 @@
 <template>
-   <div class="scroll-body">
-      <div class="form" id="etd-form-layout">
-         <div class="sidebar-col" :class="{admin: adminEdit}" v-if="etdRepo.working==false">
-            <AdminPanel v-if="adminEdit"
-               type="etd" :source="etdRepo.source" :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
-               :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
-               :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
-               :degree="etdRepo.work.degree" :program="etdRepo.work.program" :notes="etdRepo.work.adminNotes"
-               ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
-            />
-            <SavePanel v-else
-               type="etd" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
-               :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
-               :draft="etdRepo.isDraft" :degree="etdRepo.work.degree" :program="etdRepo.work.program"
-               ref="savepanel" @submit="submitClicked" @cancel="cancelClicked"
-            />
-         </div>
+   <div class="scroll-body"  id="etd-form-layout">
+      <div class="sidebar-col" :class="{admin: adminEdit}" v-if="etdRepo.working==false">
+         <AdminPanel v-if="adminEdit"
+            type="etd" :source="etdRepo.source" :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
+            :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
+            :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
+            :degree="etdRepo.work.degree" :program="etdRepo.work.program" :notes="etdRepo.work.adminNotes"
+            ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
+         />
+         <SavePanel v-else
+            type="etd" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
+            :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
+            :draft="etdRepo.isDraft" :degree="etdRepo.work.degree" :program="etdRepo.work.program"
+            ref="savepanel" @submit="submitClicked" @cancel="cancelClicked"
+         />
+      </div>
+      <div class="content-col">
          <Panel class="main-form">
             <template #header>
                <div class="work-header">
@@ -191,9 +191,10 @@
                </FileUpload>
 
             </FormKit>
-
-            <AuditsPanel v-if="!etdRepo.working" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
          </Panel>
+         <div class="audit">
+            <AuditsPanel v-if="!etdRepo.working" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
+         </div>
       </div>
    </div>
 </template>
@@ -373,6 +374,11 @@ const cancelClicked = (() => {
 @media only screen and (min-width: 768px) {
    .scroll-body {
       padding: 25px;
+      text-align: left;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: flex-start;
    }
    .sidebar-col {
       width: 400px;
@@ -383,19 +389,18 @@ const cancelClicked = (() => {
       margin-right: 25px;
    }
    .main-form {
-      margin-bottom: 100px;
-   }
-   .form {
-      text-align: left;
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: flex-start;
-      align-items: flex-start;
+      margin-bottom: 20px;
    }
 }
 @media only screen and (max-width: 768px) {
    .scroll-body {
       padding: 10px;
+      text-align: left;
+      display: flex;
+      flex-flow: column-reverse;
+   }
+   .audit {
+      display: none;
    }
    .main-form {
       margin-bottom: 15px;
@@ -406,31 +411,27 @@ const cancelClicked = (() => {
    :deep(.p-panel-content) {
       padding: 10px;
    }
-   .form {
-      text-align: left;
-      display: flex;
-      flex-flow: column-reverse;
-   }
 }
 
 .scroll-body {
-   display: block;
    position: relative;
+
+   .work-header {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+   }
 }
 
-.action {
-   margin-right: 15px;
-}
-
-.work-header {
+.content-col {
    display: flex;
-   flex-flow: row nowrap;
-   justify-content: space-between;
-   align-items: center;
-   width: 100%;
-}
+   flex-direction: column;
 
-.form {
+   .action {
+      margin-right: 15px;
+   }
    table {
       td.label {
          font-weight: bold;

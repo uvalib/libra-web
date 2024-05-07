@@ -37,8 +37,10 @@
             </div>
          </div>
          <div v-else v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
-            <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility" @update:model-value="visibilityUpdated"/>
-            <label :for="v.value" class="left-margin visibility" :class="v.value">{{ v.label }}</label>
+            <div class="visibility-picker">
+               <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility-radio-btn" @update:model-value="visibilityUpdated"/>
+               <label :for="v.value" class="left-margin visibility" :class="v.value">{{ v.label }}</label>
+            </div>
             <div v-if="showLicense(v)" class="license">
                <a :href="v.license.url">{{ v.license.label }}</a>
             </div>
@@ -296,17 +298,21 @@ const submitClicked = (() => {
    }
    .visibility-opt {
       margin: 5px 0;
-      div.visibility {
-         padding: 0;
-         margin-left: 0;
+      .visibility-picker {
+         display: flex;
+         flex-flow: row nowrap;
+         div.visibility-radio-btn {
+            padding: 0;
+            margin-left: 0;
+         }
+         label.left-margin {
+            margin-left: 10px;
+            flex-grow: 1;
+         }
       }
       .license {
          font-size: 0.8em;
          margin: 10px 0px 15px 35px;
-      }
-      label.left-margin {
-         margin-left: 10px;
-         width: 250px;
       }
    }
    .agree {
