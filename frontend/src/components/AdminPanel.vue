@@ -24,11 +24,29 @@
          <template v-if="props.type == 'etd'">
             <tr>
                <td class="label">Program:</td>
-               <td><Dropdown v-model="program" :options="programs" /></td>
+               <td>
+                  <div class="picker"  v-if="editField!='program'">
+                     <span>{{ program }}</span>
+                     <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit program" @click="editField='program'"/>
+                  </div>
+                  <div class="picker" v-else>
+                     <Dropdown v-model="program" :options="programs" :autoOptionFocus="true" @update:modelValue="editField=''"/>
+                     <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit program" @click="editField=''"/>
+                  </div>
+               </td>
             </tr>
             <tr>
                <td class="label">Degree:</td>
-               <td><Dropdown v-model="degree" :options="degrees" /></td>
+               <td>
+                  <div class="picker" v-if="editField!='degree'">
+                     <span>{{ degree }}</span>
+                     <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit degree" @click="editField='degree'"/>
+                  </div>
+                  <div class="picker" v-else>
+                     <Dropdown v-model="degree" :options="degrees" :autoOptionFocus="true" @update:modelValue="editField=''"/>
+                     <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit degree" @click="editField=''"/>
+                  </div>
+               </td>
             </tr>
          </template>
          <tr>
@@ -92,6 +110,7 @@ const visibility = ref("")
 const embargoEndDate = ref("")
 const embargoEndVisibility = ref("")
 const endOpts = ref([{label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}])
+const editField = ref("")
 
 const emit = defineEmits( ['save', 'cancel', 'delete'])
 const props = defineProps({
@@ -176,6 +195,7 @@ const visibilityOpts = computed( () => {
    )
    return etdVis
 })
+
 const showEmbargoSettings = computed( () => {
    if ( visibility.value == 'embargo' ) return true
    if ( props.type == 'etd') return visibility.value == 'uva'
@@ -246,8 +266,29 @@ const saveClicked = (() => {
 
 <style lang="scss" scoped>
 .admin-panel {
+   background: white;
    :deep(.p-panel-title) {
       font-weight: normal;
+   }
+   .picker {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 210px;
+      :deep(.p-dropdown ) {
+         width: 170px;
+      }
+      button {
+         margin-left: 5px;
+         height: 30px;
+         min-width:30px;
+         max-width: 30px;
+         padding: 0;
+         border-radius: 20px;
+         border-color: var(--uvalib-grey-light);
+         color: var(--uvalib-grey);
+      }
    }
    label {
       font-size: 0.9em;
@@ -265,6 +306,8 @@ const saveClicked = (() => {
          text-align: right;
          padding-right: 10px;
          white-space: nowrap;
+         vertical-align: text-top;
+         width: 110px;
       }
       td.embargo {
          display: flex;
@@ -273,7 +316,7 @@ const saveClicked = (() => {
          align-items: center;
       }
       :deep(.p-dropdown ) {
-         width: 300px;
+         width: 210px;
          .p-dropdown-label {
             font-size: 0.8em;
             padding: 4px 8px;

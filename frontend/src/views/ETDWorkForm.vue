@@ -385,7 +385,7 @@ const cancelClicked = (() => {
       margin-right: 25px;
    }
    .sidebar-col.admin {
-      width: 450px;
+      width: 400px;
       margin-right: 25px;
    }
    .main-form {
