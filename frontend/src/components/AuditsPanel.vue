@@ -3,7 +3,12 @@
     <WaitSpinner v-if="auditStore.working" :overlay="false" message="Loading Audit History..." />
     <p v-if="auditStore.error" class="error">Currently Unavailable</p>
 
-    <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows>
+    <DataTable v-else :value="auditStore.audits"
+      tableStyle="min-width: 20rem" size="small" stripedRows
+      :lazy="false" :paginator="true" :rows="10" :rowsPerPageOptions="[10,25,50]"
+      paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+      currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="top"
+    >
       <Column header="At">
         <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>
       </Column>
