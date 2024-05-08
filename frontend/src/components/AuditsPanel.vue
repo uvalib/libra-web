@@ -12,11 +12,12 @@
          </p>
       </template>
 
-      <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows :lazy="false"
-         :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 25]"
+      <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows showGridlines
+         :lazy="false" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 25]"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-         currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="top">
-         <Column header="At">
+         currentPageReportTemplate="{first} - {last} of {totalRecords}"
+      >
+         <Column header="At" class="nowrap">
             <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>
          </Column>
          <Column field="who" header="Who"></Column>
@@ -56,6 +57,9 @@ const show = (() => {
 </script>
 
 <style scoped>
+:deep(td.nowrap),  :deep(th){
+   white-space: nowrap;
+}
 .view-audit {
    font-size: 0.9em;
    padding: 4px 12px;
