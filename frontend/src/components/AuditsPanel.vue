@@ -1,5 +1,5 @@
 <template>
-   <Button @click="show" label="View Audit Log" severity="secondary" class="view-audit" />
+   <Button @click="show" label="Audit Log" severity="secondary" class="view-audit" />
    <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
       style="width:90%; max-height:90%" position="top"
       :blockScroll="true" :maximizable="true"
@@ -13,9 +13,9 @@
       </template>
 
       <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows showGridlines
-         :lazy="false" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 25]"
+         :lazy="false" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 30]"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-         currentPageReportTemplate="{first} - {last} of {totalRecords}" scrollable scrollHeight="600px"
+         currentPageReportTemplate="{first} - {last} of {totalRecords}" scrollable scrollHeight="500px"
       >
          <Column header="At" class="nowrap">
             <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>

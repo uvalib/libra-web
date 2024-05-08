@@ -18,11 +18,12 @@
          <Panel class="main-form">
             <template #header>
                <div class="work-header">
-               <span>{{ panelTitle }}</span>
-               <template v-if="adminEdit==false">
-                  <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
-                  <span v-else><b>Published</b>: {{ $formatDate(oaRepo.publishedAt) }}</span>
-               </template>
+                  <span>{{ panelTitle }}</span>
+                  <template v-if="adminEdit==false">
+                     <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
+                     <span v-else><b>Published</b>: {{ $formatDate(oaRepo.publishedAt) }}</span>
+                  </template>
+                  <AuditsPanel v-if="isNewSubmission==false" :workID="oaRepo.work.id" :namespace="system.oaNamespace" />
                </div>
             </template>
             <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
@@ -223,8 +224,6 @@
                </FileUpload>
 
             </FormKit>
-
-            <AuditsPanel v-if="!oaRepo.working" :workID="oaRepo.work.id" :namespace="system.oaNamespace"/>
          </Panel>
       </div>
    </div>
@@ -288,9 +287,11 @@ const workDescribed = computed( () => {
    }
    return false
 })
+
 const isNewSubmission = computed(() => {
    return route.params.id == "new"
 })
+
 const uploadToken = computed( () => {
    if ( isNewSubmission.value) {
       return oaRepo.depositToken
