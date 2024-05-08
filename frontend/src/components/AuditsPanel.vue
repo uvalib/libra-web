@@ -1,49 +1,74 @@
 <template>
-  <Panel header="Audit History" class="audit-panel">
-    <WaitSpinner v-if="auditStore.working" :overlay="false" message="Loading Audit History..." />
-    <p v-if="auditStore.error" class="error">Currently Unavailable</p>
+   <Button @click="show" label="View Audit Log" severity="secondary" class="view-audit" />
+   <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
+      style="width:90%; max-height:90%" position="top"
+      :blockScroll="true" :maximizable="true"
+   >
+      <WaitSpinner v-if="auditStore.working" :overlay="false" message="Loading Audit History..." />
+      <template v-if="auditStore.error">
+         <p class="error">
+            The audit log for this work is currently unavailable
+            <span>{{ auditStore.error }}</span>
+         </p>
+      </template>
 
-    <DataTable v-else :value="auditStore.audits"
-      tableStyle="min-width: 20rem" size="small" stripedRows
-      :lazy="false" :paginator="true" :rows="5" :rowsPerPageOptions="[5,10,25]"
-      paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-      currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="top"
-    >
-      <Column header="At">
-        <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>
-      </Column>
-      <Column field="who" header="Who"></Column>
-      <Column field="fieldName" header="Field"></Column>
-      <Column field="before" header="Before"></Column>
-      <Column field="after" header="After"></Column>
-    </DataTable>
-  </Panel>
+      <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows :lazy="false"
+         :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 25]"
+         paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+         currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="top">
+         <Column header="At">
+            <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>
+         </Column>
+         <Column field="who" header="Who"></Column>
+         <Column field="fieldName" header="Field"></Column>
+         <Column field="before" header="Before"></Column>
+         <Column field="after" header="After"></Column>
+      </DataTable>
+   </Dialog>
 </template>
 
 <script setup>
-import Panel from 'primevue/panel'
+import { ref } from 'vue'
 import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
+import Column from 'primevue/column'
+import Dialog from 'primevue/dialog'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import { useAuditStore } from '@/stores/audit'
-import { onMounted } from 'vue'
 
 const auditStore = useAuditStore()
+const isOpen = ref(false)
 
 const props = defineProps({
-  workID: {
-    type: String,
-    required: true
-  },
-  namespace: {
-    type: String,
-    required: true
-  }
-})
-onMounted( async () => {
-  await auditStore.getAudits( props.workID, props.namespace )
+   workID: {
+      type: String,
+      required: true
+   },
+   namespace: {
+      type: String,
+      required: true
+   }
 })
 
+const show = (() => {
+   auditStore.getAudits(props.workID, props.namespace)
+   isOpen.value = true
+})
 </script>
+
 <style scoped>
+.view-audit {
+   font-size: 0.9em;
+   padding: 4px 12px;
+}
+
+p.error {
+   font-size: 1.4em;
+   text-align: center;
+
+   span {
+      display: block;
+      margin: 10px 0;
+      font-size: 0.8em;
+   }
+}
 </style>
