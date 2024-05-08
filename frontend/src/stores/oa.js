@@ -124,7 +124,7 @@ export const useOAStore = defineStore('oa', {
          this.licenseID = ""
          this.visibility = "open"
          this.isDraft = true
-         this.embargoReleaseDate = ""
+         this.embargoReleaseDate = null
          this.embargoReleaseVisibility = ""
          this.pendingFileAdd = []
          this.pendingFileDel = []
@@ -184,9 +184,10 @@ export const useOAStore = defineStore('oa', {
       },
       async deposit() {
          this.working = true
-         let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, visibility: this.visibility,
-            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
+         let payload = { work: this.work, addFiles: this.pendingFileAdd, visibility: this.visibility }
+         if ( this.embargoReleaseDate != null ) {
+            payload.embargoReleaseDate = this.embargoReleaseDate
+            payload.embargoReleaseVisibility = this.embargoReleaseVisibility
          }
          return axios.post(`/api/deposit/${this.depositToken}`, payload).then(response => {
             this.work = response.data
@@ -204,9 +205,10 @@ export const useOAStore = defineStore('oa', {
       },
       async update( ) {
          this.working = true
-         let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility,
-            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
+         let payload = { work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility }
+         if ( this.visibility == "embargo" ) {
+            payload.embargoReleaseDate = this.embargoReleaseDate
+            payload.embargoReleaseVisibility = this.embargoReleaseVisibility
          }
          return axios.put(`/api/works/oa/${this.work.id}`, payload).then(response => {
             this.setWorkDetails(response.data)

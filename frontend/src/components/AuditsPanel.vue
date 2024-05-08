@@ -15,7 +15,7 @@
       <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows showGridlines
          :lazy="false" :paginator="true" :rows="5" :rowsPerPageOptions="[5, 10, 25]"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-         currentPageReportTemplate="{first} - {last} of {totalRecords}"
+         currentPageReportTemplate="{first} - {last} of {totalRecords}" scrollable scrollHeight="600px"
       >
          <Column header="At" class="nowrap">
             <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>

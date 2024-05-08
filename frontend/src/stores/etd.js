@@ -153,9 +153,10 @@ export const useETDStore = defineStore('etd', {
 
       async update( ) {
          this.working = true
-         let payload = {
-            work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility,
-            embargoReleaseDate: this.embargoReleaseDate, embargoReleaseVisibility: this.embargoReleaseVisibility
+         let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility}
+         if ( this.visibility == "embargo" || this.visibility == "uva") {
+            payload.embargoReleaseDate = this.embargoReleaseDate
+            payload.embargoReleaseVisibility = this.embargoReleaseVisibility
          }
          let url = `/api/works/etd/${this.work.id}`
          return axios.put(url, payload).then(response => {
