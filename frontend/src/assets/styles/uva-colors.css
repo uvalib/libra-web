@@ -45,7 +45,7 @@
    --uvalib-grey-darkest: #2b2b2b;
 
    --uvalib-text-light: #FFFFFF;
-   --uvalib-text: var(--uvalib-grey-dark);
+   --uvalib-text: #232D4B;
    --uvalib-text-dark: var(--uvalib-grey-darkest);
 
    --uvalib-accessibility-highlight: var(--uvalib-brand-blue-light);
@@ -53,6 +53,6 @@
    --color-primary-orange: var(--uvalib-brand-orange);
    --color-link: var(--uvalib-blue-alt-dark);
    --color-link-darker: var(--uvalib-blue-alt-dark);
-   --color-primary-text: var(--uvalib-grey-dark);
+   --color-primary-text: #232D4B;
    --color-error: var(--uvalib-red-emergency);
 }

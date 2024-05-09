@@ -23,7 +23,7 @@
                   <template v-if="adminEdit==false">
                      <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
                   </template>
-                  <AuditsPanel :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
+                  <AuditsPanel v-if="etdRepo.working==false" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
                </div>
             </template>
             <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />

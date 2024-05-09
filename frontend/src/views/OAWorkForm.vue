@@ -23,7 +23,7 @@
                      <span v-if="oaRepo.isDraft" class="visibility draft">DRAFT</span>
                      <span v-else><b>Published</b>: {{ $formatDate(oaRepo.publishedAt) }}</span>
                   </template>
-                  <AuditsPanel v-if="isNewSubmission==false" :workID="oaRepo.work.id" :namespace="system.oaNamespace" />
+                  <AuditsPanel v-if="oaRepo.working==false && isNewSubmission==false" :workID="oaRepo.work.id" :namespace="system.oaNamespace" />
                </div>
             </template>
             <WaitSpinner v-if="oaRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
