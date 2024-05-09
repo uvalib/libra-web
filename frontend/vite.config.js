@@ -25,19 +25,23 @@ export default defineConfig({
             changeOrigin: true
          },
          '/authenticate': {
-            target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
+            target: process.env.LIBRA_SRV,
+            changeOrigin: true
+         },
+         '/authcheck': {
+            target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
          '/config': {
-            target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
+            target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
          '/healthcheck': {
-            target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
+            target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
          '/version': {
-            target: process.env.LIBRA_SRV,  //export LIBRA_SRV=http://localhost:8085
+            target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
       }

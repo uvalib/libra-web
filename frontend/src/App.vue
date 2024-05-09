@@ -93,7 +93,6 @@ watch(() => systemStore.toast.show, (newShow) => {
 
 
 onBeforeMount( async () => {
-   console.log("REQUEST CONFIG")
    document.title = `Libra`
    await systemStore.getConfig()
    configuring.value = false

@@ -11,7 +11,7 @@ import (
 )
 
 // Version of the service
-const Version = "0.0.1"
+const Version = "0.9.0"
 
 func main() {
 	// Load cfg
@@ -28,6 +28,7 @@ func main() {
 
 	// Set routes and start serve
 	router.GET("/authenticate", svc.authenticate)
+	router.GET("/authcheck", svc.checkAuthToken)
 	router.GET("/config", svc.getConfig)
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/version", svc.getVersion)

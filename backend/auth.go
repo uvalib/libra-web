@@ -128,6 +128,16 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	c.Redirect(http.StatusFound, "/signedin")
 }
 
+func (svc *serviceContext) checkAuthToken(c *gin.Context) {
+	_, err := svc.getAuthFromHeader(c.Request.Header.Get("Authorization"))
+	if err != nil {
+		log.Printf("INFO: check auth failed: %s", err.Error())
+		c.String(http.StatusForbidden, "invalid")
+		return
+	}
+	c.String(http.StatusOK, "valid")
+}
+
 func (svc *serviceContext) userMiddleware(c *gin.Context) {
 	jwtRequired := true
 	if c.Request.Method == "GET" && (strings.Contains(c.Request.URL.Path, "/api/works/oa") || strings.Contains(c.Request.URL.Path, "/api/works/etd")) {
