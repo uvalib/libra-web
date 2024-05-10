@@ -17,14 +17,7 @@
          </div>
       </div>
       <div class="user-header" v-if="user.isSignedIn">
-         <router-link class="dashboard" to="/">Libra</router-link>
-         <router-link v-if="user.admin" class="dashboard" to="/admin">Admin</router-link>
-         <template v-if="route.path != '/'">
-            <template v-if="showDashboard">
-               <router-link class="dashboard" :to="dashboardLink">Dashboard</router-link>
-            </template>
-         </template>
-         <span>{{ user.displayName }}</span>
+         <MenuBar />
       </div>
    </header>
 
@@ -50,6 +43,7 @@ import { onBeforeMount, ref, watch, computed } from 'vue'
 import ScrollToTop from "@/components/ScrollToTop.vue"
 import UvaLibraryLogo from "@/components/UvaLibraryLogo.vue"
 import LibraryFooter from "@/components/LibraryFooter.vue"
+import MenuBar from "@/components/MenuBar.vue"
 import { RouterView } from 'vue-router'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
@@ -151,19 +145,9 @@ header {
       }
    }
    .user-header {
-      background-color: var(--uvalib-blue-alt-darkest);
-      color: white;
-      text-align: right;
-      padding: 10px;
+      background-color: white;
+      padding: 0px;
       font-weight: normal;
-      .dashboard {
-         display: inline-block;
-         margin-right: 25px;
-      }
-      a.dashboard {
-         color: white !important;
-         font-weight: normal !important;
-      }
    }
 }
 </style>

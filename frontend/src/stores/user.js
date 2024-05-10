@@ -37,7 +37,22 @@ export const useUserStore = defineStore('user', {
       }
    },
    actions: {
+      async validateAuth() {
+         await axios.get(`/authcheck`).catch( err => {
+            console.log("JWT VALIDATE FAILED: "+err)
+            localStorage.removeItem("libra3_jwt")
+            this.$reset()
+          })
+      },
+      signOut() {
+         localStorage.removeItem("libra3_jwt")
+         localStorage.removeItem("prior_libra3_url")
+         this.$reset()
+      },
       setJWT(jwt) {
+         if (jwt == null || jwt == "" || jwt == "null") {
+            return
+         }
          if (jwt == this.jwt) return
 
          this.jwt = jwt
@@ -63,7 +78,6 @@ export const useUserStore = defineStore('user', {
          // add interceptor to put bearer token in header
          const system = useSystemStore()
          axios.interceptors.request.use(config => {
-            console.log("ADD AUTH HEADER")
             config.headers['Authorization'] = 'Bearer ' + jwt
             return config
          }, error => {

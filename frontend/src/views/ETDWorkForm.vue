@@ -225,7 +225,7 @@ usePinnable("user-header", "scroll-body", ( (isPinned) => {
    if ( flowType.indexOf("column") == -1) {
       let panelEle = savepanel.value.$el
       if ( isPinned ) {
-         panelEle.style.top = `65px` // HACK: top padding + height of user toolbar
+         panelEle.style.top = `85px` // HACK: top padding + height of user toolbar
          panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
          panelEle.classList.add("pinned")
       } else {
