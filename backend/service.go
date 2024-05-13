@@ -35,6 +35,7 @@ type serviceContext struct {
 	EasyStore     uvaeasystore.EasyStore
 	Events        eventContext
 	UserService   userServiceCfg
+	OrcidService  orcidServiceCfg
 	JWTKey        string
 	DevAuthUser   string
 	Namespaces    namespaceConfig
@@ -112,10 +113,11 @@ type configResponse struct {
 // InitializeService sets up the service context for all API handlers
 func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{Version: version,
-		JWTKey:      cfg.jwtKey,
-		UserService: cfg.userService,
-		DevAuthUser: cfg.devAuthUser,
-		Namespaces:  cfg.namespace,
+		JWTKey:       cfg.jwtKey,
+		UserService:  cfg.userService,
+		OrcidService: cfg.orcidService,
+		DevAuthUser:  cfg.devAuthUser,
+		Namespaces:   cfg.namespace,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")
@@ -265,7 +267,7 @@ func (svc *serviceContext) checkUserServiceJWT() error {
 			return []byte(svc.JWTKey), nil
 		})
 		if jwtErr != nil {
-			log.Printf("INFO: exiasting user ws jwt is not valid; generate another: %s", jwtErr.Error())
+			log.Printf("INFO: existing user ws jwt is not valid; generate another: %s", jwtErr.Error())
 		}
 		log.Printf("INFO: user ws jwt already exists and is valid")
 		return nil
@@ -471,6 +473,61 @@ func (svc *serviceContext) lookupComputeID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, jsonResp.User)
+}
+
+// OrcidDetailsResponse is the response from the Orcid service
+type OrcidDetailsResponse struct {
+	Status  int            `json:"status"`
+	Message string         `json:"message"`
+	Details []OrcidDetails `json:"results"`
+}
+
+// OrcidDetails holds details from the Orcid service
+type OrcidDetails struct {
+	//ID    string `json:"id,omitempty"`
+	//Cid   string `json:"cid,omitempty"`
+	Orcid string `json:"orcid,omitempty"`
+	URI   string `json:"uri,omitempty"`
+}
+
+func (svc *serviceContext) lookupOrcidID(c *gin.Context) {
+	computeID := c.Param("cid")
+	log.Printf("INFO: lookup ORCID for compute id [%s]", computeID)
+	err := svc.checkUserServiceJWT()
+	if err != nil {
+		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	url := svc.OrcidService.GetURL
+	// substitute values into url
+	url = strings.Replace(url, "{:id}", computeID, 1)
+	url = strings.Replace(url, "{:auth}", svc.UserService.JWT, 1)
+	payload, userErr := svc.sendGetRequest(url)
+	if userErr != nil {
+		log.Printf("INFO: lookup ORCID user [%s] failed: %s", computeID, userErr.Message)
+		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", computeID))
+		return
+	}
+	resp := OrcidDetailsResponse{}
+	err = json.Unmarshal(payload, &resp)
+	if err != nil {
+		fmt.Printf("ERROR: json unmarshal of OrcidDetailsResponse (%s)\n", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	fmt.Printf("INFO: located ORCID [%v] for cid [%s]\n", resp, computeID)
+
+	// if we have details, return them
+	if len(resp.Details) != 0 {
+		c.JSON(http.StatusOK, resp.Details[0])
+		return
+	}
+
+	fmt.Printf("ERROR: No ORCID details found. API may have changed.\n")
+	c.String(http.StatusNotFound, "No ORCID details found")
+
 }
 
 func (svc *serviceContext) sendGetRequest(url string) ([]byte, *RequestError) {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useSystemStore } from './system'
+import { useOrcidStore } from './orcid'
 import axios from 'axios'
 
 function parseJwt(token) {
@@ -17,6 +18,7 @@ export const useUserStore = defineStore('user', {
       jwt: "",
       computeID: "",
 	   uvaID: "",
+      orcid: "",
 	   displayName: "",
 	   firstName: "",
 	   initials: "",
@@ -108,6 +110,11 @@ export const useUserStore = defineStore('user', {
                return Promise.reject(err)
             }
          )
+
+         // Lookup ORCID for the signed in user
+         const orcid = useOrcidStore()
+         this.orcid = orcid.find(this.computeID)
+         console.log(this.orcid)
       }
    }
 })

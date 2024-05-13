@@ -4,8 +4,9 @@
          <router-link v-if="item.route" :to="item.route">
             {{ label }}
          </router-link>
-         <a v-else :href="item.url" :target="item.target" v-bind="props.action">
-            <span v-bind="props.icon" />
+         <a v-else-if="!item.if" :href="item.url" class="flex-inline" :target="item.target" v-bind="props.action">
+            <span v-bind="props.icon" class=""/>
+            <img v-if="item.img" :src="item.img" />
             <span v-bind="props.label">{{ label }}</span>
             <span v-if="item.items" class="pi pi-fw pi-angle-down" v-bind="props.submenuicon" />
          </a>
@@ -17,9 +18,10 @@
 import Menubar from 'primevue/menubar'
 import { computed } from 'vue'
 import { useUserStore } from "@/stores/user"
-import { useRouter, useRoute } from "vue-router"
+import { useRouter} from "vue-router"
+import ORCIDLogo from '@/assets/ORCID-iD_icon-vector.svg';
 
-const route = useRoute()
+
 const router = useRouter()
 const user = useUserStore()
 
@@ -34,6 +36,12 @@ const libraMenu = computed( () => {
    }
    let userMenu =
       {label: `${user.firstName} ${user.lastName}`, items: [
+         {  label: "ORCID",
+            items: [
+               {if: typeof(user.orcid.uri) === 'undefined', label: user.orcid.uri, img: ORCIDLogo, alt: "ORCID logo", target: "_blank", url: user.orcid.uri, icon: "pi pi-external-link"},
+               {label: "Manage Connection", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
+            ]
+         },
          {label: "Sign out",  command: ()=>signOut()}
       ]}
    menu.push(userMenu)
@@ -58,6 +66,9 @@ div.p-menuitem-content {
       &:hover {
          text-decoration: none !important;
       }
+   }
+   img {
+      height: 1em
    }
 }
 </style>

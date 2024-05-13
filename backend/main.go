@@ -36,6 +36,7 @@ func main() {
 	api := router.Group("/api", svc.userMiddleware)
 	{
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
+		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
 
 		// NOTE: when a deposit is requested, a temporary work token is generated
 		// this token is used as a subrirectory to stage uploaded files. Upon submissions,

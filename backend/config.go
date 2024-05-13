@@ -10,6 +10,10 @@ type userServiceCfg struct {
 	JWT string
 }
 
+type orcidServiceCfg struct {
+	GetURL string
+}
+
 type easyStoreConfig struct {
 	mode      string // sqlite, postgres, s3
 	dbDir     string
@@ -31,6 +35,7 @@ type namespaceConfig struct {
 type configData struct {
 	port            int
 	userService     userServiceCfg
+	orcidService    orcidServiceCfg
 	auditQueryURL   string
 	devAuthUser     string
 	devBus          bool
@@ -47,6 +52,7 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
 	flag.StringVar(&config.auditQueryURL, "auditqueryurl", "", "Query URL for the audit service")
+	flag.StringVar(&config.orcidService.GetURL, "getorcidurl", "", "GET orcid for user service")
 
 	// dev mode
 	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")
