@@ -241,6 +241,9 @@ export const useOAStore = defineStore('oa', {
             this.working = false
          })
       },
+      removeContributor(idx) {
+         this.work.contributors.splice(idx,1)
+      },
       removeKeyword(idx) {
          if ( idx == 0 &&  this.work.keywords.length == 1) {
             this.work.keywords[0] = ""

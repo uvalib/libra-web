@@ -144,7 +144,7 @@
                                     <FormKit type="text" name="computeID" label="Computing ID"/>
                                     <Button class="check" icon="pi pi-search" severity="secondary" @click="checkContributorID(index)"/>
                                  </div>
-                                 <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove contributor" @click="removeContributor(index)"/>
+                                 <Button class="remove" icon="pi pi-trash" severity="danger" aria-label="remove contributor" @click="removeContributor(index)"/>
                               </div>
                               <p v-if="oaRepo.work.contributors[index].msg != ''" class="err">{{ oaRepo.work.contributors[index].msg }}</p>
                               <div class="two-col">
@@ -386,7 +386,7 @@ const addContributor = ( () => {
    focusNewEntry("contributor", oaRepo.work.contributors.length, "input")
 })
 const removeContributor = ((idx)=> {
-   oaRepo.work.contributors.splice(idx,1)
+   oaRepo.removeContributor(idx)
 })
 const checkContributorID = ((idx) => {
    let cID = oaRepo.work.contributors[idx].computeID
