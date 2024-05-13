@@ -66,7 +66,7 @@
                               </div>
                               <div class="fields">
                                  <div class="id-field">
-                                    <div class="search-field">
+                                    <div class="search-field" :id="`author-${index+1}`">
                                        <FormKit type="text" name="computeID" label="Computing ID" outer-class="first"/>
                                        <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAuthorID(index)"/>
                                     </div>
@@ -102,7 +102,7 @@
 
                <FormKit v-model="oaRepo.work.languages" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap"  :id="`language-${index+1}`">
                         <FormKit type="select" :label="inputLabel('Language', index)" :index="index"
                            placeholder="Select a language" :options="system.languages"
                         />
@@ -116,7 +116,7 @@
 
                <FormKit v-model="oaRepo.work.keywords" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap" :id="`keyword-${index+1}`">
                         <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
@@ -138,7 +138,7 @@
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
                            <div class="author">
                               <div class="id-field">
-                                 <div class="search-field">
+                                 <div class="search-field" :id="`contributor-${index+1}`">
                                     <FormKit type="text" name="computeID" label="Computing ID"/>
                                     <Button class="check" icon="pi pi-search" severity="secondary" @click="checkContributorID(index)"/>
                                  </div>
@@ -169,7 +169,7 @@
 
                <FormKit v-model="oaRepo.work.relatedURLs" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap" :id="`url-${index+1}`">
                         <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
@@ -180,7 +180,7 @@
 
                <FormKit v-model="oaRepo.work.sponsors" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap" :id="`agency-${index+1}`">
                         <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
@@ -230,7 +230,7 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, computed } from 'vue'
+import { ref, onBeforeMount, computed, nextTick } from 'vue'
 import AdminPanel from "@/components/AdminPanel.vue"
 import SavePanel from "@/components/SavePanel.vue"
 import AuditsPanel from "@/components/AuditsPanel.vue"
@@ -362,6 +362,7 @@ const inputLabel = ( (lbl, idx) => {
 })
 const addAuthor = ( () => {
    oaRepo.work.authors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   focusNewEntry("author", oaRepo.work.authors.length, "input")
 })
 const removeAuthor = ((idx)=> {
    oaRepo.work.authors.splice(idx,1)
@@ -378,6 +379,7 @@ const checkAuthorID = ((idx) => {
 })
 const addContributor = ( () => {
    oaRepo.work.contributors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   focusNewEntry("contributor", oaRepo.work.contributors.length, "input")
 })
 const removeContributor = ((idx)=> {
    oaRepo.work.contributors.splice(idx,1)
@@ -397,24 +399,36 @@ const removeKeyword = ((idx)=> {
 })
 const addKeyword = ( () => {
    oaRepo.work.keywords.push("")
+   focusNewEntry("keyword", oaRepo.work.keywords.length, "input")
 })
 const removeLanguage = ((idx)=> {
    oaRepo.work.languages.splice(idx,1)
 })
 const addLanguage = ( () => {
    oaRepo.work.languages.push("")
+   focusNewEntry("language", oaRepo.work.languages.length, "select")
 })
 const removeURL = ((idx)=> {
    oaRepo.work.relatedURLs.splice(idx,1)
 })
 const addURL = ( () => {
    oaRepo.work.relatedURLs.push("")
+   focusNewEntry("url", oaRepo.work.relatedURLs.length, "input")
 })
 const removeAgency = ((idx)=> {
    oaRepo.work.sponsors.splice(idx,1)
 })
 const addAgency = ( () => {
    oaRepo.work.sponsors.push("")
+   focusNewEntry("agency", oaRepo.work.sponsors.length, "input")
+})
+const focusNewEntry = (( name, length, type) => {
+   nextTick( () => {
+      const tgtInput = document.querySelector(`#${name}-${length} ${type}`)
+      if (tgtInput) {
+         tgtInput.focus()
+      }
+   })
 })
 const deleteFileClicked = ( (name) => {
    confirm.require({

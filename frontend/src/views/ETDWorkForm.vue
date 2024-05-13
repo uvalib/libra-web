@@ -87,7 +87,7 @@
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
                            <div class="author">
                               <div class="id-field">
-                                 <div class="search-field">
+                                 <div class="search-field"  :id="`advisor-${index+1}`">
                                     <FormKit type="text" name="computeID" label="Computing ID"/>
                                     <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAdvisorID(index)"/>
                                  </div>
@@ -123,7 +123,7 @@
 
                <FormKit v-model="etdRepo.work.keywords" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap" :id="`keyword-${index+1}`">
                         <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || etdRepo.work.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
@@ -137,7 +137,7 @@
 
                <FormKit v-model="etdRepo.work.relatedURLs" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap" :id="`url-${index+1}`">
                         <FormKit :label="inputLabel('Related Link(s)', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || etdRepo.work.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
@@ -148,7 +148,7 @@
 
                <FormKit v-model="etdRepo.work.sponsors" type="list" dynamic #default="{ items }">
                   <div v-for="(item, index) in items" :key="item" class="input-row">
-                     <div class="input-wrap">
+                     <div class="input-wrap" :id="`agency-${index+1}`">
                         <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || etdRepo.work.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
@@ -198,7 +198,7 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, computed } from 'vue'
+import { ref, onBeforeMount, computed, nextTick } from 'vue'
 import AdminPanel from "@/components/AdminPanel.vue"
 import AuditsPanel from '@/components/AuditsPanel.vue'
 import SavePanel from "@/components/SavePanel.vue"
@@ -283,6 +283,7 @@ const inputLabel = ( (lbl, idx) => {
 })
 const addAdvisor = ( () => {
    etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   focusNewEntry("advisor", etdRepo.work.advisors.length, "input")
 })
 const removeAdvisor = ((idx)=> {
    etdRepo.work.advisors.splice(idx,1)
@@ -302,19 +303,32 @@ const removeKeyword = ((idx)=> {
 })
 const addKeyword = ( () => {
    etdRepo.work.keywords.push("")
+   focusNewEntry("keyword", etdRepo.work.keywords.length, "input")
 })
 const removeURL = ((idx)=> {
    etdRepo.work.relatedURLs.splice(idx,1)
 })
 const addURL = ( () => {
    etdRepo.work.relatedURLs.push("")
+   focusNewEntry("url", etdRepo.work.relatedURLs.length, "input")
 })
 const removeAgency = ((idx)=> {
    etdRepo.work.sponsors.splice(idx,1)
 })
 const addAgency = ( () => {
    etdRepo.work.sponsors.push("")
+   focusNewEntry("agency", etdRepo.work.sponsors.length, "input")
 })
+
+const focusNewEntry = (( name, length, type) => {
+   nextTick( () => {
+      const tgtInput = document.querySelector(`#${name}-${length} ${type}`)
+      if (tgtInput) {
+         tgtInput.focus()
+      }
+   })
+})
+
 const deleteFileClicked = ( (name) => {
    confirm.require({
       message: `Delete file ${name}?`,
