@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import { useSystemStore } from './system'
 
 export const useOrcidStore = defineStore('orcid', {
    state: () => ({
@@ -16,8 +15,9 @@ export const useOrcidStore = defineStore('orcid', {
             this.orcid.uri = response.data.uri
             this.working = false
          }).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
+            if (err.response.status != 404) {
+               console.log(err)
+            }
             this.working = false
          })
          return this.orcid
