@@ -110,11 +110,6 @@ export const useUserStore = defineStore('user', {
                return Promise.reject(err)
             }
          )
-
-         // Lookup ORCID for the signed in user
-         const orcid = useOrcidStore()
-         this.orcid = orcid.find(this.computeID)
-         console.log(this.orcid)
       }
    }
 })
