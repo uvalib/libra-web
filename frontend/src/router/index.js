@@ -92,72 +92,66 @@ const router = createRouter({
    }
 })
 
-router.beforeEach((to, _from, next) => {
-   console.log("BEFORE ROUTE "+to.path+": "+to.name)
+router.beforeEach( async (to) => {
+   console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
+   const noAuthRoutes = ["not_found", "forbidden", "expired", "home"]
+   const isPublicPage = (to.name == "oapublic" || to.name == "etdpublic" )
+   const isAdminPage = (to.name == "admin" || to.path.includes("/admin"))
 
    // the /signedin endpoint called after authorization. it has no page itself; it just
-   // processes the authorization response and redirects to the next page
+   // processes the authorization response and redirects to the next page (or forbidden)
    if (to.path == '/signedin') {
-      let jwtStr = VueCookies.get("libra3_jwt")
-      console.log(`GRANTED [${jwtStr}]`)
-      if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
-         userStore.setJWT(jwtStr)
+      const jwtStr = VueCookies.get("libra3_jwt")
+      userStore.setJWT(jwtStr)
+      if ( userStore.isSignedIn  ) {
+         console.log(`GRANTED [${jwtStr}]`)
          let priorURL = localStorage.getItem('prior_libra3_url')
          localStorage.removeItem("prior_libra3_url")
-         if ( priorURL && priorURL != "/granted" && priorURL != "/") {
+         if ( priorURL && priorURL != "/signedin" && priorURL != "/") {
             console.log("RESTORE "+priorURL)
-            next(priorURL)
-         } else {
-            next("/")
+            return {path: priorURL}
          }
-      } else {
-         next("/forbidden")
+         return {name: "home"}
       }
-      return
+      return {name: "forbidden"}
    }
 
-   // request for home page or public work metadata. authorization is not required, but if it is present, it will be used
-   if (to.name == "oapublic" || to.name == "etdpublic" ||  to.name == "home") {
-      console.log("PUBLIC REQUEST; AUTH OPTIONAL")
-      let jwtStr = localStorage.getItem('libra3_jwt')
-      if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
-         console.log("    AUTH PRESENT")
-         userStore.setJWT(jwtStr)
-      } else {
-         console.log("    NO AUTH PRESENT")
-      }
-      next()
-      return
-   }
+   // for all other routes, pull the existing jwt from storage from storage and set in the user store.
+   // depending upon the page resuested, this token may or may not be used.
+   const jwtStr = localStorage.getItem('libra3_jwt')
+   userStore.setJWT(jwtStr)
 
-   // some routes are accessible by all. do not check auth and just proceed to the route
-   let publicRoutes = ["not_found", "forbidden", "expired"]
-   if ( publicRoutes.includes(to.name)) {
-      console.log("NOT A PROTECTED ROUTE")
-      next()
-      return
-   }
-
-   // all other routes require jwt authorization
-   console.log("AUTH REQUIRED")
-   localStorage.setItem("prior_libra3_url", to.fullPath)
-   let jwtStr = localStorage.getItem('libra3_jwt')
-   console.log(`GOT JWT [${jwtStr}]`)
-   if (jwtStr != null && jwtStr != "" && jwtStr != "null") {
-      userStore.setJWT(jwtStr)
-      if (to.name == "admin" ) {
-         if ( userStore.admin == false ) {
-            console.log("   REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
-            next("/forbidden")
-            return
-         }
-         console.log("    ADMIN REQUEST GRANTED")
-      }
-      next()
+   if ( noAuthRoutes.includes(to.name)) {
+      console.log("NOT A PROTECTED PAGE")
    } else {
-      console.log("AUTHENTICATE")
-      window.location.href = "/authenticate"
+      if (userStore.isSignedIn == false) {
+         if ( isPublicPage == false ) {
+            console.log("AUTHENTICATE")
+            localStorage.setItem("prior_libra3_url", to.fullPath)
+            window.location.href = "/authenticate"
+            return false   // cancel the original navigation
+         }
+         console.log("UNAUTHENTICATED REQUEST FOR PUBLIC VIEW PAGE")
+      } else {
+         if ( isAdminPage) {
+            console.log(`REQUEST ADMIN PAGE WITH JWT`)
+            if ( userStore.admin == false ) {
+               console.log("REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
+               return {name: "forbidden"}
+            }
+         } else {
+            console.log(`REQUEST AUTHENTICATED PAGE WITH JWT`)
+         }
+      }
+
+      // this page uses the auth token. be sure it is still valid before proceeding
+      await userStore.validateAuth()
+      if (userStore.isSignedIn == false) {
+         console.log("JWT HAS EXPIRED")
+         localStorage.setItem("prior_libra3_url", to.fullPath)
+         return {name: "expired"}
+      }
    }
 })
 

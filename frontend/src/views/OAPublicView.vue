@@ -127,7 +127,7 @@ const editWork = (() => {
    router.push(`/oa/${route.params.id}`)
 })
 const cancelPreview = ( () => {
-   router.back()
+   router.push("/oa")
 })
 const publishWork = ( () => {
    confirm.require({

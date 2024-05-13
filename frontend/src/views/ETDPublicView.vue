@@ -115,7 +115,7 @@ const editThesis = (() => {
    router.push(`/etd/${route.params.id}`)
 })
 const cancelPreview = ( () => {
-   router.back()
+   router.push("/etd")
 })
 const submitThesis = ( () => {
    confirm.require({

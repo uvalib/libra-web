@@ -38,11 +38,15 @@ export const useUserStore = defineStore('user', {
    },
    actions: {
       async validateAuth() {
-         await axios.get(`/authcheck`).catch( err => {
-            console.log("JWT VALIDATE FAILED: "+err)
-            localStorage.removeItem("libra3_jwt")
-            this.$reset()
-          })
+         if ( this.isSignedIn ) {
+            await axios.get(`/authcheck`).catch( err => {
+               console.log("JWT VALIDATE FAILED: "+err)
+               localStorage.removeItem("libra3_jwt")
+               this.$reset()
+            })
+         } else {
+            console.log("not sugned in, no auth to validate")
+         }
       },
       signOut() {
          localStorage.removeItem("libra3_jwt")
