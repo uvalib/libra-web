@@ -127,7 +127,8 @@
                         <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || etdRepo.work.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
+                     <Button v-if="index > 0 || index == 0 && etdRepo.work.keywords[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
                   </div>
                   <p class="note">Add one keyword or keyword phrase per line.</p>
                </FormKit>
@@ -141,7 +142,8 @@
                         <FormKit :label="inputLabel('Related Link(s)', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || etdRepo.work.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
+                     <Button v-if="index > 0 || index == 0 && etdRepo.work.relatedURLs[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
                   </div>
                   <p class="note">A link to a website or other specific content (audio, video, PDF document) related to the work.</p>
                </FormKit>
@@ -152,7 +154,8 @@
                         <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || etdRepo.work.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
+                     <Button v-if="index > 0 || index == 0 && etdRepo.work.sponsors[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
                   </div>
                </FormKit>
 
@@ -299,21 +302,21 @@ const checkAdvisorID = ((idx) => {
    })
 })
 const removeKeyword = ((idx)=> {
-   etdRepo.work.keywords.splice(idx,1)
+   etdRepo.removeKeyword(idx)
 })
 const addKeyword = ( () => {
    etdRepo.work.keywords.push("")
    focusNewEntry("keyword", etdRepo.work.keywords.length, "input")
 })
 const removeURL = ((idx)=> {
-   etdRepo.work.relatedURLs.splice(idx,1)
+   etdRepo.removeURL(idx)
 })
 const addURL = ( () => {
    etdRepo.work.relatedURLs.push("")
    focusNewEntry("url", etdRepo.work.relatedURLs.length, "input")
 })
 const removeAgency = ((idx)=> {
-   etdRepo.work.sponsors.splice(idx,1)
+   etdRepo.removeAgency(idx)
 })
 const addAgency = ( () => {
    etdRepo.work.sponsors.push("")

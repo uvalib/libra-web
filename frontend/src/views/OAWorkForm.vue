@@ -108,7 +108,8 @@
                         />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.languages.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add language" @click="addLanguage"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language" @click="removeLanguage(index)"/>
+                     <Button v-if="index > 0 || index == 0 && oaRepo.work.languages[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove language" @click="removeLanguage(index)"/>
                   </div>
                   <p class="note">The language of the work's content.</p>
                </FormKit>
@@ -120,7 +121,8 @@
                         <FormKit :label="inputLabel('Keywords', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.keywords.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add keyword" @click="addKeyword"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
+                     <Button v-if="index > 0 || index == 0 && oaRepo.work.keywords[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove keyword"  @click="removeKeyword(index)"/>
                   </div>
                   <p class="note">Add one keyword or keyword phrase per line.</p>
                </FormKit>
@@ -173,7 +175,8 @@
                         <FormKit :label="inputLabel('Related URL', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.relatedURLs.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add url" @click="addURL"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
+                     <Button v-if="index > 0 || index == 0 && oaRepo.work.relatedURLs[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove url"  @click="removeURL(index)"/>
                   </div>
                   <p class="note">Links to another version, another location with the file, website or other specific content (audio, video, PDF document) related to the work.</p>
                </FormKit>
@@ -184,7 +187,8 @@
                         <FormKit :label="inputLabel('Sponsoring Agency', index)" type="text" :index="index" />
                      </div>
                      <Button v-if="index > 0 || oaRepo.work.sponsors.length == 1" class="add" icon="pi pi-plus" severity="success" aria-label="add agency" @click="addAgency"/>
-                     <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
+                     <Button v-if="index > 0 || index == 0 && oaRepo.work.sponsors[0] != ''"
+                        class="remove" icon="pi pi-trash" severity="danger" aria-label="remove agency"  @click="removeAgency(index)"/>
                   </div>
                </FormKit>
 
@@ -395,28 +399,28 @@ const checkContributorID = ((idx) => {
    })
 })
 const removeKeyword = ((idx)=> {
-   oaRepo.work.keywords.splice(idx,1)
+   oaRepo.removeKeyword(idx)
 })
 const addKeyword = ( () => {
    oaRepo.work.keywords.push("")
    focusNewEntry("keyword", oaRepo.work.keywords.length, "input")
 })
 const removeLanguage = ((idx)=> {
-   oaRepo.work.languages.splice(idx,1)
+   oaRepo.removeLanguage(idx)
 })
 const addLanguage = ( () => {
    oaRepo.work.languages.push("")
    focusNewEntry("language", oaRepo.work.languages.length, "select")
 })
 const removeURL = ((idx)=> {
-   oaRepo.work.relatedURLs.splice(idx,1)
+   oaRepo.removeURL(idx)
 })
 const addURL = ( () => {
    oaRepo.work.relatedURLs.push("")
    focusNewEntry("url", oaRepo.work.relatedURLs.length, "input")
 })
 const removeAgency = ((idx)=> {
-   oaRepo.work.sponsors.splice(idx,1)
+   oaRepo.removeAgency(idx)
 })
 const addAgency = ( () => {
    oaRepo.work.sponsors.push("")

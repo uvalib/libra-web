@@ -240,6 +240,34 @@ export const useOAStore = defineStore('oa', {
             system.setError(  err )
             this.working = false
          })
+      },
+      removeKeyword(idx) {
+         if ( idx == 0 &&  this.work.keywords.length == 1) {
+            this.work.keywords[0] = ""
+         } else {
+            this.work.keywords.splice(idx,1)
+         }
+      },
+      removeLanguage(idx) {
+         if ( idx == 0 &&  this.work.languages.length == 1) {
+            this.work.languages[0] = ""
+         } else {
+            this.work.languages.splice(idx,1)
+         }
+      },
+      removeAgency(idx) {
+         if ( idx == 0 &&  this.work.sponsors.length == 1) {
+            this.work.sponsors[0] = ""
+         } else {
+            this.work.sponsors.splice(idx,1)
+         }
+      },
+      removeURL(idx) {
+         if ( idx == 0 &&  this.work.relatedURLs.length == 1) {
+            this.work.relatedURLs[0] = ""
+         } else {
+            this.work.relatedURLs.splice(idx,1)
+         }
       }
    }
 })
