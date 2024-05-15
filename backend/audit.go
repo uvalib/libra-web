@@ -57,7 +57,7 @@ func (svc *serviceContext) getAudits(c *gin.Context) {
 	// get audit records
 	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.AuditQueryURL, namespace, workID))
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Message)
+		c.String(err.StatusCode, err.Message)
 		return
 	}
 

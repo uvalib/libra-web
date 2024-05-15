@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import { useSystemStore } from './system'
-import { useOrcidStore } from './orcid'
 import axios from 'axios'
 
 function parseJwt(token) {
@@ -17,20 +16,19 @@ export const useUserStore = defineStore('user', {
    state: () => ({
       jwt: "",
       computeID: "",
-	   uvaID: "",
-      orcid: "",
-	   displayName: "",
-	   firstName: "",
-	   initials: "",
-	   lastName: "",
-	   description: [],
-	   department: [],
-	   title: [],
-	   office: [],
-	   phone: [],
-	   affiliation: [],
-	   email: "",
-	   private: "",
+      uvaID: "",
+      displayName: "",
+      firstName: "",
+      initials: "",
+      lastName: "",
+      description: [],
+      department: [],
+      title: [],
+      office: [],
+      phone: [],
+      affiliation: [],
+      email: "",
+      private: "",
       admin: false,
    }),
    getters: {
