@@ -1,13 +1,13 @@
 #
 # build the target application
 #
-FROM public.ecr.aws/docker/library/golang:1.23.4-alpine3.21 AS builder
+FROM public.ecr.aws/docker/library/golang:1.24.2-alpine3.21 AS builder
 
 # update the packages
 RUN apk update && apk upgrade && apk add --no-cache make npm gcc sqlite-dev musl-dev
 
 # see: https://stackoverflow.com/questions/69692842/error-message-error0308010cdigital-envelope-routinesunsupported
-ENV NODE_OPTIONS --openssl-legacy-provider
+ENV NODE_OPTIONS=--openssl-legacy-provider
 
 WORKDIR /build
 COPY go.mod go.sum Makefile ./
