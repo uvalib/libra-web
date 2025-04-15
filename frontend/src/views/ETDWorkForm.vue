@@ -30,29 +30,33 @@
             <FormKit v-else ref="etdForm" type="form" :actions="false" @submit="submitHandler">
                <div v-if="adminEdit==false" class="two-col margin-bottom">
                   <table class="readonly">
-                     <tr>
-                        <td class="label">Institution:</td>
-                        <td>{{ etdRepo.work.author.institution  }}</td>
-                     </tr>
-                     <tr>
-                        <td class="label">Program:</td>
-                        <td>{{ etdRepo.work.program  }}</td>
-                     </tr>
-                     <tr>
-                        <td class="label">Degree:</td>
-                        <td>{{ etdRepo.work.degree }}</td>
-                     </tr>
+                     <tbody>
+                        <tr>
+                           <td class="label">Institution:</td>
+                           <td>{{ etdRepo.work.author.institution  }}</td>
+                        </tr>
+                        <tr>
+                           <td class="label">Program:</td>
+                           <td>{{ etdRepo.work.program  }}</td>
+                        </tr>
+                        <tr>
+                           <td class="label">Degree:</td>
+                           <td>{{ etdRepo.work.degree }}</td>
+                        </tr>
+                        </tbody>
                   </table>
-                  <table class="readonly">
-                     <tr>
-                        <td class="label">Date Created:</td>
-                        <td>{{ $formatDate(etdRepo.createdAt) }}</td>
-                     </tr>
-                     <tr v-if="etdRepo.isDraft==false">
-                        <td class="label">Date Published:</td>
-                        <td>{{ $formatDate(etdRepo.publishedAt) }}</td>
-                     </tr>
-                  </table>
+                     <table class="readonly">
+                        <tbody>
+                           <tr>
+                              <td class="label">Date Created:</td>
+                              <td>{{ $formatDate(etdRepo.createdAt) }}</td>
+                           </tr>
+                           <tr v-if="etdRepo.isDraft==false">
+                              <td class="label">Date Published:</td>
+                              <td>{{ $formatDate(etdRepo.publishedAt) }}</td>
+                           </tr>
+                        </tbody>
+                     </table>
                </div>
 
                <FormKit label="Title" type="text" v-model="etdRepo.work.title" validation="required" outer-class="first"/>

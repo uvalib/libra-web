@@ -1,78 +1,80 @@
 <template>
    <Panel header="Admin Info" class="admin-panel">
       <table>
-         <tr>
-            <td class="label">Identifier:</td>
-            <td>{{ props.identifier }}</td>
-         </tr>
-         <tr>
-            <td class="label">Depositor:</td>
-            <td>{{ props.depositor }}</td>
-         </tr>
-         <tr>
-            <td class="label">Created:</td>
-            <td>{{ $formatDateTime(props.created) }}</td>
-         </tr>
-         <tr v-if="props.modified">
-            <td class="label">Modified:</td>
-            <td>{{ $formatDateTime(props.modified) }}</td>
-         </tr>
-         <tr v-if="props.published">
-            <td class="label">Published:</td>
-            <td>{{ $formatDateTime(props.published) }}</td>
-         </tr>
-         <template v-if="props.type == 'etd'">
+         <tbody>
             <tr>
-               <td class="label">Program:</td>
+               <td class="label">Identifier:</td>
+               <td>{{ props.identifier }}</td>
+            </tr>
+            <tr>
+               <td class="label">Depositor:</td>
+               <td>{{ props.depositor }}</td>
+            </tr>
+            <tr>
+               <td class="label">Created:</td>
+               <td>{{ $formatDateTime(props.created) }}</td>
+            </tr>
+            <tr v-if="props.modified">
+               <td class="label">Modified:</td>
+               <td>{{ $formatDateTime(props.modified) }}</td>
+            </tr>
+            <tr v-if="props.published">
+               <td class="label">Published:</td>
+               <td>{{ $formatDateTime(props.published) }}</td>
+            </tr>
+            <template v-if="props.type == 'etd'">
+               <tr>
+                  <td class="label">Program:</td>
+                  <td>
+                     <div class="picker"  v-if="editField!='program'">
+                        <span>{{ program }}</span>
+                        <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit program" @click="editField='program'"/>
+                     </div>
+                     <div class="picker" v-else>
+                        <Dropdown v-model="program" :options="programs" :autoOptionFocus="true" @update:modelValue="editField=''"/>
+                        <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit program" @click="editField=''"/>
+                     </div>
+                  </td>
+               </tr>
+               <tr>
+                  <td class="label">Degree:</td>
+                  <td>
+                     <div class="picker" v-if="editField!='degree'">
+                        <span>{{ degree }}</span>
+                        <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit degree" @click="editField='degree'"/>
+                     </div>
+                     <div class="picker" v-else>
+                        <Dropdown v-model="degree" :options="degrees" :autoOptionFocus="true" @update:modelValue="editField=''"/>
+                        <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit degree" @click="editField=''"/>
+                     </div>
+                  </td>
+               </tr>
+            </template>
+            <tr>
+               <td class="label">Visibility:</td>
                <td>
-                  <div class="picker"  v-if="editField!='program'">
-                     <span>{{ program }}</span>
-                     <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit program" @click="editField='program'"/>
-                  </div>
-                  <div class="picker" v-else>
-                     <Dropdown v-model="program" :options="programs" :autoOptionFocus="true" @update:modelValue="editField=''"/>
-                     <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit program" @click="editField=''"/>
-                  </div>
+                  <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
                </td>
             </tr>
-            <tr>
-               <td class="label">Degree:</td>
-               <td>
-                  <div class="picker" v-if="editField!='degree'">
-                     <span>{{ degree }}</span>
-                     <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit degree" @click="editField='degree'"/>
-                  </div>
-                  <div class="picker" v-else>
-                     <Dropdown v-model="degree" :options="degrees" :autoOptionFocus="true" @update:modelValue="editField=''"/>
-                     <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit degree" @click="editField=''"/>
-                  </div>
-               </td>
-            </tr>
-         </template>
-         <tr>
-            <td class="label">Visibility:</td>
-            <td>
-               <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
-            </td>
-         </tr>
-         <template v-if="showEmbargoSettings">
-            <tr>
-               <td class="label">End Date:</td>
-               <td class="embargo">
-                  <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
-                  <span v-else>Never</span>
-                  <DatePickerDialog :type="props.type" :endDate="embargoEndDate" :admin="true"
-                     :visibility="visibility" @picked="endDatePicked" :degree="degree" :program="program"/>
-               </td>
-            </tr>
-            <tr>
-               <td class="label">End Visibility:</td>
-               <td>
-                  <span v-if="props.type=='etd'">{{ system.visibilityLabel('etd',embargoEndVisibility) }}</span>
-                  <Dropdown v-else v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/>
-               </td>
-            </tr>
-         </template>
+            <template v-if="showEmbargoSettings">
+               <tr>
+                  <td class="label">End Date:</td>
+                  <td class="embargo">
+                     <span v-if="embargoEndDate">{{ $formatDate(embargoEndDate) }}</span>
+                     <span v-else>Never</span>
+                     <DatePickerDialog :type="props.type" :endDate="embargoEndDate" :admin="true"
+                        :visibility="visibility" @picked="endDatePicked" :degree="degree" :program="program"/>
+                  </td>
+               </tr>
+               <tr>
+                  <td class="label">End Visibility:</td>
+                  <td>
+                     <span v-if="props.type=='etd'">{{ system.visibilityLabel('etd',embargoEndVisibility) }}</span>
+                     <Dropdown v-else v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/>
+                  </td>
+               </tr>
+            </template>
+         </tbody>
       </table>
       <div>
          <label for="admin-notes">Admin Notes</label>

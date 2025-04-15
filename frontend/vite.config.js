@@ -50,7 +50,7 @@ export default defineConfig({
       preprocessorOptions: {
          scss: {
             additionalData: `
-               @import "@/assets/styles/_mixins.scss";
+               @use "@/assets/styles/mixins.scss" as *;
             `
          },
       },
