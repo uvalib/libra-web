@@ -15,7 +15,7 @@
             </IconField>
          </Fieldset>
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
-               stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+               stripedRows showGridlines responsiveLayout="scroll"
                :lazy="false" :paginator="true" :alwaysShowPaginator="false"
                :rows="30" :totalRecords="admin.hits.length"
                paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
@@ -59,10 +59,10 @@
             <Column header="Actions" style="width:110px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" @click="editWorkClicked(slotProps.data)"/>
-                     <Button v-if="!slotProps.data.publishedAt" class="action"
+                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data)"/>
+                     <Button v-if="!slotProps.data.publishedAt" class="action" size="small"
                         icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data)"/>
-                     <Button v-else class="action" icon="pi pi-eye-slash" label="Unpublish" severity="warning" @click="unpublishWorkClicked(slotProps.data)"/>
+                     <Button v-else class="action" icon="pi pi-eye-slash" label="Unpublish" severity="warning" size="small"  @click="unpublishWorkClicked(slotProps.data)"/>
                   </div>
                </template>
             </Column>
@@ -151,7 +151,7 @@ const deleteWorkClicked = ( (work) => {
    .source {
       margin-top: 5px;
       font-size: 0.85em;
-      color: var(--uvalib-grey);
+      color: $uva-grey;
    }
    .panel-header {
       font-weight: bold;
@@ -165,58 +165,20 @@ const deleteWorkClicked = ( (work) => {
    .none {
       text-align: center;
       font-size: 1.25em;
-      color: var(--uvalib-grey-light);
+      color: $uva-grey-100;
       font-style: italic;
       padding: 20px;
    }
    .na {
-      color: var(--uvalib-grey-light);
+      color: $uva-grey-100;
       font-style: italic;
-   }
-
-   :deep(td.nowrap),  :deep(th){
-      white-space: nowrap;
-   }
-
-   .hdr {
-      width: 100%;
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-      align-items: center;
-      div {
-         font-size: 1.25em;
-         color: var(--uvalib-text);
-      }
-   }
-   .type {
-      font-size: 0.9em;
-      padding: 4px 8px;
-      border-radius: 20px;
-      font-weight: bold;
-   }
-   .type.etd {
-      background-color: var(--uvalib-blue-alt);
-      color: white;
-   }
-   .type.oa {
-      background-color: var(--uvalib-brand-orange);
-      color: white;
    }
    .acts {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
       justify-content: flex-start;
-      button.action {
-         font-size: 0.85em;
-         margin-top: 10px;
-         width: 100%;
-         padding: 4px 8px;
-      }
-      button.action:first-of-type {
-         margin-top: 0;
-      }
+      gap: 0.3rem;
    }
 }
 </style>

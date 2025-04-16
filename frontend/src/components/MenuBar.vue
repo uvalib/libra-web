@@ -1,14 +1,16 @@
 <template>
    <Menubar :model="libraMenu">
-      <template #item="{ label, item, props }">
-         <router-link v-if="item.route" :to="item.route">
-            {{ label }}
+      <template #item="{ item, props, hasSubmenu }">
+         <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+            <a :href="href" v-bind="props.action" @click="navigate">
+               <span :class="item.icon" />
+               <span>{{ item.label }}</span>
+            </a>
          </router-link>
-         <a v-else :href="item.url" class="flex-inline" :target="item.target" v-bind="props.action">
-            <span v-bind="props.icon" class=""/>
-            <img v-if="item.img" :src="item.img" />
-            <span v-bind="props.label">{{ label }}</span>
-            <span v-if="item.items" class="pi pi-fw pi-angle-down" v-bind="props.submenuicon" />
+         <a v-else :href="item.url" :target="item.target" v-bind="props.action">
+            <span :class="item.icon" />
+            <span>{{ item.label }}</span>
+            <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
          </a>
       </template>
    </Menubar>
@@ -41,7 +43,7 @@ const libraMenu = computed( () => {
       menu.push({label: "Admin", route: "/admin"})
    }
    let orcidMenu = [
-      {label: "Manage Connection", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
+      {label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
       { visible: (orcid.userURI != "") , label: orcid.userURI, img: ORCIDLogo, alt: "ORCID logo", target: "_blank", url: orcid.userURI, icon: "pi pi-external-link"}
    ]
    let userMenu =
@@ -64,20 +66,5 @@ const signOut = (() => {
 </script>
 
 <style scoped lang="scss">
-div.p-menuitem-content {
-   a {
-      color: var(--uvalib-text) !important;
-      padding: 0.75rem 1rem !important;
-      display: block;
-      border-radius: 0;
-      white-space: nowrap;
-      &:hover {
-         text-decoration: none !important;
-      }
-   }
-   img {
-      height: 1em
-   }
-}
 </style>
 

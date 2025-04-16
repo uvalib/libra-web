@@ -82,7 +82,7 @@
                      <span class="hdr">
                         <div>Advisors</div>
                         <span class="req-field margin-right">Required</span>
-                        <Button label="Add Advisor" @click="addAdvisor"/>
+                        <Button label="Add Advisor" size="small" @click="addAdvisor"/>
                      </span>
                   </template>
                   <FormKit v-model="etdRepo.work.advisors" type="list" dynamic #default="{ items }" validation="required">
@@ -441,6 +441,9 @@ const cancelClicked = (() => {
       justify-content: space-between;
       align-items: center;
       width: 100%;
+      .visibility {
+         flex-grow: auto;
+      }
    }
 }
 
@@ -494,10 +497,6 @@ const cancelClicked = (() => {
 
    .sub-panel {
       margin-top: 25px;
-      :deep(.p-panel-header) {
-         background-color: #fcfcfc;
-         padding: 10px;
-      }
       .id-field {
          display: flex;
          flex-flow: row nowrap;
@@ -514,16 +513,12 @@ const cancelClicked = (() => {
          flex-flow: row nowrap;
          justify-content: space-between;
          align-items: center;
-         button {
-            font-size: 0.8em;
-            padding: 5px 10px;
-         }
       }
       .authors {
          padding: 0;
          .author {
             position: relative;
-            border-top: 1px solid var(--uvalib-grey-light);
+            border-top: 1px solid $uva-grey-100;
             margin-top: 20px;
          }
       }
@@ -532,7 +527,7 @@ const cancelClicked = (() => {
    .err {
       padding: 0;
       margin: 2px 0 0 0;
-      color: var(--uvalib-red-emergency);
+      color: $uva-red-A;
       font-style: italic;
    }
 
@@ -567,9 +562,9 @@ const cancelClicked = (() => {
    .note {
       font-size: 0.85em;
       font-style: italic;
-      color: var(--uvalib-grey);
+      color: $uva-grey;
       margin-top: 0;
       padding-top: 5px;
    }
 }
-</style>@/stores/oa
+</style>

@@ -1,18 +1,20 @@
 <template>
    <Button @click="show" label="ETD Deposit Registration"/>
-   <Dialog v-model:visible="isOpen" :modal="true" header="ETD Deposit Registration" position="top">
+   <Dialog v-model:visible="isOpen" :modal="true" header="ETD Deposit Registration" position="top" style="width:40%">
       <div class="row">
          <label>Program:</label>
-         <Dropdown v-model="program" :options="system.optPrograms" />
+         <Select v-model="program" :options="system.optPrograms" />
       </div>
       <div class="row">
          <label>Degree:</label>
-         <Dropdown v-model="degree" :options="system.optDegrees" />
+         <Select v-model="degree" :options="system.optDegrees" />
       </div>
       <FieldSet legend="User List">
          <div class="lookup">
-            <InputText v-model="computeID" placeholder="Compute ID" @update:modelValue="idChanged"/>
-            <Button class="check" icon="pi pi-search" severity="secondary" @click="lookupComputeID"/>
+            <div class="user-lookup">
+               <InputText v-model="computeID" placeholder="Compute ID" @update:modelValue="idChanged"/>
+               <Button class="check" icon="pi pi-search" severity="secondary" @click="lookupComputeID"/>
+            </div>
             <span v-if="userError" class="err">{{ userError }}</span>
             <div class="users">
                <Chip v-for="u in users" removable @remove="removeUser(u.computeID)">
@@ -32,7 +34,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Dialog from 'primevue/dialog'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
 import InputText from 'primevue/inputtext'
 import Chip from 'primevue/chip'
@@ -108,60 +110,52 @@ div.row {
    display: flex;
    flex-flow: row nowrap;
    justify-content: flex-start;
-   align-items: baseline;
    margin-bottom: 15px;
-   label {
-      font-weight: bold;
-      width: 110px;
-      text-align: right;
-   }
-   .p-dropdown {
-      margin-left: 10px;
+   gap: 0.5rem;
+   .p-select {
       flex-grow: 1;
    }
-}
-.lookup {
-   input::placeholder {
-      color: var(--uvalib-grey-light);
-   }
-   .p-inputtext {
-      width: 130px;
-   }
-   button {
-      margin-left: 5px;
-   }
-}
-.users {
-   padding: 10px;
-   margin: 10px 0;
-   border-radius: 5px;
-   min-height: 100px;
-   border: 1px solid var(--uvalib-grey-lightest);
-   .p-chip {
-      margin: 0 5px 5px 0;
-   }
-   span {
-      display: inline-block;
-      margin: 4px 0 4px 4px;
-   }
-   .name {
-      font-size: 0.85em;
-   }
-   .computeID {
+   label {
       font-weight: bold;
+      text-align: right;
+      width: 90px;
+   }
+}
+
+.lookup {
+   display: flex;
+   flex-direction: column;
+   gap: 1rem;
+
+   div.user-lookup {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 5px;
+      align-items: stretch;
+   }
+   .users {
+      padding: 10px;
+      border-radius: 0.3rem;
+      min-height: 100px;
+      border: 1px solid $uva-grey-100;
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: flex-start;
+      align-items: flex-start;
+      gap: 5px;
    }
 }
 span.err {
    display: inline-block;
-   color: var(--uvalib-red-emergency);
+   color: $uva-red-A;
    margin-left: 10px;
-   font-size: 0.9em;
    font-style: italic;
 }
 .controls {
-   text-align: right;
-   button {
-      margin-left: 10px;
-   }
+   margin-top: 15px;
+   display: flex;
+   flex-flow: row nowrap;
+   justify-content: flex-end;
+   gap: 10px;
 }
 </style>

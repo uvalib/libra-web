@@ -31,7 +31,7 @@
                         <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit program" @click="editField='program'"/>
                      </div>
                      <div class="picker" v-else>
-                        <Dropdown v-model="program" :options="programs" :autoOptionFocus="true" @update:modelValue="editField=''"/>
+                        <Select v-model="program" :options="programs" :autoOptionFocus="true" @update:modelValue="editField=''"/>
                         <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit program" @click="editField=''"/>
                      </div>
                   </td>
@@ -44,7 +44,7 @@
                         <Button icon="pi pi-file-edit" severity="secondary" rounded aria-label="edit degree" @click="editField='degree'"/>
                      </div>
                      <div class="picker" v-else>
-                        <Dropdown v-model="degree" :options="degrees" :autoOptionFocus="true" @update:modelValue="editField=''"/>
+                        <Select v-model="degree" :options="degrees" :autoOptionFocus="true" @update:modelValue="editField=''"/>
                         <Button icon="pi pi-times" severity="secondary" rounded aria-label="cancel edit degree" @click="editField=''"/>
                      </div>
                   </td>
@@ -53,7 +53,7 @@
             <tr>
                <td class="label">Visibility:</td>
                <td>
-                  <Dropdown v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
+                  <Select v-model="visibility" :options="visibilityOpts" optionLabel="label" optionValue="value" @change="visibilityChanged()"/>
                </td>
             </tr>
             <template v-if="showEmbargoSettings">
@@ -70,13 +70,13 @@
                   <td class="label">End Visibility:</td>
                   <td>
                      <span v-if="props.type=='etd'">{{ system.visibilityLabel('etd',embargoEndVisibility) }}</span>
-                     <Dropdown v-else v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/>
+                     <Select v-else v-model="embargoEndVisibility" :options="endOpts" optionLabel="label" optionValue="value"/>
                   </td>
                </tr>
             </template>
          </tbody>
       </table>
-      <div>
+      <div class="notes">
          <label for="admin-notes">Admin Notes</label>
          <Textarea id="admin-notes" v-model="adminNotes" rows="5" />
       </div>
@@ -96,7 +96,7 @@
 import Panel from 'primevue/panel'
 import { ref, onMounted, computed } from 'vue'
 import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
@@ -278,7 +278,7 @@ const saveClicked = (() => {
       justify-content: space-between;
       align-items: flex-start;
       width: 210px;
-      :deep(.p-dropdown ) {
+      :deep(.p-Select ) {
          width: 170px;
       }
       button {
@@ -288,8 +288,8 @@ const saveClicked = (() => {
          max-width: 30px;
          padding: 0;
          border-radius: 20px;
-         border-color: var(--uvalib-grey-light);
-         color: var(--uvalib-grey);
+         border-color: $uva-grey-100;
+         color: $uva-grey;
       }
    }
    label {
@@ -317,16 +317,11 @@ const saveClicked = (() => {
          justify-content: space-between;
          align-items: center;
       }
-      :deep(.p-dropdown ) {
-         width: 210px;
-         .p-dropdown-label {
-            font-size: 0.8em;
-            padding: 4px 8px;
-         }
-      }
    }
-   .p-inputtextarea {
-      width: 100%;
+   .notes {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
    }
    .button-bar {
       display: flex;
@@ -334,10 +329,11 @@ const saveClicked = (() => {
       justify-content: space-between;
       align-items: center;
       margin-top: 15px;
-      button {
-         font-size: 0.85em;
-         padding: 5px 10px;
-         margin-left: 5px;
+      gap: 0.5rem;
+      span {
+         display: flex;
+         flex-flow: row nowrap;
+         gap: 0.5rem;
       }
    };
 }

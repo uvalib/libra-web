@@ -154,7 +154,7 @@ const submitThesis = ( () => {
          min-width: 525px;
          padding: 30px;
          margin: 20px;
-         border: 1px solid var(--uvalib-grey-light);
+         border: 1px solid $uva-grey-100;
          box-shadow: 0 0 2px #b9b9b9;
          .author-header {
             .type {
@@ -205,7 +205,7 @@ const submitThesis = ( () => {
       div.files {
          width: 100%;
          margin-top: 10px;
-         border-top: 1px solid var(--uvalib-grey-light);
+         border-top: 1px solid $uva-grey-100;
          padding: 20px;
       }
    }
@@ -225,17 +225,17 @@ div.public-work {
    min-height: 300px;
 
    div.published {
-      background: var(--uvalib-yellow-light);
+      background: $uva-yellow-100;
       padding: 20px;
-      border: 1px solid var(--uvalib-yellow-dark);
+      border: 1px solid $uva-yellow-A;
       border-radius: 4px;
       text-align: left;
    }
 
    div.draft {
-      background: var(--uvalib-yellow-light);
+      background: $uva-yellow-100;
       padding: 0 20px 20px 20px;
-      border: 1px solid var(--uvalib-yellow-dark);
+      border: 1px solid $uva-yellow-A;
       border-radius: 4px;
       h2.proof {
          padding: 0;
@@ -257,7 +257,7 @@ div.public-work {
    div.error {
       border-radius: 5px;
       background-color: white;
-      border: 5px solid var(--uvalib-red-dark);
+      border: 5px solid $uva-red-A;
       padding: 25px;
       p {
          text-align: left;
@@ -294,13 +294,13 @@ div.public-work {
          padding: 5px 10px;
          font-size: 0.9em;
          font-style: normal;
-         background: var(--uvalib-yellow-light);
-         border: 1px solid var(--uvalib-yellow-dark);
+         background: $uva-yellow-100;
+         border: 1px solid $uva-yellow-A;
          border-radius: 4px;
       }
       .file {
          margin: 10px 0 0 10px;
-         border: 1px solid var(--uvalib-grey-light);
+         border: 1px solid $uva-grey-100;
          border-radius: 4px;
          padding: 10px;
          .name {
@@ -344,14 +344,13 @@ div.public-work {
             }
             .type {
                border-radius: 5px;
-               background-color: var(--uvalib-grey-dark);
+               background-color: $uva-grey-A;
                color: white;
             }
          }
       }
 
       .title {
-         color: var(--uvalib-text);
          font-size: 25px;
          font-weight: normal;
          margin-bottom: 20px;

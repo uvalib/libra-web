@@ -32,7 +32,7 @@
             </div>
             <div>After that, files will be be available:</div>
             <div class="embargo-col">
-               <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+               <Select v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
                <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
             </div>
          </div>
@@ -62,7 +62,7 @@
                </div>
                <div class="embargo-col">
                   <div>After that, files will be be available:</div>
-                  <Dropdown v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+                  <Select v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
                </div>
             </div>
          </div>
@@ -92,7 +92,7 @@ import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import Checkbox from 'primevue/checkbox'
 import Fieldset from 'primevue/fieldset'
 import RadioButton from 'primevue/radiobutton'
-import Dropdown from 'primevue/dropdown'
+import Select from 'primevue/select'
 import Panel from 'primevue/panel'
 import { useSystemStore } from "@/stores/system"
 import { useConfirm } from "primevue/useconfirm"
@@ -255,7 +255,7 @@ const submitClicked = (() => {
       button{
          margin-top: 20px;
       }
-      .p-dropdown {
+      .p-Select {
          margin-top: 5px;
       }
    }
@@ -287,10 +287,10 @@ const submitClicked = (() => {
          font-size: 1.25rem;
       }
       .not-done {
-         color: var(--uvalib-red-darker);
+         color: $uva-red-B;
       }
       .done {
-         color: var(--uvalib-green-dark);
+         color: $uva-green-A;
       }
    }
    .requirement:first-of-type {

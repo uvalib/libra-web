@@ -47,12 +47,11 @@ export default defineConfig({
       }
    },
    css: {
-      preprocessorOptions: {
-         scss: {
-            additionalData: `
-               @use "@/assets/styles/mixins.scss" as *;
-            `
-         },
-      },
+      preprocessorOptions : {
+          scss: {
+              api: "modern-compiler",
+              additionalData: `@use "@/assets/theme/colors.scss" as *;`
+          },
+      }
    },
 })

@@ -166,7 +166,7 @@ const publishWork = ( () => {
          min-width: 525px;
          padding: 30px;
          margin: 20px;
-         border: 1px solid var(--uvalib-grey-light);
+         border: 1px solid $uva-grey-100;
          box-shadow: 0 0 2px #b9b9b9;
          .author-header {
             .type {
@@ -217,7 +217,7 @@ const publishWork = ( () => {
       div.files {
          width: 100%;
          margin-top: 10px;
-         border-top: 1px solid var(--uvalib-grey-light);
+         border-top: 1px solid $uva-grey-100;
          padding: 20px;
       }
    }
@@ -307,7 +307,7 @@ div.public-work {
       }
       .file {
          margin: 10px 0 0 10px;
-         border: 1px solid var(--uvalib-grey-light);
+         border: 1px solid $uva-grey-100;
          border-radius: 4px;
          padding: 10px;
          .name {

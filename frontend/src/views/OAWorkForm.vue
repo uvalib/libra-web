@@ -594,7 +594,7 @@ const cancelClicked = (() => {
          padding: 0;
          .author {
             position: relative;
-            border-top: 1px solid var(--uvalib-grey-light);
+            border-top: 1px solid $uva-grey-100;
             margin-top: 20px;
          }
       }
@@ -602,7 +602,7 @@ const cancelClicked = (() => {
          padding: 0;
          .author {
             position: relative;
-            border: 1px solid var(--uvalib-grey-light);
+            border: 1px solid $uva-grey-100;
             border-radius: 5px;
             margin-top: 20px;
             .titlebar {
@@ -610,7 +610,7 @@ const cancelClicked = (() => {
                background: #fcfcfc;
                padding: 4px 8px;
                border-radius: 5px 5px 0 0;
-               border-bottom: 1px solid var(--uvalib-grey-light);
+               border-bottom: 1px solid $uva-grey-100;
                display: flex;
                flex-flow: row wrap;
                justify-content: space-between;
@@ -678,7 +678,7 @@ const cancelClicked = (() => {
    .note {
       font-size: 0.85em;
       font-style: italic;
-      color: var(--uvalib-grey);
+      color: $uva-grey;
       margin-top: 0;
       padding-top: 5px;
    }

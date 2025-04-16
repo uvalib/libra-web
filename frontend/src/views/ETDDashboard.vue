@@ -5,7 +5,7 @@
          <template v-else>
             <div  v-if="searchStore.hits.length == 0" class="none">You have no active theses</div>
             <DataTable v-else :value="searchStore.hits" ref="etdWorks" dataKey="id"
-               stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+               stripedRows showGridlines responsiveLayout="scroll"
                :lazy="false" :paginator="true" :alwaysShowPaginator="false"
                :rows="30" :totalRecords="searchStore.hits.length"
                paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
@@ -24,24 +24,31 @@
                <Column header="ORCID Status"/>
                <Column header="Visibility" >
                   <template #body="slotProps">
-                     <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
+                     <div class="tag">
+                        <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
+                     </div>
                   </template>
                </Column>
                <Column field="publishedAt" header="Date Published" >
                   <template #body="slotProps">
                      <span v-if="slotProps.data.publishedAt">{{ $formatDate(slotProps.data.publishedAt)}}</span>
-                     <span v-else class="visibility draft">Draft</span>
+                     <div v-else class="tag">
+                        <span class="visibility draft">Draft</span>
+                     </div>
                   </template>
                </Column>
                <Column header="Actions" style="width:175px;">
                   <template #body="slotProps">
                      <div  class="acts">
                         <template v-if="slotProps.data.publishedAt">
-                           <Button class="action" icon="pi pi-eye" label="Public View" severity="secondary" @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" icon="pi pi-eye" label="Public View" severity="secondary"
+                              size="small" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                         <template v-else>
-                           <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary" @click="editWorkClicked(slotProps.data.id)"/>
-                           <Button class="action" v-if="slotProps.data.title" icon="pi pi-check" label="Preview / Submit" @click="previewWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary"
+                              size="small" @click="editWorkClicked(slotProps.data.id)"/>
+                           <Button class="action" v-if="slotProps.data.title" icon="pi pi-check" label="Preview / Submit"
+                              size="small" @click="previewWorkClicked(slotProps.data.id)"/>
                         </template>
                      </div>
                   </template>
@@ -58,7 +65,7 @@ import { onBeforeMount } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
-import { useETDStore } from "@/stores/etd"
+
 import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -68,7 +75,6 @@ const router = useRouter()
 const searchStore = useSearchStore()
 const user = useUserStore()
 const system = useSystemStore()
-const etdStore = useETDStore()
 
 onBeforeMount( () => {
    searchStore.search("etd", user.computeID)
@@ -91,38 +97,21 @@ const previewWorkClicked = ( (id) => {
    margin: 50px auto;
    min-height: 600px;
    text-align: left;
-   .hdr {
-      width: 100%;
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-      align-items: center;
-      div {
-         font-size: 1.25em;
-         color: var(--uvalib-text);
-      }
-   }
    .none {
-      color: var(--uvalib-grey-light);
+      color: $uva-grey-50;
       font-style: italic;
+   }
+   .tag {
+      display: flex;
+      flex-direction: column;
    }
    .acts {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
       justify-content: flex-start;
-      button.action {
-         font-size: 0.85em;
-         margin-top: 10px;
-         width: 100%;
-         padding: 4px 8px;
-      }
-      button.action:first-of-type {
-         margin-top: 0;
-      }
+      gap: 0.5rem;
+      width:max-content;
    }
-   .p-panel {
-      margin-bottom: 25px;
-   };
 }
 </style>

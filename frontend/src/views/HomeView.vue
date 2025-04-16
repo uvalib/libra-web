@@ -2,7 +2,7 @@
    <h1>Libra</h1>
    <div class="info">
       <p>
-         Libra is the University of Virginia’s open access institutional repository, the online archive of scholarship
+         Libra is the University of Virginia's open access institutional repository, the online archive of scholarship
          created by the University community. It provides a central, stable location for the scholarly output of the
          University community (journal articles, datasets, theses/dissertations, etc.). Anyone can search, view and
          download content.
@@ -66,6 +66,9 @@ const etdClicked = (() => {
    }
    .submissions {
       width: 75%;
+      div {
+         max-width: 60%;
+      }
    }
 }
 @media only screen and (max-width: 768px) {
@@ -75,36 +78,21 @@ const etdClicked = (() => {
    }
    .submissions {
       width: 95%;
+      div {
+         max-width: 90%;
+      }
    }
 }
 .info {
    margin: 10px auto 30px auto;
 }
-h2 {
-   padding:0;
-   margin: 0;
-}
-
 .submissions {
    margin: 30px auto;
-   min-height: 100px;
    display: flex;
-   flex-flow: row wrap;
-   justify-content: center;
-   align-items: flex-start;
-
-   div.p-card {
-      max-width: 500px;
-      text-align: left;
-
-      button {
-         display: block;
-         margin: 25px auto 0;
-      }
-   }
-
-   div.p-card:first-of-type {
-      margin-right: 30px;
-   }
-}</style>
+   flex-flow: column;
+   justify-content: flex-start;
+   align-items: center;
+   gap: 1rem;
+}
+</style>
 

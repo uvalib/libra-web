@@ -135,7 +135,7 @@ button.change {
 :deep(.p-datepicker-today) {
    span {
       background: white;
-      border: 1px solid var(--uvalib-grey-light);
+      border: 1px solid $uva-grey-100;
    }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-   <footer role="contentinfo">
+   <footer role="contentinfo" id="v4footer">
       <div class="footer-container">
          <div class="footer-bucket">
             <h3>Contact Us</h3>
@@ -8,13 +8,12 @@
                <li><a href="mailto:library@virginia.edu">library@virginia.edu</a></li>
                <li><a href="https://www.library.virginia.edu/askalibrarian/">Ask a Librarian</a></li>
                <li>
-                  <a href="https://www.instagram.com/uvalibrary/" aria-label="Library Instagram Account"><i class="fab fa-instagram"></i></a>
-                  <a href="https://www.facebook.com/University-of-Virginia-Library-136530559704906/" aria-label="Library Facebook Account"><i class="fab fa-facebook-square"></i></a>
-                  <a href="https://twitter.com/UVaLibrary" aria-label="Library Twitter Account"><i class="fab fa-twitter-square"></i></a>
+                  <a href="https://www.instagram.com/uvalibrary/" aria-label="Library Instagram Account"><i class="pi pi-instagram"></i></a>
+                  <a href="https://www.facebook.com/University-of-Virginia-Library-136530559704906/" aria-label="Library Facebook Account"><i class="pi pi-facebook"></i></a>
                </li>
                <li>
                   <address>
-                     UVA Alderman Library<br />
+                     UVA Shannon Library<br />
                      P.O. Box 400113<br />
                      160 McCormick Road<br/>
                      Charlottesville, VA 22904<br />
@@ -31,6 +30,9 @@
                <li><a href="https://www.library.virginia.edu/press/">Press</a></li>
                <li><a href="https://www.library.virginia.edu/renovation/">Renovation</a></li>
                <li><a href="https://www.library.virginia.edu/jobs/fellowships/">Fellowship Opportunities</a></li>
+               <li class="give-library">
+                  <Button as="a" label="GIVE TO THE LIBRARY" href="https://www.library.virginia.edu/support-library" severity="contrast"/>
+               </li>
             </ul>
          </div>
          <div class="footer-bucket">
@@ -52,8 +54,8 @@
                <li><a href="https://virginia.service-now.com/its?id=home" aria-label="I T S">ITS</a></li>
                <li><a href="https://sisuva.admin.virginia.edu/ihprd/signon.html">SIS</a></li>
                <li><a href="https://collab.itc.virginia.edu/portal" aria-label="UVA Collab">UVaCollab</a></li>
-               <li><a href="https://www.virginia.edu/cavalieradvantage/">Cavalier Advantage</a></li>
-               <li><a href="https://confluence.lib.virginia.edu/pages/viewpage.action?spaceKey=sw&title=StaffWeb">Library Staff Site</a></li>
+               <li><a href="https://idoffice.virginia.edu/cavalier-advantage">Cavalier Advantage</a></li>
+               <li><a href="https://confluence.admin.virginia.edu/pages/viewpage.action?spaceKey=sw&title=StaffWeb">Library Staff Site</a></li>
                <li><a href="https://analytics.lib.virginia.edu/index.php?module=CoreAdminHome&amp;action=optOut&amp;language=en">Tracking Opt-out</a></li>
             </ul>
          </div>
@@ -73,9 +75,14 @@
 
 <script setup>
 import { useSystemStore } from "@/stores/system"
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 const systemStore = useSystemStore()
 
+const feedbackURL =(() => {
+   return encodeURIComponent(window.location.href)
+})
 </script>
 
 <style scoped lang="scss">
@@ -83,9 +90,15 @@ footer {
    border-bottom: none;
    border-left: none;
    border-right: none;
-   background-color: var(--uvalib-brand-blue);
+   background-color: $uva-brand-blue;
    color: white;
    padding: 20px 20px 0 20px;
+   position: relative;
+
+   i.fa-external-link-alt {
+      display: inline-block;
+      margin-left: 5px;
+   }
 }
 
 .footer-container {
@@ -98,6 +111,21 @@ footer {
 
 .footer-bucket {
    text-align: left;
+   a {
+      color: white;
+      text-decoration: none;
+      &:hover {
+         text-decoration: underline;
+      }
+   }
+   i {
+      font-size: 26px;
+      padding-right: 10px;
+      &:hover {
+         color: white;
+         text-decoration: underline;
+      }
+   }
 }
 
 ul {
@@ -109,25 +137,17 @@ ul li {
    padding-bottom: 14px;
 }
 
-.footer-bucket a {
-   color: var(--uvalib-brand-blue-lightest) !important;
-}
-
-.footer-bucket i {
-   font-size: 26px;
-   padding-right: 10px;
-}
-
-.footer-bucket i:hover {
-   color: white;
-}
-
 address {
    margin-top: 25px;
 }
 
+.give-library {
+   font-size: 1.2em;
+   margin-top: 25px;
+}
+
 .footer-post-container {
-   background-color: var(--uvalib-blue-alt-darkest);
+   background-color:  $uva-blue-alt-B;;
    color: white;
    padding: 20px 110px;
    margin-left: -20px;
@@ -144,6 +164,10 @@ address {
 
 .footer-post-container a {
    color: white !important;
+}
+
+.fdl-gov {
+   display: none;
 }
 
 a:hover+.fdl-gov {

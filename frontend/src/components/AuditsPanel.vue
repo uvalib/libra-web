@@ -12,7 +12,7 @@
          </p>
       </template>
 
-      <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" size="small" stripedRows showGridlines
+      <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" stripedRows showGridlines
          :lazy="false" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 30]"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
          currentPageReportTemplate="{first} - {last} of {totalRecords}" scrollable scrollHeight="600px"

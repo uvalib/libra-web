@@ -126,7 +126,7 @@ const createWorkClicked = (() => {
       }
    }
    .none {
-      color: var(--uvalib-grey-light);
+      color: $uva-grey-100;
       font-style: italic;
    }
    .acts {

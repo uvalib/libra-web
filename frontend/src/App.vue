@@ -27,7 +27,7 @@
    </main>
 
    <LibraryFooter />
-   <ScrollToTop />
+   <ScrollTop />
 
    <Dialog v-model:visible="systemStore.showError" :modal="true" header="System Error" @hide="errorClosed()" class="error">
       {{systemStore.error}}
@@ -40,7 +40,6 @@
 
 <script setup>
 import { onBeforeMount, ref, watch, computed } from 'vue'
-import ScrollToTop from "@/components/ScrollToTop.vue"
 import UvaLibraryLogo from "@/components/UvaLibraryLogo.vue"
 import LibraryFooter from "@/components/LibraryFooter.vue"
 import MenuBar from "@/components/MenuBar.vue"
@@ -49,6 +48,7 @@ import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
+import ScrollTop from 'primevue/scrolltop'
 import { useToast } from "primevue/usetoast"
 import { useRoute } from 'vue-router'
 
@@ -58,15 +58,6 @@ const user = useUserStore()
 const configuring = ref(true)
 const route = useRoute()
 
-const showDashboard = computed( () => {
-   return route.path != "/forbidden" && route.path != "/not_found" && route.path != "/expired" && route.path != "/admin"
-})
-const dashboardLink = computed( () => {
-   if ( isLibraOpen.value ) {
-      return "/oa"
-   }
-   return "/etd"
-})
 const isLibraOpen = computed( () => {
    return route.fullPath.indexOf("/oa") > -1
 })
@@ -99,9 +90,71 @@ const errorClosed = (() => {
 
 </script>
 
-<style scoped>
+<style lang="scss">
+html,
+body {
+   margin: 0;
+   padding: 0;
+   font-family: "franklin-gothic-urw", arial, sans-serif;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+   color: $uva-grey-A;
+   background: $uva-blue-alt-B;
+}
+
+#app {
+   font-family: "franklin-gothic-urw", arial, sans-serif;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+   text-align: center;
+   color: $uva-text-color-base;
+   margin: 0;
+   padding: 0;
+   background: #fafafa;
+   outline: 0;
+   border: 0;
+
+   h1 {
+      color: $uva-brand-blue;
+      margin: 2rem 2.5rem;
+      font-weight: 700;
+      position: relative;
+      text-align: center;
+   }
+   h2 {
+      color: $uva-brand-blue;
+      text-align: center;
+      font-size: 1.3em;
+      margin: 1rem 1.5rem;
+   }
+}
+
+a {
+   color: $uva-brand-blue-100;
+   font-weight: 500;
+   text-decoration: none;
+   &:hover {
+      text-decoration: underline;
+      color: $uva-brand-blue-200;
+   }
+}
+
+a:focus, input:focus, select:focus, textarea:focus, button.pool:focus, .pre-footer a:focus  {
+   outline: 2px dotted $uva-brand-blue-100;
+   outline-offset: 3px;
+}
+a:focus {
+   border-radius: 0.3rem;
+}
+footer, div.header, nav.menu {
+   a:focus {
+      outline: 2px dotted $uva-grey-200;
+      outline-offset: 3px;
+   }
+}
+
 header {
-   background-color: var(--uvalib-brand-blue);
+   background-color: $uva-brand-blue;
    color: white;
    text-align: left;
    position: relative;
@@ -114,9 +167,6 @@ header {
       align-content: stretch;
       align-items: center;
       padding: 1vw 20px 5px 10px;
-      a {
-         color: white !important;
-      }
    }
    p.version {
       margin: 5px 0 0 0;
@@ -136,18 +186,6 @@ header {
          display: block;
          font-size: 0.9em;
       }
-      a {
-         color: white;
-         text-decoration: none;
-         &:hover {
-            text-decoration: underline;
-         }
-      }
-   }
-   .user-header {
-      background-color: white;
-      padding: 0px;
-      font-weight: normal;
    }
 }
 </style>

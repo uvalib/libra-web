@@ -8,33 +8,30 @@ import router from './router'
 
 const app = createApp(App)
 
-const pinia = createPinia()
-pinia.use(({ store }) => {
-   // all stores can access router with this.router
-   store.router = markRaw(router)
-})
 
-app.use(pinia)
 app.use(router)
 app.use(formatDatePlugin)
 app.use(formatDateTimePlugin)
 
-// Styles
-import './assets/styles/main.scss'
-import './assets/styles/uva-colors.css'
-import './assets/styles/styleoverrides.scss'
-import './assets/styles/forms.scss'
-
 // Primevue setup
 import PrimeVue from 'primevue/config'
+import UVA from './assets/theme/uva'
 import ConfirmationService from 'primevue/confirmationservice'
 import ToastService from 'primevue/toastservice'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
-import 'primevue/resources/themes/saga-blue/theme.css'
 import 'primeicons/primeicons.css'
 
-app.use(PrimeVue, { ripple: true })
+app.use(PrimeVue, {
+   theme: {
+      preset: UVA,
+      options: {
+         prefix: 'p',
+         darkModeSelector: '.virgo-dark'
+      }
+   }
+})
+
 app.use(ConfirmationService)
 app.use(ToastService)
 
@@ -58,6 +55,13 @@ const fkCfg = defaultConfig({
    }
 })
 app.use(plugin, fkCfg)
+
+// Per some suggestions on vue / pinia git hub issue reports, create and add pinia support LAST
+// and use the chained form of the setup. This to avid problems where the vuew dev tools fail to
+// include pinia in the tools
+app.use(createPinia().use( ({ store }) => {
+   store.router = markRaw(router)
+}))
 
 app.mount('#app')
 
