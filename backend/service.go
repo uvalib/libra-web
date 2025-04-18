@@ -289,7 +289,7 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 
 	err := loadETDConfig(&resp)
 	if err != nil {
-		log.Printf("ERROR: unable to load etd config: %s", err.Error())
+		log.Printf("ERROR: unable to load config: %s", err.Error())
 	}
 
 	log.Printf("INFO: load languages")

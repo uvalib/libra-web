@@ -39,7 +39,7 @@ func main() {
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
 
 		// NOTE: when a deposit is requested, a temporary work token is generated
-		// this token is used as a subrirectory to stage uploaded files. Upon submissions,
+		// this token is used as a subdirectory to stage uploaded files. Upon submissions,
 		// the files from the token directory are added to the work and the token is converted to a libra ID
 		api.GET("/token", svc.getDepositToken)
 		api.POST("/upload/:token", svc.uploadSubmissionFiles)
@@ -49,11 +49,10 @@ func main() {
 		api.GET("/audits/:id", svc.getAudits)
 
 		// After initial submission, the work is referenced by the permanent ID
-		api.GET("/works/:id", svc.getETDWork)
-		api.GET("/works/:id/files/:name", svc.downloadETDFile)
-		api.PUT("/works/:id", svc.etdUpdate)
-		api.POST("/works/:id/publish", svc.publishETDWork)
-		api.DELETE("/works/:id", svc.deleteETDWork)
+		api.GET("/works/:id", svc.getWork)
+		api.GET("/works/:id/files/:name", svc.downloadFile)
+		api.PUT("/works/:id", svc.updateWork)
+		api.POST("/works/:id/publish", svc.publishWork)
 
 		// user search of all works
 		api.GET("/works/search", svc.userSearch)
@@ -62,8 +61,8 @@ func main() {
 		{
 			admin.POST("/register", svc.adminDepositRegistrations)
 			admin.GET("/search", svc.adminSearch)
-			admin.DELETE("/works/:id", svc.deleteETDWork)
-			admin.DELETE("/works/:id/publish", svc.unpublishETDWork)
+			admin.DELETE("/works/:id", svc.deleteWork)
+			admin.DELETE("/works/:id/publish", svc.unpublishWork)
 		}
 	}
 

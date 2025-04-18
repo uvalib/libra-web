@@ -86,7 +86,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 
 		hit, err = svc.parseETDSearchHit(obj)
 		if err != nil {
-			log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
+			log.Printf("ERROR: unable to parse search result %s: %s", obj.Id(), err.Error())
 			continue
 		}
 

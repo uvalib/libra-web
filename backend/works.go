@@ -22,7 +22,7 @@ type embargoData struct {
 	ReleaseVisibility string     `json:"releaseVisibility"`
 }
 
-type commonWorkDetails struct {
+type coreWorkDetails struct {
 	ID             string                   `json:"id"`
 	Version        string                   `json:"version"`
 	PersistentLink string                   `json:"persistentLink,omitempty"`
@@ -36,7 +36,7 @@ type commonWorkDetails struct {
 	PublishedAt    *time.Time               `json:"publishedAt,omitempty"`
 }
 
-func (detail *commonWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) {
+func (detail *coreWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) {
 	detail.CreatedAt = esObj.Created()
 	if detail.IsDraft == false {
 		pubDateStr, published := esObj.Fields()["publish-date"]
@@ -73,8 +73,8 @@ func (detail *commonWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) 
 	}
 }
 
-type etdWorkDetails struct {
-	*commonWorkDetails
+type workDetails struct {
+	*coreWorkDetails
 	*librametadata.ETDWork
 	Source   string `json:"source,omitempty"`
 	SourceID string `json:"sourceID,omitempty"`
@@ -85,9 +85,9 @@ type workAccess struct {
 	metadata bool
 }
 
-func (svc *serviceContext) getETDWork(c *gin.Context) {
+func (svc *serviceContext) getWork(c *gin.Context) {
 	workID := c.Param("id")
-	log.Printf("INFO: get etd work %s", workID)
+	log.Printf("INFO: get %s work %s", svc.Namespace, workID)
 	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, err.Error())
@@ -99,17 +99,17 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: check access to etd work %s", workID)
+	log.Printf("INFO: check access to work %s", workID)
 	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
-		log.Printf("INFO: access to etd work %s is forbidden", workID)
+		log.Printf("INFO: access to %s work %s is forbidden", svc.Namespace, workID)
 		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
 		return
 	}
 
-	etdWork, err := svc.parseETDWork(tgtObj, access.files)
+	etdWork, err := svc.parseWork(tgtObj, access.files)
 	if err != nil {
-		log.Printf("ERROR: unable to parse etd work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to parse work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -117,13 +117,13 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 	c.JSON(http.StatusOK, etdWork)
 }
 
-func (svc *serviceContext) etdUpdate(c *gin.Context) {
+func (svc *serviceContext) updateWork(c *gin.Context) {
 	workID := c.Param("id")
-	log.Printf("INFO: request to update etd work %s", workID)
+	log.Printf("INFO: request to update work %s", workID)
 	var etdReq etdUpdateRequest
 	err := c.ShouldBindJSON(&etdReq)
 	if err != nil {
-		log.Printf("ERROR: bad payload in etd update request: %s", err.Error())
+		log.Printf("ERROR: bad payload in update request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
@@ -131,7 +131,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	log.Printf("INFO: load existing oa work %s", workID)
 	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
-		log.Printf("ERROR: get etd work %s for update failed: %s", workID, err.Error())
+		log.Printf("ERROR: get work %s for update failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -143,13 +143,13 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 		canUpdate = depositor == claims.ComputeID || claims.IsAdmin
 	}
 	if canUpdate == false {
-		log.Printf("INFO: unauthorized attempt to update etd work %s", workID)
+		log.Printf("INFO: unauthorized attempt to update work %s", workID)
 		c.String(http.StatusForbidden, "you do not have permission to update this work")
 		return
 	}
 
 	// update the metadata with newly submitted info
-	svc.auditETDWorkUpdate(claims.ComputeID, etdReq, tgtObj)
+	svc.auditWorkUpdate(claims.ComputeID, etdReq, tgtObj)
 	tgtObj.SetMetadata(etdReq.Work)
 
 	// update files if necessary
@@ -169,7 +169,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	fields["default-visibility"] = etdReq.Visibility
 	if etdReq.Visibility == "uva" || etdReq.Visibility == "embargo" {
 		if etdReq.EmbargoReleaseDate == nil {
-			log.Printf("INFO: etd work %s set for a forever embargo", tgtObj.Id())
+			log.Printf("INFO: work %s set for a forever embargo", tgtObj.Id())
 			fields["embargo-release"] = ""
 			delete(fields, "embargo-release-visibility")
 		} else {
@@ -193,34 +193,70 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	tgtObj.SetFields(fields)
 
 	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
-	resp, err := svc.parseETDWork(updatedObj, true)
+	resp, err := svc.parseWork(updatedObj, true)
 	if err != nil {
-		log.Printf("ERROR: unable to parse updated etd work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to parse updated work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.JSON(http.StatusOK, resp)
 }
 
-func (svc *serviceContext) publishETDWork(c *gin.Context) {
+func (svc *serviceContext) publishWork(c *gin.Context) {
 	workID := c.Param("id")
-	err := svc.publishWork(svc.Namespace, workID)
+
+	log.Printf("INFO: publish %s work %s", svc.Namespace, workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
-		log.Printf("ERROR: publish etd work %s failed: %s", workID, err.Error())
+		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	fields := tgtObj.Fields()
+	if fields["draft"] == "false" {
+		log.Printf("INFO: %s is already published", workID)
+		c.String(http.StatusConflict, fmt.Sprintf("%s is already published", workID))
+		return
+	}
+	fields["draft"] = "false"
+	fields["publish-date"] = time.Now().Format(time.RFC3339)
+	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	if err != nil {
+		log.Printf("ERROR: publish %s failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, fmt.Sprintf("publish failed: %s", err.Error()))
+		return
+	}
+	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespace, tgtObj.Id())
 	c.String(http.StatusOK, "published")
 }
 
-func (svc *serviceContext) unpublishETDWork(c *gin.Context) {
+func (svc *serviceContext) unpublishWork(c *gin.Context) {
 	workID := c.Param("id")
-	err := svc.unpublishWork(svc.Namespace, workID)
+
+	log.Printf("INFO: get work %s %s for unpublish", svc.Namespace, workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
-		log.Printf("ERROR: unpublish etd work %s failed: %s", workID, err.Error())
+		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	fields := tgtObj.Fields()
+	if fields["draft"] == "true" {
+		log.Printf("INFO: %s is not published", workID)
+		c.String(http.StatusConflict, fmt.Sprintf("%s is not published", workID))
+		return
+	}
+	fields["draft"] = "true"
+	delete(fields, "publish-date")
+	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	if err != nil {
+		log.Printf("ERROR:unpublish %s failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, fmt.Sprintf("unpublish failed: %s", err.Error()))
+		return
+	}
+	svc.publishEvent(uvalibrabus.EventWorkUnpublish, svc.Namespace, tgtObj.Id())
 	c.String(http.StatusOK, "unpublished")
 }
 
@@ -297,42 +333,33 @@ func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObje
 	return visibility
 }
 
-func (svc *serviceContext) deleteETDWork(c *gin.Context) {
+func (svc *serviceContext) deleteWork(c *gin.Context) {
 	workID := c.Param("id")
-	log.Printf("INFO: request to delete etd work %s", workID)
-	err := svc.deleteWork(svc.Namespace, workID)
+	log.Printf("INFO: get %s work %s for deletion", svc.Namespace, workID)
+	delObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent)
 	if err != nil {
-		log.Printf("ERROR: unable to delete etd work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unablle to get  %s work %s: %s", svc.Namespace, workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	log.Printf("INFO: delete %s work %s", svc.Namespace, workID)
+	_, err = svc.EasyStore.Delete(delObj, uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: unablle to delete  %s work %s: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 	c.String(http.StatusOK, "deleted")
 }
 
-func (svc *serviceContext) deleteWork(namespace string, id string) error {
-	log.Printf("INFO: get %s work %s for deletion", namespace, id)
-	delObj, err := svc.EasyStore.GetByKey(namespace, id, uvaeasystore.BaseComponent)
-	if err != nil {
-		return fmt.Errorf("unable to get %s work %s: %s", namespace, id, err.Error())
-	}
-
-	log.Printf("INFO: delete %s work %s", namespace, id)
-	_, err = svc.EasyStore.Delete(delObj, uvaeasystore.AllComponents)
-	return err
-}
-
-func (svc *serviceContext) downloadETDFile(c *gin.Context) {
+func (svc *serviceContext) downloadFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
-	log.Printf("INFO: request to download file %s from etd work %s", tgtFile, workID)
-	svc.doFileDownload(c, svc.Namespace, workID, tgtFile)
-}
-
-func (svc *serviceContext) doFileDownload(c *gin.Context, namespace, workID, tgtFile string) {
-	log.Printf("INFO: load  %s work %s file info", namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.Files)
+	log.Printf("INFO: request to download file %s from work %s", tgtFile, workID)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
-		log.Printf("ERROR: get %s work %s for download failed: %s", namespace, workID, err.Error())
+		log.Printf("ERROR: get %s work %s for download failed: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -345,7 +372,7 @@ func (svc *serviceContext) doFileDownload(c *gin.Context, namespace, workID, tgt
 	}
 
 	if dlFile == nil {
-		log.Printf("INFO: file %s not found in %s work %s", tgtFile, namespace, workID)
+		log.Printf("INFO: file %s not found in %s work %s", tgtFile, svc.Namespace, workID)
 		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", tgtFile))
 		return
 	}
@@ -362,48 +389,6 @@ func (svc *serviceContext) doFileDownload(c *gin.Context, namespace, workID, tgt
 	c.Header("Content-Disposition", "attachment; filename="+tgtFile)
 	c.Header("Content-Type", dlFile.MimeType())
 	c.Data(http.StatusOK, dlFile.MimeType(), bodyBytes)
-}
-
-func (svc *serviceContext) publishWork(namespace string, workID string) error {
-	log.Printf("INFO: publish %s work %s", namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
-	if err != nil {
-		return fmt.Errorf("unable to get work %s", workID)
-	}
-
-	fields := tgtObj.Fields()
-	if fields["draft"] == "false" {
-		return fmt.Errorf("%s is already published", workID)
-	}
-	fields["draft"] = "false"
-	fields["publish-date"] = time.Now().Format(time.RFC3339)
-	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
-	if err != nil {
-		return fmt.Errorf("publish failed: %s", err.Error())
-	}
-	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespace, tgtObj.Id())
-	return nil
-}
-
-func (svc *serviceContext) unpublishWork(namespace string, workID string) error {
-	log.Printf("INFO: get work %s %s for unpublish", namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
-	if err != nil {
-		return fmt.Errorf("unable to get work %s", workID)
-	}
-
-	fields := tgtObj.Fields()
-	if fields["draft"] == "true" {
-		return fmt.Errorf("%s is not published", workID)
-	}
-	fields["draft"] = "true"
-	delete(fields, "publish-date")
-	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
-	if err != nil {
-		return fmt.Errorf("unpublish failed: %s", err.Error())
-	}
-	svc.publishEvent(uvalibrabus.EventWorkUnpublish, svc.Namespace, tgtObj.Id())
-	return nil
 }
 
 func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.EasyStoreObject) workAccess {
@@ -444,7 +429,7 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 	return resp
 }
 
-func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*etdWorkDetails, error) {
+func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*workDetails, error) {
 	mdBytes, err := tgtObj.Metadata().Payload()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
@@ -456,8 +441,8 @@ func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, can
 
 	visibility := svc.calculateVisibility(tgtObj)
 	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
-	resp := etdWorkDetails{
-		commonWorkDetails: &commonWorkDetails{
+	resp := workDetails{
+		coreWorkDetails: &coreWorkDetails{
 			ID:             tgtObj.Id(),
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
@@ -468,7 +453,7 @@ func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, can
 		},
 		ETDWork: etdWork,
 	}
-	resp.commonWorkDetails.parseDates(tgtObj)
+	resp.coreWorkDetails.parseDates(tgtObj)
 	resp.Source = tgtObj.Fields()["source"]
 	resp.SourceID = tgtObj.Fields()["source-id"]
 

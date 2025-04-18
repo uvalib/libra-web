@@ -61,10 +61,10 @@ func (svc *serviceContext) getAudits(c *gin.Context) {
 
 }
 
-func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
-	origWork, err := svc.parseETDWork(origObj, true)
+func (svc *serviceContext) auditWorkUpdate(computeID string, etdUpdate etdUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
+	origWork, err := svc.parseWork(origObj, true)
 	if err != nil {
-		log.Printf("ERROR: unable to parse easystore etd work %s to generate audit events: %s", origObj.Id(), err.Error())
+		log.Printf("ERROR: unable to parse easystore work %s to generate audit events: %s", origObj.Id(), err.Error())
 	}
 
 	// setup an audit context that contains common data needed by all audit logic
