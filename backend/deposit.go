@@ -42,11 +42,6 @@ type updateSettings struct {
 	DelFiles                 []string   `json:"delFiles"`
 }
 
-type oaUpdateRequest struct {
-	Work librametadata.OAWork `json:"work"`
-	updateSettings
-}
-
 type etdUpdateRequest struct {
 	Work librametadata.ETDWork `json:"work"`
 	updateSettings
@@ -85,7 +80,7 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 		author := librametadata.ContributorData{ComputeID: student.ComputeID,
 			FirstName: student.FirstName, LastName: student.LastName, Institution: "University of Virginia"}
 		etdReg := librametadata.ETDWork{Program: regReq.Program, Degree: regReq.Degree, Author: author}
-		obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.etd, "")
+		obj := uvaeasystore.NewEasyStoreObject(svc.Namespace, "")
 		fields := uvaeasystore.DefaultEasyStoreFields()
 		fields["create-date"] = time.Now().Format(time.RFC3339)
 		fields["draft"] = "true"
@@ -103,70 +98,6 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 		}
 	}
 	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
-}
-
-func (svc *serviceContext) oaDeposit(c *gin.Context) {
-	token := c.Param("token")
-	log.Printf("INFO: received oa deposit request for %s", token)
-	var oaSub oaUpdateRequest
-	err := c.ShouldBindJSON(&oaSub)
-	if err != nil {
-		log.Printf("ERROR: bad payload in oa deposit request: %s", err.Error())
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// must be signed in to do this so there should always be claims
-	claims := getJWTClaims(c)
-	if claims == nil {
-		log.Printf("WARNING: invalid oa dsposit request without claims")
-		c.String(http.StatusForbidden, "you do not have permission to make this submission")
-		return
-	}
-
-	log.Printf("INFO: create easystore object")
-	obj := uvaeasystore.NewEasyStoreObject(svc.Namespaces.oa, "")
-	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = claims.ComputeID
-	fields["resource-type"] = oaSub.Work.ResourceType
-	fields["create-date"] = time.Now().Format(time.RFC3339)
-	fields["draft"] = "true"
-	fields["default-visibility"] = oaSub.Visibility
-	if oaSub.Visibility == "embargo" {
-		fields["embargo-release"] = oaSub.EmbargoReleaseDate.Format(time.RFC3339)
-		fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
-	}
-
-	// get all submitted files
-	uploadDir := path.Join("/tmp", token)
-	esFiles, err := getSubmittedFiles(uploadDir, oaSub.AddFiles)
-	if err != nil {
-		log.Printf("ERROR: unable to add files from %s: %s", uploadDir, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	obj.SetMetadata(oaSub.Work)
-	obj.SetFiles(esFiles)
-	obj.SetFields(fields)
-
-	log.Printf("INFO: save easystore object with namespace %s, id %s", obj.Namespace(), obj.Id())
-	newObj, err := svc.EasyStore.Create(obj)
-	if err != nil {
-		log.Printf("ERROR: easystore save failed: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	log.Printf("INFO: create success; cleanup upload directory %s", uploadDir)
-	os.RemoveAll(uploadDir)
-
-	resp, err := svc.parseOAWork(newObj, true)
-	if err != nil {
-		log.Printf("ERROR: unable to parse newly deposited oa work: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, resp)
 }
 
 func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.EasyStoreBlob, error) {

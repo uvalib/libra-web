@@ -29,7 +29,7 @@
             </template>
             <Column field="namespace" header="Source">
                <template #body="slotProps">
-                  <div>{{ system.namespaceLabel(slotProps.data.namespace) }}</div>
+                  <div>{{ system.namespace.label }}</div>
                   <div v-if="slotProps.data.source" class="source">( {{ slotProps.data.source }} )</div>
                </template>
             </Column>
@@ -59,7 +59,7 @@
             <Column header="Actions" style="width:110px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data)"/>
+                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
                      <Button v-if="!slotProps.data.publishedAt" class="action" size="small"
                         icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data)"/>
                      <Button v-else class="action" icon="pi pi-eye-slash" label="Unpublish" severity="warning" size="small"  @click="unpublishWorkClicked(slotProps.data)"/>
@@ -107,8 +107,8 @@ const searchClicked = (() => {
    admin.search(computeID.value)
 })
 
-const editWorkClicked = ( (work) => {
-   let url = `/admin/${work.type}/${work.id}`
+const editWorkClicked = ( (id) => {
+   let url = `/admin/etd/${id}`
    router.push(url)
 })
 

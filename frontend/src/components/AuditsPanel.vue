@@ -44,22 +44,15 @@ const props = defineProps({
       type: String,
       required: true
    },
-   namespace: {
-      type: String,
-      required: true
-   }
 })
 
 const show = (() => {
-   auditStore.getAudits(props.workID, props.namespace)
+   auditStore.getAudits(props.workID)
    isOpen.value = true
 })
 </script>
 
 <style scoped>
-:deep(td.nowrap),  :deep(th){
-   white-space: nowrap;
-}
 .view-audit {
    font-size: 0.9em;
    padding: 4px 12px;

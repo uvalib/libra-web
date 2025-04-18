@@ -9,7 +9,7 @@ export const useSystemStore = defineStore('system', {
       licenses: [],
       visibility: [],
       resourceTypes: [],
-      namespaces: [],
+      namespace: {},
       degrees: [],
       programs: [],
       error: "",
@@ -22,25 +22,6 @@ export const useSystemStore = defineStore('system', {
       }
    }),
    getters: {
-      namespaceLabel: state => {
-         return (ns) => {
-            let nsv = state.namespaces.find( n => n.namespace == ns)
-            if (nsv) {
-               return nsv.label
-            }
-            return ns
-         }
-      },
-      oaNamespace: state => {
-         let tgtNS = state.namespaces.find( ns => ns.type == "oa")
-         if (tgtNS) return tgtNS.namespace
-         return ""
-      },
-      etdNamespace: state => {
-         let tgtNS = state.namespaces.find( ns => ns.type == "etd")
-         if (tgtNS) return tgtNS.namespace
-         return ""
-      },
       visibilityLabel: state => {
          return (mode, key) => {
             if ( mode == "oa") {
@@ -59,32 +40,16 @@ export const useSystemStore = defineStore('system', {
             return key
          }
       },
-      oaResourceTypes: state => {
-         return state.resourceTypes.filter( rt => rt.oa == true)
-      },
-      etdResourceTypes: state => {
-         return state.resourceTypes.filter( rt => rt.etd == true)
-      },
       licenseDetail: state => {
-         return (mode, id) => {
-            if ( mode == "oa") {
-               return state.licenses.filter( l => l.oa == true).find( oa => oa.value == id)
-            } else {
-               return state.licenses.filter( l => l.etd == true).find( oa => oa.value == id)
-            }
+         return (id) => {
+            return state.licenses.find( oa => oa.value == id)
          }
       },
-      oaLicenses: state => {
-         return state.licenses.filter( rt => rt.oa == true)
+      userLicenses: state => {
+         return state.licenses.filter( l =>  l.adminOnly == false)
       },
-      etdLicenses: state => {
-         return state.licenses.filter( rt => rt.etd == true)
-      },
-      oaVisibility: state => {
-         return state.visibility.filter( rt => rt.oa == true)
-      },
-      etdVisibility: state => {
-         return state.visibility.filter( rt => rt.etd == true)
+      userVisibility: state => {
+         return state.visibility.filter( v => v.adminOnly == false)
       },
       sisDegrees: state => {
          return state.degrees.filter( d => d.type == "sis").map( d => d.degree)
@@ -108,9 +73,10 @@ export const useSystemStore = defineStore('system', {
             this.licenses = response.data.licenses
             this.resourceTypes = response.data.resourceTypes
             this.visibility = response.data.visibility
-            this.namespaces = response.data.namespaces
+            this.namespace = response.data.namespace
             this.degrees = response.data.degrees
             this.programs = response.data.programs
+            this.working = false
          }).catch( err => {
             this.setError(  err )
          })

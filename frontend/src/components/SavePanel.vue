@@ -1,87 +1,59 @@
 <template>
    <Panel header="Save Work" class="save-panel">
-      <Fieldset legend="Requirements">
-         <div class="requirement">
-            <i v-if="props.described" class="done pi pi-check"></i>
-            <i v-else class="not-done pi pi-exclamation-circle"></i>
-            <span>Describe your work</span>
-         </div>
-         <div class="requirement">
-            <i v-if="props.files" class="done pi pi-check"></i>
-            <i v-else class="not-done pi pi-exclamation-circle"></i>
-            <span>Add files</span>
-         </div>
-         <div class="help">
-            <span v-if="type=='etd'">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</span>
-            <span v-else>View the <a href="https://www.library.virginia.edu/libra/open/oc-checklist" target="_blank">Libra Open Checklist</a> for help.</span>
-         </div>
-      </Fieldset>
-      <Fieldset legend="Visibility">
-         <div v-if="props.visibility == 'embargo' && props.type=='etd'">
-            <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
-            <div class="embargo-note">This work is under embargo.</div>
-            <div class="embargo-note">Files will NOT be available to anyone until {{ $formatDate(releaseDate) }}.</div>
-         </div>
-         <div v-else-if="props.visibility == 'embargo' && props.type=='oa' && props.draft == false" class="embargo no-pad">
-            <!-- Users and admins set an embargo for OA works. In this case show a different UI after publication. -->
-            <div>This work is under embargo.</div>
-            <div>Files will NOT be available to anyone until:</div>
-            <div class="embargo-date">
-               <span>{{ $formatDate(releaseDate) }}</span>
-               <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false" :visibility="props.visibility" @picked="endDatePicked" />
+      <div class="panel-content">
+         <Fieldset legend="Requirements">
+            <div class="requirement">
+               <i v-if="props.described" class="done pi pi-check"></i>
+               <i v-else class="not-done pi pi-exclamation-circle"></i>
+               <span>Describe your work</span>
             </div>
-            <div>After that, files will be be available:</div>
-            <div class="embargo-col">
-               <Select v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
-               <Button severity="danger" label="Lift Embargo" @click="liftEmbargo()" />
+            <div class="requirement">
+               <i v-if="props.files" class="done pi pi-check"></i>
+               <i v-else class="not-done pi pi-exclamation-circle"></i>
+               <span>Add files</span>
             </div>
-         </div>
-         <div v-else v-for="v in visibilityOptions" :key="v.value" class="visibility-opt">
-            <div class="visibility-picker">
-               <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility-radio-btn" @update:model-value="visibilityUpdated"/>
-               <label :for="v.value" class="left-margin visibility" :class="v.value">{{ v.label }}</label>
+            <div class="help">
+               <span>View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</span>
             </div>
-            <div v-if="showLicense(v)" class="license">
-               <a :href="v.license.url">{{ v.license.label }}</a>
+         </Fieldset>
+         <Fieldset legend="Visibility">
+            <div v-if="props.visibility == 'embargo'" class="embargo">
+               <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
+               <div>This work is under embargo.</div>
+               <div>Files will NOT be available to anyone until {{ $formatDate(releaseDate) }}.</div>
             </div>
-            <div  v-if="showETDEmbargo(v)" class="limited">
-               <div class="note">Files available to UVA only until:</div>
-               <div class="embargo-date small">
-                  <span>{{ $formatDate(releaseDate) }}</span>
-                  <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false"
-                     :visibility="props.visibility" @picked="endDatePicked"
-                     :degree="props.degree" :program="props.program" />
+            <div v-else v-for="v in system.userVisibility" :key="v.value" class="visibility-opt">
+               <div class="visibility-picker">
+                  <RadioButton v-model="visibility" :inputId="v.value"  :value="v.value"  class="visibility-radio-btn" @update:model-value="visibilityUpdated"/>
+                  <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
                </div>
-               <div class="note">After that, files will be be available worldwide.</div>
-            </div>
-            <div v-if="showOAEmbargo(v)" class="embargo">
-               <div>Files will NOT be available to anyone until:</div>
-               <div class="embargo-date small">
-                  <span>{{ $formatDate(releaseDate) }}</span>
-                  <DatePickerDialog :type="props.type" :endDate="releaseDate" :admin="false" :visibility="props.visibility" @picked="endDatePicked" />
+               <div v-if="showLicense(v)" class="license">
+                  <a :href="v.license.url">{{ v.license.label }}</a>
                </div>
-               <div class="embargo-col">
-                  <div>After that, files will be be available:</div>
-                  <Select v-model="releaseVisibility" :options="oaVisibilities" optionLabel="label" optionValue="value" />
+               <div  v-if="showETDEmbargo(v)" class="limited">
+                  <div class="note">Files available to UVA only until:</div>
+                  <div class="embargo-date">
+                     <span>{{ $formatDate(releaseDate) }}</span>
+                     <DatePickerDialog :endDate="releaseDate" :admin="false"
+                        :visibility="props.visibility" @picked="endDatePicked"
+                        :degree="props.degree" :program="props.program" />
+                  </div>
+                  <div class="note">After that, files will be be available worldwide.</div>
                </div>
             </div>
+         </Fieldset>
+         <div class="agree">
+            <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
+            <label for="agree-cb">
+               I have read and agree to the
+               <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
+               including discussing my deposit access options with my faculty advisor.
+            </label>
          </div>
-      </Fieldset>
-      <div class="agree">
-         <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
-         <label v-if="type=='oa'" for="agree-cb">
-            By saving this work, I agree to the
-            <a href="https://www.library.virginia.edu/libra/open/libra-deposit-license" target="_blank">Libra Deposit Agreement</a>
-         </label>
-         <label v-else for="agree-cb">
-            I have read and agree to the
-            <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
-            including discussing my deposit access options with my faculty advisor.
-         </label>
-      </div>
-      <div class="button-bar">
-         <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
-         <Button label="Submit" @click="submitClicked()" :disabled="!canSubmit"/>
+         <div class="button-bar">
+            <Button severity="secondary" label="Cancel" @click="emit('cancel')"/>
+            <Button label="Save" @click="saveClicked()" :disabled="!canSave"/>
+         </div>
       </div>
    </Panel>
 </template>
@@ -92,20 +64,11 @@ import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import Checkbox from 'primevue/checkbox'
 import Fieldset from 'primevue/fieldset'
 import RadioButton from 'primevue/radiobutton'
-import Select from 'primevue/select'
 import Panel from 'primevue/panel'
 import { useSystemStore } from "@/stores/system"
-import { useConfirm } from "primevue/useconfirm"
 
-const emit = defineEmits( ['submit', 'cancel'])
+const emit = defineEmits( ['save', 'cancel'])
 const props = defineProps({
-   type: {
-      type: String,
-      required: true,
-      validator(value) {
-         return ['oa', 'etd'].includes(value)
-      },
-   },
    create: {
       type: Boolean,
       default: false,
@@ -144,16 +107,11 @@ const props = defineProps({
    },
 })
 
-const confirm = useConfirm()
 const system = useSystemStore()
 const visibility = ref(props.visibility)
 const releaseVisibility = ref("open")
 const releaseDate = ref("")
 const agree = ref(false)
-
-const oaVisibilities = ref([
-   {label: "Worldwide", value: "open"}, {label: "UVA Only", value: "uva"}
-])
 
 onMounted( () => {
    visibility.value = props.visibility
@@ -162,14 +120,7 @@ onMounted( () => {
    agree.value = false
 })
 
-const visibilityOptions = computed( () => {
-   if ( props.type == 'oa') {
-      return system.oaVisibility
-   }
-   return system.etdVisibility
-})
-
-const canSubmit = computed(() =>{
+const canSave = computed(() =>{
    if (props.described == false ) return false
    return agree.value == true && visibility.value != "" && props.files
 })
@@ -179,26 +130,12 @@ const endDatePicked = ( (newDate) => {
 })
 
 const visibilityUpdated = (() => {
-   if (visibility.value == "embargo" || visibility.value == "uva" && props.type == "etd") {
+   if (visibility.value == "embargo" || visibility.value == "uva") {
       releaseVisibility.value = "open"
       let endDate = new Date()
       endDate.setMonth( endDate.getMonth() + 6)
       releaseDate.value = endDate.toJSON()
    }
-})
-
-const liftEmbargo = ( () => {
-   confirm.require({
-      message: `Are you sure you want to lift the embargo on this work?`,
-      header: 'Confirm Release Embargo',
-      icon: 'pi pi-question-circle',
-      rejectClass: 'p-button-secondary',
-      accept: (  ) => {
-         const now = new Date()
-         releaseDate.value = now.toJSON()
-         emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
-      },
-   })
 })
 
 const showLicense = ( (vis) => {
@@ -209,34 +146,29 @@ const showLicense = ( (vis) => {
 })
 
 const showETDEmbargo = ((vis) =>{
-   if (props.type == "oa") return false
    return (vis.value == 'uva' && visibility.value == vis.value)
 })
 
-const showOAEmbargo = ((vis) =>{
-   if (props.type == "etd") return false
-   return (vis.value == 'embargo' && visibility.value == vis.value)
-})
-
-const submitClicked = (() => {
-   emit('submit', visibility.value, releaseDate.value, releaseVisibility.value)
+const saveClicked = (() => {
+   emit('save', visibility.value, releaseDate.value, releaseVisibility.value)
 })
 </script>
 
 <style lang="scss" scoped>
 .save-panel {
-   :deep(.p-panel-title) {
-      font-weight: normal;
-   }
-   .embargo-note {
-      margin: 4px 0;
+   .panel-content {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
    }
    .help {
       font-size: 0.9em;
       margin-top:15px;
    }
-   div.embargo.no-pad {
-      margin: 0 0 0 0;
+   .embargo {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
    }
    .embargo-date {
       display: flex;
@@ -245,22 +177,7 @@ const submitClicked = (() => {
       align-items: center;
       margin: 15px 0;
    }
-   .embargo-date.small {
-      margin: 10px 0;
-   }
-   .embargo-col {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      button{
-         margin-top: 20px;
-      }
-      .p-Select {
-         margin-top: 5px;
-      }
-   }
    div.limited {
-      font-size: 0.9em;
       margin: 15px 0 0px 30px;
       .date-row {
          margin-bottom: 10px;
@@ -268,24 +185,13 @@ const submitClicked = (() => {
          flex-flow: row nowrap;
          justify-content: space-between;
       }
-      .note {
-         margin-bottom: 5px;
-      }
-   }
-   div.embargo {
-      font-size: 0.9em;
-      margin: 15px 0 0px 30px;
    }
    .requirement {
       display: flex;
       flex-flow: row nowrap;
       justify-content: flex-start;
       align-items: center;
-      i {
-         display: inline-block;
-         margin-right: 10px;
-         font-size: 1.25rem;
-      }
+      gap: 20px;
       .not-done {
          color: $uva-red-B;
       }
@@ -301,39 +207,26 @@ const submitClicked = (() => {
       .visibility-picker {
          display: flex;
          flex-flow: row nowrap;
-         div.visibility-radio-btn {
-            padding: 0;
-            margin-left: 0;
-         }
-         label.left-margin {
-            margin-left: 10px;
+         align-items: center;
+         gap: 10px;
+         .visibility {
             flex-grow: 1;
          }
-      }
-      .license {
-         font-size: 0.8em;
-         margin: 10px 0px 15px 35px;
       }
    }
    .agree {
       display: flex;
       flex-direction: row;
       align-items: flex-start;
-      margin: 25px 0;
-      label {
-         margin-left: 15px;
-      }
+      gap: 10px;
    }
+
    .button-bar {
       display: flex;
       flex-flow: row nowrap;
       justify-content: flex-end;
       align-items: stretch;
-      button {
-         font-size: 0.85em;
-         padding: 5px 10px;
-         margin-left: 5px;
-      }
+      gap: 10px;
    };
 }
 </style>

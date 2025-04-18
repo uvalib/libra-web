@@ -110,6 +110,7 @@ div.row {
    display: flex;
    flex-flow: row nowrap;
    justify-content: flex-start;
+   align-items: center;
    margin-bottom: 15px;
    gap: 0.5rem;
    .p-select {

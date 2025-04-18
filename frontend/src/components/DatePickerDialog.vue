@@ -45,13 +45,6 @@ const props = defineProps({
       type: String,
       default: ""
    },
-   type: {
-      type: String,
-      required: true,
-      validator(value) {
-         return ['oa', 'etd'].includes(value)
-      },
-   },
    visibility: {
       type: String,
       required: true
@@ -127,15 +120,6 @@ button.change {
    button {
       font-size: 0.9em;
       margin-left: 10px;
-   }
-}
-:deep(span.p-disabled) {
-   color: #ddd;
-}
-:deep(.p-datepicker-today) {
-   span {
-      background: white;
-      border: 1px solid $uva-grey-100;
    }
 }
 </style>

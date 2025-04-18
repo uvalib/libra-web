@@ -2,17 +2,17 @@
    <div class="scroll-body"  id="etd-form-layout">
       <div class="sidebar-col" :class="{admin: adminEdit}" v-if="etdRepo.working==false">
          <AdminPanel v-if="adminEdit"
-            type="etd" :source="etdRepo.source" :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
+            :source="etdRepo.source" :identifier="etdRepo.work.id" :depositor="etdRepo.depositor" :created="etdRepo.createdAt"
             :modified="etdRepo.modifiedAt" :published="etdRepo.publishedAt" :visibility="etdRepo.visibility"
             :embargoEndDate="etdRepo.embargoReleaseDate" :embargoEndVisibility="etdRepo.embargoReleaseVisibility"
             :degree="etdRepo.work.degree" :program="etdRepo.work.program" :notes="etdRepo.work.adminNotes"
             ref="savepanel" @cancel="cancelClicked" @delete="router.back()" @save="adminSaveCliced"
          />
          <SavePanel v-else
-            type="etd" :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
+            :described="workDescribed" :files="etdRepo.work.files.length > 0 || etdRepo.pendingFileAdd.length > 0"
             :visibility="etdRepo.visibility" :releaseDate="etdRepo.embargoReleaseDate" :releaseVisibility="etdRepo.embargoReleaseVisibility"
             :draft="etdRepo.isDraft" :degree="etdRepo.work.degree" :program="etdRepo.work.program"
-            ref="savepanel" @submit="submitClicked" @cancel="cancelClicked"
+            ref="savepanel" @save="saveClicked" @cancel="cancelClicked"
          />
       </div>
       <div class="content-col">
@@ -20,10 +20,7 @@
             <template #header>
                <div class="work-header">
                   <span>LibraETD Work</span>
-                  <template v-if="adminEdit==false">
-                     <span v-if="etdRepo.isDraft" class="visibility draft">DRAFT</span>
-                  </template>
-                  <AuditsPanel v-if="etdRepo.working==false" :workID="etdRepo.work.id" :namespace="system.etdNamespace"/>
+                  <span v-if="adminEdit==false && etdRepo.isDraft" class="draft">DRAFT</span>
                </div>
             </template>
             <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
@@ -54,6 +51,9 @@
                            <tr v-if="etdRepo.isDraft==false">
                               <td class="label">Date Published:</td>
                               <td>{{ $formatDate(etdRepo.publishedAt) }}</td>
+                           </tr>
+                           <tr>
+                              <td></td><td><AuditsPanel v-if="etdRepo.working==false" :workID="etdRepo.work.id"/></td>
                            </tr>
                         </tbody>
                      </table>
@@ -116,7 +116,7 @@
 
                <FormKit type="select" label="Rights" v-model="etdRepo.licenseID"
                   placeholder="Select rights"
-                  :options="system.etdLicenses" validation="required"
+                  :options="system.userLicenses" validation="required"
                />
                <p class="note">
                   Libra lets you choose an open license when you post your work, and will prominently display the
@@ -168,7 +168,7 @@
                <template v-if="etdRepo.work.files.length > 0">
                   <label class="libra-form-label">Previously Uploaded Files</label>
                   <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
-                        stripedRows showGridlines responsiveLayout="scroll" class="p-datatable-sm"
+                        stripedRows showGridlines responsiveLayout="scroll"
                         :lazy="false" :paginator="true" :alwaysShowPaginator="false"
                         :rows="30" :totalRecords="etdRepo.work.files.length"
                         paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
@@ -181,8 +181,10 @@
                      </Column>
                      <Column  header="Actions" >
                         <template #body="slotProps">
-                           <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" text @click="deleteFileClicked(slotProps.data.name)"/>
-                           <Button class="action" icon="pi pi-cloud-download" label="Download" severity="secondary" text @click="downloadFileClicked(slotProps.data.name)"/>
+                           <div class="acts">
+                              <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
+                              <Button class="action" icon="pi pi-cloud-download" label="Download" severity="secondary" size="small" @click="downloadFileClicked(slotProps.data.name)"/>
+                           </div>
                         </template>
                      </Column>
                   </DataTable>
@@ -220,26 +222,30 @@ import Column from 'primevue/column'
 import { useConfirm } from "primevue/useconfirm"
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
-import { usePinnable } from '@/composables/pin'
 
-usePinnable("user-header", "scroll-body", ( (isPinned) => {
-   const formEle = document.getElementById("etd-form-layout")
-   const compStyles = window.getComputedStyle(formEle)
-   const flowType = compStyles.getPropertyValue("flex-flow")
+// FIXME pinnable is broken. It als0 blocks the filses section after an advisor is added
+// because the screen height is fixed and the hight changes as advisors are added
+//
+// import { usePinnable } from '@/composables/pin'
 
-   // in mobile mode, the panel is at the bottom of the screen and doesn't need to be pinned
-   // when this is the case, the flex-flow will be "column-reverse".
-   if ( flowType.indexOf("column") == -1) {
-      let panelEle = savepanel.value.$el
-      if ( isPinned ) {
-         panelEle.style.top = `85px` // HACK: top padding + height of user toolbar
-         panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
-         panelEle.classList.add("pinned")
-      } else {
-         panelEle.classList.remove("pinned")
-      }
-   }
-}))
+// usePinnable("user-header", "scroll-body", ( (isPinned) => {
+//    const formEle = document.getElementById("etd-form-layout")
+//    const compStyles = window.getComputedStyle(formEle)
+//    const flowType = compStyles.getPropertyValue("flex-flow")
+
+//    // in mobile mode, the panel is at the bottom of the screen and doesn't need to be pinned
+//    // when this is the case, the flex-flow will be "column-reverse".
+//    if ( flowType.indexOf("column") == -1) {
+//       let panelEle = savepanel.value.$el
+//       if ( isPinned ) {
+//          panelEle.style.top = `85px` // HACK: top padding + height of user toolbar
+//          panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
+//          panelEle.classList.add("pinned")
+//       } else {
+//          panelEle.classList.remove("pinned")
+//       }
+//    }
+// }))
 
 const confirm = useConfirm()
 const router = useRouter()
@@ -350,7 +356,7 @@ const deleteFileClicked = ( (name) => {
 const downloadFileClicked = ( (name) => {
    etdRepo.downloadFile(name)
 })
-const submitClicked = ( async (visibility, releaseDate, releaseVisibility) => {
+const saveClicked = ( async (visibility, releaseDate, releaseVisibility) => {
    updateWorkModel(visibility, releaseDate, releaseVisibility)
    etdForm.value.node.submit()
 })
@@ -358,7 +364,7 @@ const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
    etdRepo.visibility = visibility
    etdRepo.embargoReleaseDate =  releaseDate
    etdRepo.embargoReleaseVisibility =  releaseVisibility
-   let license = system.licenseDetail("etd", etdRepo.licenseID)
+   let license = system.licenseDetail(etdRepo.licenseID)
    etdRepo.work.license = license.label
    etdRepo.work.licenseURL = license.url
 })
@@ -427,9 +433,6 @@ const cancelClicked = (() => {
    .sidebar-col {
       width: 100%;
    }
-   :deep(.p-panel-content) {
-      padding: 10px;
-   }
 }
 
 .scroll-body {
@@ -440,9 +443,9 @@ const cancelClicked = (() => {
       flex-flow: row nowrap;
       justify-content: space-between;
       align-items: center;
-      width: 100%;
-      .visibility {
-         flex-grow: auto;
+      width:100%;
+      .draft {
+         font-weight: bold;
       }
    }
 }
@@ -451,8 +454,10 @@ const cancelClicked = (() => {
    display: flex;
    flex-direction: column;
 
-   .action {
-      margin-right: 15px;
+   .acts {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 0.5rem;
    }
    table {
       td.label {
@@ -466,33 +471,11 @@ const cancelClicked = (() => {
       flex-flow: row wrap;
       justify-content: space-between;
       align-items: flex-start;
-      .prefilled {
-         margin-top: 15px;
-         label {
-            display: block;
-            margin-bottom: 5px;
-         }
-      }
-      .readonly {
-         label {
-            display: inline-block;
-            margin-right: 15px;
-            font-weight: bold;
-         }
-      }
-      .formkit-outer:first-of-type {
-         margin-right: 15px;
-      }
+      gap: 25px;
+
       div.formkit-outer {
          flex-grow: 1;
       }
-   }
-   .margin-bottom {
-      margin: -10px 0 35px 0;
-      padding: 0px;
-   }
-   .margin-right {
-      margin-right: 10px;
    }
 
    .sub-panel {
@@ -536,12 +519,7 @@ const cancelClicked = (() => {
       flex-flow: row nowrap;
       justify-content: flex-start;
       align-items: flex-end;
-      button {
-         font-size: 0.8em;
-         padding: 7px;
-         margin-bottom: 0.3em;
-         margin-left: 5px;
-      }
+      gap: 5px;
    }
 
    .input-row {
@@ -549,22 +527,15 @@ const cancelClicked = (() => {
       flex-flow: row nowrap;
       justify-content: flex-start;
       align-items: flex-end;
-      .remove, .add {
-         padding: 6.25px 15px;
-         margin-bottom: 0.3em;
-         border: 0;
-         margin-left: 5px;
-      }
+      gap: 5px;
       .input-wrap {
          flex-grow: 1;
       }
    }
    .note {
-      font-size: 0.85em;
       font-style: italic;
       color: $uva-grey;
       margin-top: 0;
-      padding-top: 5px;
    }
 }
 </style>

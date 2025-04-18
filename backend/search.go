@@ -48,7 +48,6 @@ func (hit *searchHit) parseDates(esObj uvaeasystore.EasyStoreObject) {
 type adminSearchHit struct {
 	*searchHit
 	Namespace string `json:"namespace"`
-	WorkType  string `json:"type"`
 	Source    string `json:"source"`
 }
 
@@ -80,21 +79,14 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	for err == nil {
 		adminHit := adminSearchHit{Source: obj.Fields()["source"], Namespace: obj.Namespace()}
 		var hit *searchHit
-		if obj.Namespace() == svc.Namespaces.oa {
-			adminHit.WorkType = "oa"
-			hit, err = svc.parseOASearchHit(obj)
-			if err != nil {
-				log.Printf("ERROR: unable to parse oa search result %s: %s", obj.Id(), err.Error())
-				continue
-			}
-		} else if obj.Namespace() == svc.Namespaces.etd {
-			adminHit.WorkType = "etd"
-			hit, err = svc.parseETDSearchHit(obj)
-			if err != nil {
-				log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
-				continue
-			}
-		} else {
+		if obj.Namespace() != svc.Namespace {
+			log.Printf("INFO: skipping hit with mismatched namespace %s vs expected %s", obj.Namespace(), svc.Namespace)
+			continue
+		}
+
+		hit, err = svc.parseETDSearchHit(obj)
+		if err != nil {
+			log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
 			continue
 		}
 
@@ -109,32 +101,16 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 func (svc *serviceContext) userSearch(c *gin.Context) {
 	computeID := c.Query("cid")
 	if computeID == "" {
-		log.Printf("INFO: inmvalid search for usser works without a compute id")
+		log.Printf("INFO: invalid search for user works without a compute id")
 		c.String(http.StatusBadRequest, "cid is required")
 		return
 	}
 
-	workType := c.Query("type")
-	if workType != "oa" && workType != "etd" {
-		log.Printf("INFO: invalid search type: %s", workType)
-		c.String(http.StatusBadRequest, fmt.Sprintf("%s is not a valid search type", workType))
-		return
-	}
-
-	namespace := ""
-	if workType == "oa" {
-		namespace = svc.Namespaces.oa
-	} else if workType == "etd" {
-		namespace = svc.Namespaces.etd
-	}
-
 	fields := uvaeasystore.DefaultEasyStoreFields()
-	if computeID != "" {
-		fields["depositor"] = computeID
-	}
+	fields["depositor"] = computeID
 
-	log.Printf("INFO: find user %s %s works", computeID, namespace)
-	hits, err := svc.EasyStore.GetByFields(namespace, fields, uvaeasystore.Metadata|uvaeasystore.Fields)
+	log.Printf("INFO: find user %s %s works", computeID, svc.Namespace)
+	hits, err := svc.EasyStore.GetByFields(svc.Namespace, fields, uvaeasystore.Metadata|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: search failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -146,20 +122,14 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 	obj, err := hits.Next()
 	for err == nil {
 		var hit *searchHit
-		if obj.Namespace() == svc.Namespaces.oa {
-			hit, err = svc.parseOASearchHit(obj)
-			if err != nil {
-				log.Printf("ERROR: unable to parse oa search result %s: %s", obj.Id(), err.Error())
-				continue
-			}
-		} else if obj.Namespace() == svc.Namespaces.etd {
-			hit, err = svc.parseETDSearchHit(obj)
-			if err != nil {
-				log.Printf("ERROR: unable to parse etd search result %s: %s", obj.Id(), err.Error())
-				continue
-			}
-		} else {
-			log.Printf("ERROR: search hit %s has unsupported namespace %s; skipping", obj.Id(), obj.Namespace())
+		if obj.Namespace() != svc.Namespace {
+			log.Printf("INFO: skipping hit with mismatched namespace %s vs expected %s", obj.Namespace(), svc.Namespace)
+			continue
+		}
+
+		hit, err = svc.parseETDSearchHit(obj)
+		if err != nil {
+			log.Printf("ERROR: unable to parse search result %s: %s", obj.Id(), err.Error())
 			continue
 		}
 
@@ -171,25 +141,6 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 		obj, err = hits.Next()
 	}
 	c.JSON(http.StatusOK, resp)
-}
-
-func (svc *serviceContext) parseOASearchHit(esObj uvaeasystore.EasyStoreObject) (*searchHit, error) {
-	oaWorkBytes, objErr := esObj.Metadata().Payload()
-	if objErr != nil {
-		return nil, fmt.Errorf("unable to get object %s payload: %s", esObj.Id(), objErr.Error())
-	}
-
-	oaWork, objErr := librametadata.OAWorkFromBytes(oaWorkBytes)
-	if objErr != nil {
-		return nil, objErr
-	}
-	hit := searchHit{
-		ID:        esObj.Id(),
-		Title:     oaWork.Title,
-		ComputeID: oaWork.Authors[0].ComputeID,
-	}
-	hit.parseDates(esObj)
-	return &hit, nil
 }
 
 func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject) (*searchHit, error) {

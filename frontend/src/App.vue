@@ -10,8 +10,7 @@
             </a>
          </div>
          <div class="site-link">
-            <router-link v-if="isLibraOpen" to="/oa"><img src="@/assets/LibraOpen.svg"/></router-link>
-            <router-link v-else-if="isLibraETD" to="/etd"><img src="@/assets/LibraETD.svg"/></router-link>
+            <router-link v-if="isLibraETD" to="/etd"><img src="@/assets/LibraETD.svg"/></router-link>
             <router-link v-else to="/"><img src="@/assets/Libra.svg"/></router-link>
             <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
@@ -58,9 +57,6 @@ const user = useUserStore()
 const configuring = ref(true)
 const route = useRoute()
 
-const isLibraOpen = computed( () => {
-   return route.fullPath.indexOf("/oa") > -1
-})
 const isLibraETD = computed( () => {
    return route.fullPath.indexOf("/etd") > -1
 })

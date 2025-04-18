@@ -11,21 +11,7 @@
          For questions or feedback, contact us: <a href="mailto:libra@virginia.edu">libra@virginia.edu</a>
       </p>
    </div>
-   <h2>Submit your work</h2>
    <div class="submissions">
-      <Card>
-         <template #title>LibraOpen: Open content</template>
-         <template #content>
-            <p>
-               Submit your scholarly articles, books, presentations, and other creative works. Please review our
-               <a target="_blank" href="https://library.virginia.edu/libra/open/oc-checklist">LibraOpen Checklist</a> or
-               contact
-               <a href="mailto:libra@virginia.edu">libra@virginia.edu</a> for deposit help.
-            </p>
-            <p>For any UVA-affilliated individual</p>
-            <Button label="Submit OA Content" @click="oaClicked" />
-         </template>
-      </Card>
       <Card>
          <template #title>LibraETD: Theses and dissertations</template>
          <template #content>
@@ -49,9 +35,6 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const oaClicked = (() => {
-   router.push(`/oa`)
-})
 const etdClicked = (() => {
    router.push(`/etd`)
 })
@@ -60,7 +43,7 @@ const etdClicked = (() => {
 <style lang="scss" scoped>
 @media only screen and (min-width: 768px) {
    .info {
-      width: 75%;
+      width: 60%;
       margin: 10px auto 50px auto;
       font-size: 1.15em;
    }
@@ -87,7 +70,8 @@ const etdClicked = (() => {
    margin: 10px auto 30px auto;
 }
 .submissions {
-   margin: 30px auto;
+   margin: 0 auto;
+   padding: 30px 0 50px 0;
    display: flex;
    flex-flow: column;
    justify-content: flex-start;

@@ -77,7 +77,7 @@ const user = useUserStore()
 const system = useSystemStore()
 
 onBeforeMount( () => {
-   searchStore.search("etd", user.computeID)
+   searchStore.search(user.computeID)
 })
 
 const editWorkClicked = ( (id) => {
@@ -108,7 +108,7 @@ const previewWorkClicked = ( (id) => {
    .acts {
       display: flex;
       flex-direction: column;
-      align-items: stretch;
+      align-items: flex-start;
       justify-content: flex-start;
       gap: 0.5rem;
       width:max-content;

@@ -2,39 +2,16 @@
    {
       "label": "Public Access",
       "value": "open",
-      "oa": false,
-      "etd": true
+      "adminOnly": false
    },
    {
       "label": "Limited Access",
       "value": "uva",
-      "oa": false,
-      "etd": true
-   },
-   {
-      "label": "Visible Worldwide",
-      "value": "open",
-      "oa": true,
-      "etd": false,
-      "license": {
-         "url": "https://libraopendev.lib.virginia.edu/uva-public-license",
-         "label": "Libra Public Deposit License"
-      }
-   },
-   {
-      "label": "Restricted to UVa Only",
-      "value": "uva",
-      "oa": true,
-      "etd": false,
-      "license": {
-         "url": "https://libraopendev.lib.virginia.edu/uva-only-license",
-         "label": "Libra UVA-only Deposit License"
-      }
+      "adminOnly": false
    },
    {
       "label": "Embargo",
       "value": "embargo",
-      "oa": true,
-      "etd": false
+      "adminOnly": true
    }
 ]

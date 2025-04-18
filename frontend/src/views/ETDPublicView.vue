@@ -8,69 +8,70 @@
          <p>{{ etdRepo.error }}</p>
       </div>
       <template v-else>
-         <div class="files">
-            <Fieldset legend="Files">
-               <template  v-if="etdRepo.visibility == 'embargo'">
-                  <span class="file-embargo">
-                    This item is restricted to abstract view only until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
-                  </span>
-                  <span  v-if="etdRepo.isDraft" class="file-embargo author">
-                     The files listed below will NOT be available to anyone until the embargo date has passed.
-                  </span>
-               </template>
-               <span  v-if="etdRepo.visibility == 'uva'" class="file-embargo">
-                  This item is restricted to UVA until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
-               </span>
 
-               <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
-                  <div class="name">{{ file.name }}</div>
-                  <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
-                  <Button icon="pi pi-cloud-download" label="Download" severity="secondary" @click="downloadFileClicked(file.name)"/>
-               </div>
-            </Fieldset>
+         <div class="files">
+            <div class="title">Files</div>
+            <template  v-if="etdRepo.visibility == 'embargo'">
+               <span class="file-embargo">
+               This item is restricted to abstract view only until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
+               </span>
+               <span  v-if="etdRepo.isDraft" class="file-embargo author">
+                  The files listed below will NOT be available to anyone until the embargo date has passed.
+               </span>
+            </template>
+            <span  v-if="etdRepo.visibility == 'uva'" class="file-embargo">
+               This item is restricted to UVA until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
+            </span>
+
+            <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
+               <div class="name">{{ file.name }}</div>
+               <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+               <Button icon="pi pi-cloud-download" label="Download" severity="secondary" size="small" @click="downloadFileClicked(file.name)"/>
+            </div>
          </div>
+
          <div class="details">
             <div class="title" role="heading">{{ etdRepo.work.title }}</div>
-            <Fieldset legend="Author:">{{  authorDisplay(etdRepo.work.author) }}</Fieldset>
-            <Fieldset legend="Advisors:">
+            <Fieldset legend="Author">{{  authorDisplay(etdRepo.work.author) }}</Fieldset>
+            <Fieldset legend="Advisors">
                <div v-for="advisor in  etdRepo.work.advisors" class="author">
                   <p>{{ advisorDisplay(advisor) }}</p>
                   <p>{{ advisor.institution }}</p>
                </div>
             </Fieldset>
-            <Fieldset legend="Abstract:">{{  etdRepo.work.abstract }}</Fieldset>
-            <Fieldset legend="Degree:">{{  etdRepo.work.degree }}</Fieldset>
-            <Fieldset v-if="etdRepo.hasKeywords" legend="Keywords:">
+            <Fieldset legend="Abstract">{{  etdRepo.work.abstract }}</Fieldset>
+            <Fieldset legend="Degree">{{  etdRepo.work.degree }}</Fieldset>
+            <Fieldset v-if="etdRepo.hasKeywords" legend="Keywords">
                {{ etdRepo.work.keywords.join(", ") }}
             </Fieldset>
-            <Fieldset v-if="etdRepo.hasSponsors" legend="Sponsoring Agency:">
+            <Fieldset v-if="etdRepo.hasSponsors" legend="Sponsoring Agency">
                <div v-for="s in etdRepo.work.sponsors">{{ s }}</div>
             </Fieldset>
-            <Fieldset v-if="etdRepo.hasRelatedURLs" legend="Related Links:">
+            <Fieldset v-if="etdRepo.hasRelatedURLs" legend="Related Links">
                <ul>
                   <li v-for="url in etdRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
                </ul>
             </Fieldset>
-            <Fieldset v-if="etdRepo.work.notes" legend="Notes:">{{  etdRepo.work.notes }}</Fieldset>
-            <Fieldset v-if="etdRepo.work.language" legend="Labguage:">{{  etdRepo.work.language }}</Fieldset>
-            <Fieldset legend="Rights:">
+            <Fieldset v-if="etdRepo.work.notes" legend="Notes">{{  etdRepo.work.notes }}</Fieldset>
+            <Fieldset v-if="etdRepo.work.language" legend="Labguage">{{  etdRepo.work.language }}</Fieldset>
+            <Fieldset legend="Rights">
                <a :href="etdRepo.work.licenseURL" target="_blank">{{ etdRepo.work.license }}</a>
             </Fieldset>
-            <Fieldset legend="Persistent Link:">
+            <Fieldset legend="Persistent Link">
                <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
                <span v-else>Persistent link will appear here after submission.</span>
             </Fieldset>
          </div>
          <div class="draft" v-if="etdRepo.isDraft">
-            <h2 class="proof">Submission Proof</h2>
-            <p>
+            <div class="proof">Submission Proof</div>
+            <div>
                Before proceeding, we encourage you to review the information in this page.
                If you experience problems with your submission, please <a href="mailto:libra@virginia.edu">contact</a> us.
-            </p>
+            </div>
             <div class="buttons">
-               <Button severity="secondary" label="Cancel" @click="cancelPreview()"/>
-               <Button severity="secondary" label="Edit" @click="editThesis()"/>
-               <Button severity="primary" label="Submit Thesis" @click="submitThesis()"/>
+               <Button severity="secondary" label="Cancel" size="small" @click="cancelPreview"/>
+               <Button severity="secondary" label="Edit" size="small" @click="editThesis"/>
+               <Button severity="primary" label="Submit Thesis" size="small"  @click="submitThesis"/>
             </div>
          </div>
          <div class="published" v-if="justPublished">
@@ -155,18 +156,10 @@ const submitThesis = ( () => {
          padding: 30px;
          margin: 20px;
          border: 1px solid $uva-grey-100;
-         box-shadow: 0 0 2px #b9b9b9;
-         .author-header {
-            .type {
-               font-size: 0.85em;
-               font-weight: normal;
-               padding: 4px 10px;
-            }
-         }
       }
       div.files {
          width: 250px;
-         margin: 320px 0 0 15px;
+         margin: 320px 0 0 0;
       }
    }
 }
@@ -188,15 +181,8 @@ const submitThesis = ( () => {
       div.details {
          max-width: none;
          padding: 20px;
-         border-radius: 3px;
-         margin: 10px;
-         .author-header {
-            .type {
-               font-size: 0.75em;
-               font-weight: bold;
-               padding: 2px 8px;
-            }
-         }
+         border-radius: 0;
+         margin: 0;
          ul {
             margin: 0;
             padding: 0 0 0 15px;
@@ -204,12 +190,13 @@ const submitThesis = ( () => {
       }
       div.files {
          width: 100%;
-         margin-top: 10px;
+         margin: 0;
          border-top: 1px solid $uva-grey-100;
-         padding: 20px;
+         padding: 0;
       }
    }
 }
+
 div.work-bkg {
    background-image: url('@/assets/header.jpg');
    background-position: center center;
@@ -219,7 +206,10 @@ div.work-bkg {
    position: absolute;
    left: 0;
    right: 0;
+   border-top: 1px solid $uva-grey-A;
+   border-bottom: 1px solid $uva-grey-A;
 }
+
 div.public-work {
    position: relative;
    min-height: 300px;
@@ -234,23 +224,23 @@ div.public-work {
 
    div.draft {
       background: $uva-yellow-100;
-      padding: 0 20px 20px 20px;
+      padding: 20px;
       border: 1px solid $uva-yellow-A;
-      border-radius: 4px;
-      h2.proof {
-         padding: 0;
-         margin: 20px 0 10px 0 !important;
-         font-weight: normal !important;
-      }
-      p {
-         text-align: left;
+      border-radius: 0.3rem;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      text-align: left;
+      .proof {
+         font-size: 1.2em;
+         font-weight: bold;
+         text-align: center;
       }
       .buttons {
-         button {
-            margin-left: 5px;
-            font-size: 0.9em;
-            padding: 6px 12px;
-         }
+         display: flex;
+         flex-flow: row wrap;
+         justify-content: center;
+         gap: 5px;
       }
    }
 
@@ -268,60 +258,39 @@ div.public-work {
       }
    }
 
-   fieldset.p-fieldset {
-      border: none;
-      padding: 0;
-      :deep(legend.p-fieldset-legend) {
-         font-weight: bold;
-         padding: 0;
-      }
-      :deep(div.p-fieldset-content) {
-         padding: 5px;
-      }
-   }
-
    div.files {
       font-family: 'Open Sans', sans-serif;
       background: white;
       text-align: left;
-      .file-embargo {
-         display: block;
-         margin: 10px 0 10px 10px;
-         font-style: italic;
-         font-size: 1.15em;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      padding: 20px;
+      border: 1px solid $uva-grey-100;
+      border-radius: 0.3rem;
+      .title {
+         font-weight: bold;
       }
-      .file-embargo.author {
-         padding: 5px 10px;
-         font-size: 0.9em;
+
+      .upload {
+         display: flex;
+         flex-flow: row nowrap;
+         gap: 10px;
+      }
+
+      .file-embargo {
+         padding: 10px;
          font-style: normal;
          background: $uva-yellow-100;
          border: 1px solid $uva-yellow-A;
          border-radius: 4px;
       }
       .file {
-         margin: 10px 0 0 10px;
-         border: 1px solid $uva-grey-100;
-         border-radius: 4px;
-         padding: 10px;
-         .name {
-            text-align: left;
-            margin-bottom: 10px;
-            font-size: 1.1em;
-         }
-         .upload {
-            font-size: 0.9em;
-            margin-bottom: 5px;
-         }
-         label {
-            font-weight: bold;
-            margin-right: 5px;
-         }
-         button {
-            margin: 15px auto 0 auto;
-            font-size: 0.9em;
-            padding: 4px 10px;
-            display: block;
-         }
+         display: flex;
+         flex-direction: column;
+         gap: 10px;
+         padding-top: 15px;
+         border-top: 1px solid $uva-grey-100;
       }
    }
 
@@ -329,40 +298,14 @@ div.public-work {
       font-family: 'Open Sans', sans-serif;
       background: white;
       text-align: left;
-      border-radius: 3px;
-
-      .advisor-fieldset {
-         :deep(legend.p-fieldset-legend) {
-            width: 100%;
-         }
-         .author-header {
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: space-between;
-            .legend {
-               font-weight: bold;
-            }
-            .type {
-               border-radius: 5px;
-               background-color: $uva-grey-A;
-               color: white;
-            }
-         }
-      }
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-radius: 0.3rem;
 
       .title {
          font-size: 25px;
          font-weight: normal;
-         margin-bottom: 20px;
-      }
-
-      .author {
-         margin-bottom: 5px;
-         font-size: 14px;
-         p {
-            margin: 0;
-            padding: 0;
-         }
       }
    }
 }

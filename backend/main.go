@@ -45,22 +45,15 @@ func main() {
 		api.POST("/upload/:token", svc.uploadSubmissionFiles)
 		api.DELETE("/:token/:filename", svc.removeSubmissionFile)
 		api.POST("/cancel/:token", svc.cancelSubmission)
-		api.POST("/deposit/:token", svc.oaDeposit)
 
-		api.GET("/audits/:namespace/:id", svc.getAudits)
+		api.GET("/audits/:id", svc.getAudits)
 
 		// After initial submission, the work is referenced by the permanent ID
-		api.GET("/works/oa/:id", svc.getOAWork)
-		api.GET("/works/oa/:id/files/:name", svc.downloadOAFile)
-		api.PUT("/works/oa/:id", svc.oaUpdate)
-		api.POST("/works/oa/:id/publish", svc.publishOAWork)
-		api.DELETE("/works/oa/:id", svc.deleteOAWork)
-
-		api.GET("/works/etd/:id", svc.getETDWork)
-		api.GET("/works/etd/:id/files/:name", svc.downloadETDFile)
-		api.PUT("/works/etd/:id", svc.etdUpdate)
-		api.POST("/works/etd/:id/publish", svc.publishETDWork)
-		api.DELETE("/works/etd/:id", svc.deleteETDWork)
+		api.GET("/works/:id", svc.getETDWork)
+		api.GET("/works/:id/files/:name", svc.downloadETDFile)
+		api.PUT("/works/:id", svc.etdUpdate)
+		api.POST("/works/:id/publish", svc.publishETDWork)
+		api.DELETE("/works/:id", svc.deleteETDWork)
 
 		// user search of all works
 		api.GET("/works/search", svc.userSearch)
@@ -69,12 +62,9 @@ func main() {
 		{
 			admin.POST("/register", svc.adminDepositRegistrations)
 			admin.GET("/search", svc.adminSearch)
-			admin.DELETE("/etd/:id", svc.deleteETDWork)
-			admin.DELETE("/oa/:id", svc.deleteOAWork)
-			admin.DELETE("/etd/:id/publish", svc.unpublishETDWork)
-			admin.DELETE("/oa/:id/publish", svc.unpublishOAWork)
+			admin.DELETE("/works/:id", svc.deleteETDWork)
+			admin.DELETE("/works/:id/publish", svc.unpublishETDWork)
 		}
-
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served

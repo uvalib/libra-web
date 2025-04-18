@@ -1,9 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
-import OADashboard from '../views/OADashboard.vue'
-import OAWorkForm from '../views/OAWorkForm.vue'
-import OAPublicView from '../views/OAPublicView.vue'
 import ETDPublicView from '../views/ETDPublicView.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
 import ETDDashboard from '../views/ETDDashboard.vue'
@@ -38,27 +35,6 @@ const router = createRouter({
          component: ETDWorkForm
       },
       {
-         path: '/oa',
-         name: 'libraopen',
-         component: OADashboard
-      },
-      {
-         path: '/oa/new',
-         name: 'openworkform',
-         component: OAWorkForm
-      },
-      {
-         path: '/oa/:id',
-         alias: '/admin/oa/:id',
-         name: 'openworkform',
-         component: OAWorkForm
-      },
-      {
-         path: '/public/oa/:id',
-         name: 'oapublic',
-         component: OAPublicView
-      },
-      {
          path: '/public/etd/:id',
          name: 'etdpublic',
          component: ETDPublicView
@@ -79,7 +55,7 @@ const router = createRouter({
          component: NotFound
       }
    ],
-   scrollBehavior(to, _from, _savedPosition) {
+   scrollBehavior(_to, _from, _savedPosition) {
       return new Promise(resolve => {
          setTimeout( () => {
             let bar = document.getElementsByClassName("user-header")[0]
@@ -96,7 +72,7 @@ router.beforeEach( async (to) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
    const noAuthRoutes = ["not_found", "forbidden", "expired", "home"]
-   const isPublicPage = (to.name == "oapublic" || to.name == "etdpublic" )
+   const isPublicPage = (to.name == "etdpublic" )
    const isAdminPage = (to.name == "admin" || to.path.includes("/admin"))
 
    // the /signedin endpoint called after authorization. it has no page itself; it just

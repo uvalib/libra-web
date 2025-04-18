@@ -10,10 +10,10 @@ export const useAuditStore = defineStore('audit', {
    }),
 
    actions: {
-     async getAudits(id, namespace) {
+     async getAudits(id) {
        this.$reset
        this.working = true
-       return axios.get(`/api/audits/${namespace}/${id}`).then(response => {
+       return axios.get(`/api/audits/${id}`).then(response => {
          this.setAudits(response.data)
          this.working = false
        }).catch( err => {

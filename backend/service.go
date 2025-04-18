@@ -38,7 +38,7 @@ type serviceContext struct {
 	OrcidService  orcidServiceCfg
 	JWTKey        string
 	DevAuthUser   string
-	Namespaces    namespaceConfig
+	Namespace     string
 	UVAWhiteList  []*net.IPNet
 	AuditQueryURL string
 }
@@ -55,34 +55,23 @@ type language struct {
 }
 
 type visibility struct {
-	Value   string `json:"value"`
-	Label   string `json:"label"`
-	ETD     bool   `json:"etd"`
-	OA      bool   `json:"oa"`
-	License *struct {
+	Value     string `json:"value"`
+	Label     string `json:"label"`
+	AdminOnly bool   `json:"adminOnly"`
+	License   *struct {
 		URL   string `json:"url"`
 		Label string `json:"label"`
 	} `json:"license,omitempty"`
 }
 
 type license struct {
-	Value string `json:"value"`
-	URL   string `json:"url"`
-	Label string `json:"label"`
-	ETD   bool   `json:"etd"`
-	OA    bool   `json:"oa"`
-}
-
-type resourceType struct {
-	Value    string `json:"value"`
-	Label    string `json:"label"`
-	Category string `json:"category"`
-	ETD      bool   `json:"etd"`
-	OA       bool   `json:"oa"`
+	Value     string `json:"value"`
+	URL       string `json:"url"`
+	Label     string `json:"label"`
+	AdminOnly bool   `json:"adminOnly"`
 }
 
 type libraNamespace struct {
-	Type      string `json:"type"` // oa or etd
 	Label     string `json:"label"`
 	Namespace string `json:"namespace"`
 }
@@ -100,14 +89,13 @@ type etdProgram struct {
 }
 
 type configResponse struct {
-	Version        string           `json:"id"`
-	RessourceTypes []resourceType   `json:"resourceTypes"`
-	Licenses       []license        `json:"licenses"`
-	Languages      []language       `json:"languages"`
-	Visibility     []visibility     `json:"visibility"`
-	Namespaces     []libraNamespace `json:"namespaces"`
-	Programs       []etdProgram     `json:"programs"`
-	Degrees        []etdDegree      `json:"degrees"`
+	Version    string         `json:"version"`
+	Namespace  libraNamespace `json:"namespace"`
+	Licenses   []license      `json:"licenses"`
+	Languages  []language     `json:"languages"`
+	Visibility []visibility   `json:"visibility"`
+	Programs   []etdProgram   `json:"programs"`
+	Degrees    []etdDegree    `json:"degrees"`
 }
 
 // InitializeService sets up the service context for all API handlers
@@ -117,7 +105,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		UserService:  cfg.userService,
 		OrcidService: cfg.orcidService,
 		DevAuthUser:  cfg.devAuthUser,
-		Namespaces:   cfg.namespace,
+		Namespace:    cfg.namespace,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")
@@ -297,11 +285,7 @@ func (svc *serviceContext) getVersion(c *gin.Context) {
 func (svc *serviceContext) getConfig(c *gin.Context) {
 	verInfo := svc.lookupVersion()
 	ver := fmt.Sprintf("v%s-build%s", verInfo["version"], verInfo["build"])
-	resp := configResponse{Version: ver}
-
-	log.Printf("INFO: get nameapaces")
-	resp.Namespaces = append(resp.Namespaces, libraNamespace{Type: "etd", Label: "LibraETD", Namespace: svc.Namespaces.etd})
-	resp.Namespaces = append(resp.Namespaces, libraNamespace{Type: "oa", Label: "LibraOpen", Namespace: svc.Namespaces.oa})
+	resp := configResponse{Version: ver, Namespace: libraNamespace{Label: "LibraETD", Namespace: svc.Namespace}}
 
 	err := loadETDConfig(&resp)
 	if err != nil {
@@ -319,6 +303,7 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		}
 	}
 
+	// TODO all the data files need to be edited to remove OA . ETD
 	log.Printf("INFO: load licenses")
 	bytes, err = os.ReadFile("./data/licenses.json")
 	if err != nil {
@@ -327,17 +312,6 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		err = json.Unmarshal(bytes, &resp.Licenses)
 		if err != nil {
 			log.Printf("ERROR: unable to parse licenses: %s", err.Error())
-		}
-	}
-
-	log.Printf("INFO: load resource types")
-	bytes, err = os.ReadFile("./data/resourceTypes.json")
-	if err != nil {
-		log.Printf("ERROR: unable to load resource types: %s", err.Error())
-	} else {
-		err = json.Unmarshal(bytes, &resp.RessourceTypes)
-		if err != nil {
-			log.Printf("ERROR: unable to parse resource types: %s", err.Error())
 		}
 	}
 
@@ -484,8 +458,6 @@ type OrcidDetailsResponse struct {
 
 // OrcidDetails holds details from the Orcid service
 type OrcidDetails struct {
-	//ID    string `json:"id,omitempty"`
-	//Cid   string `json:"cid,omitempty"`
 	Orcid string `json:"orcid,omitempty"`
 	URI   string `json:"uri,omitempty"`
 }

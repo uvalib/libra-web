@@ -8,12 +8,9 @@ export const useSearchStore = defineStore('search', {
       hits: [],
    }),
    actions: {
-      search(type, computeID) {
+      search(computeID) {
          this.working = true
-         let url = `/api/works/search?type=${type}`
-         if (computeID != "") {
-            url += `&cid=${computeID}`
-         }
+         let url = `/api/works/search?cid=${computeID}`
          axios.get(url).then(response => {
             this.hits = response.data
             this.working = false

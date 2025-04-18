@@ -22,22 +22,11 @@ type auditContext struct {
 
 func (svc *serviceContext) getAudits(c *gin.Context) {
 	workID := c.Param("id")
-	namespaceParam := c.Param("namespace")
-	namespace := ""
-
-	// Check Namespace
-	if svc.Namespaces.etd == namespaceParam || svc.Namespaces.oa == namespaceParam {
-		namespace = namespaceParam
-	} else {
-		log.Printf("Invalid Namespace provided %s", namespaceParam)
-		c.String(http.StatusBadRequest, "invalid namespace")
-		return
-	}
 
 	// Get Easystore obj
-	tgtObj, eserr := svc.EasyStore.GetByKey(namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, eserr := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if eserr != nil {
-		log.Printf("ERROR: unable to get %s work %s: %s", namespace, workID, eserr.Error())
+		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, eserr.Error())
 		if strings.Contains(eserr.Error(), "not exist") {
 			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
 		} else {
@@ -55,7 +44,7 @@ func (svc *serviceContext) getAudits(c *gin.Context) {
 	}
 
 	// get audit records
-	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.AuditQueryURL, namespace, workID))
+	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.AuditQueryURL, svc.Namespace, workID))
 	if err != nil {
 		c.String(err.StatusCode, err.Message)
 		return
@@ -81,7 +70,7 @@ func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpd
 	// setup an audit context that contains common data needed by all audit logic
 	auditCtx := auditContext{
 		computeID: computeID,
-		namespace: svc.Namespaces.etd,
+		namespace: svc.Namespace,
 		workID:    origObj.Id(),
 	}
 
@@ -90,27 +79,6 @@ func (svc *serviceContext) auditETDWorkUpdate(computeID string, etdUpdate etdUpd
 
 	updateVal := reflect.ValueOf(&etdUpdate.Work).Elem()
 	origVal := reflect.ValueOf(origWork.ETDWork).Elem()
-	svc.auditWork(auditCtx, origVal, updateVal)
-}
-
-func (svc *serviceContext) auditOAWorkUpdate(computeID string, oaUpdate oaUpdateRequest, origObj uvaeasystore.EasyStoreObject) {
-	origWork, err := svc.parseOAWork(origObj, true)
-	if err != nil {
-		log.Printf("ERROR: unable to parse easystore oa work %s to generate audit events: %s", origObj.Id(), err.Error())
-	}
-
-	// setup an audit context that contains common data needed by all audit logic
-	auditCtx := auditContext{
-		computeID: computeID,
-		namespace: svc.Namespaces.oa,
-		workID:    origObj.Id(),
-	}
-
-	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], oaUpdate.Visibility)
-	svc.auditFiles(auditCtx, origObj.Files(), oaUpdate.AddFiles, oaUpdate.DelFiles)
-
-	updateVal := reflect.ValueOf(&oaUpdate.Work).Elem()
-	origVal := reflect.ValueOf(origWork.OAWork).Elem()
 	svc.auditWork(auditCtx, origVal, updateVal)
 }
 

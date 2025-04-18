@@ -73,11 +73,6 @@ func (detail *commonWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) 
 	}
 }
 
-type oaWorkDetails struct {
-	*commonWorkDetails
-	*librametadata.OAWork
-}
-
 type etdWorkDetails struct {
 	*commonWorkDetails
 	*librametadata.ETDWork
@@ -93,9 +88,9 @@ type workAccess struct {
 func (svc *serviceContext) getETDWork(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: get etd work %s", workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.etd, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
-		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespaces.oa, workID, err.Error())
+		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, err.Error())
 		if strings.Contains(err.Error(), "not exist") {
 			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
 		} else {
@@ -104,7 +99,7 @@ func (svc *serviceContext) getETDWork(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: check access to ea work %s", workID)
+	log.Printf("INFO: check access to etd work %s", workID)
 	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
 		log.Printf("INFO: access to etd work %s is forbidden", workID)
@@ -134,7 +129,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 	}
 
 	log.Printf("INFO: load existing oa work %s", workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.etd, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: get etd work %s for update failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -209,7 +204,7 @@ func (svc *serviceContext) etdUpdate(c *gin.Context) {
 
 func (svc *serviceContext) publishETDWork(c *gin.Context) {
 	workID := c.Param("id")
-	err := svc.publishWork(svc.Namespaces.etd, workID)
+	err := svc.publishWork(svc.Namespace, workID)
 	if err != nil {
 		log.Printf("ERROR: publish etd work %s failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -218,140 +213,9 @@ func (svc *serviceContext) publishETDWork(c *gin.Context) {
 	c.String(http.StatusOK, "published")
 }
 
-func (svc *serviceContext) getOAWork(c *gin.Context) {
-	workID := c.Param("id")
-	log.Printf("INFO: get oa work %s", workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.oa, workID, uvaeasystore.AllComponents)
-	if err != nil {
-		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespaces.oa, workID, err.Error())
-		if strings.Contains(err.Error(), "not exist") {
-			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
-		} else {
-			c.String(http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	log.Printf("INFO: check access to ea work %s", workID)
-	access := svc.canAccessWork(c, tgtObj)
-	if access.metadata == false {
-		log.Printf("INFO: access to oa work %s is forbidden", workID)
-		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-		return
-	}
-
-	oaWork, err := svc.parseOAWork(tgtObj, access.files)
-	if err != nil {
-		log.Printf("ERROR: unable to parse oa work %s: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, oaWork)
-}
-
-func (svc *serviceContext) oaUpdate(c *gin.Context) {
-	workID := c.Param("id")
-	log.Printf("INFO: request to update oa work %s", workID)
-	var oaSub oaUpdateRequest
-	err := c.ShouldBindJSON(&oaSub)
-	if err != nil {
-		log.Printf("ERROR: bad payload in oa update request: %s", err.Error())
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	log.Printf("INFO: load existing oa work %s", workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespaces.oa, workID, uvaeasystore.AllComponents)
-	if err != nil {
-		log.Printf("ERROR: get oa work %s for update failed: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	canUpdate := false
-	claims := getJWTClaims(c)
-	if claims != nil {
-		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == claims.ComputeID || claims.IsAdmin
-	}
-	if canUpdate == false {
-		log.Printf("INFO: unauthorized attempt to update oa work %s", workID)
-		c.String(http.StatusForbidden, "you do not have permission to update this work")
-		return
-	}
-
-	// update the metadata with newly submitted info
-	svc.auditOAWorkUpdate(claims.ComputeID, oaSub, tgtObj)
-	tgtObj.SetMetadata(oaSub.Work)
-
-	// update files if necessary
-	if len(oaSub.AddFiles) != 0 || len(oaSub.DelFiles) != 0 {
-		esFiles, err := svc.updateWorkFiles(tgtObj.Id(), tgtObj.Files(), oaSub.AddFiles, oaSub.DelFiles)
-		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-		tgtObj.SetFiles(esFiles)
-	}
-
-	// update fields
-	fields := tgtObj.Fields()
-	fields["resource-type"] = oaSub.Work.ResourceType
-	fields["modify-date"] = time.Now().Format(time.RFC3339)
-	fields["default-visibility"] = oaSub.Visibility
-	if oaSub.Visibility == "embargo" {
-		if oaSub.EmbargoReleaseDate == nil {
-			log.Printf("INFO: oa work %s set for a forever embargo", tgtObj.Id())
-			fields["embargo-release"] = ""
-			delete(fields, "embargo-release-visibility")
-		} else {
-			fields["embargo-release"] = oaSub.EmbargoReleaseDate.Format(time.RFC3339)
-			fields["embargo-release-visibility"] = oaSub.EmbargoReleaseVisibility
-		}
-	} else {
-		delete(fields, "embargo-release")
-		delete(fields, "embargo-release-visibility")
-	}
-
-	tgtObj.SetFields(fields)
-
-	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
-	resp, err := svc.parseOAWork(updatedObj, true)
-	if err != nil {
-		log.Printf("ERROR: unable to parse updated oa work %s: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, resp)
-}
-
-func (svc *serviceContext) publishOAWork(c *gin.Context) {
-	workID := c.Param("id")
-	err := svc.publishWork(svc.Namespaces.oa, workID)
-	if err != nil {
-		log.Printf("ERROR: publish oa work %s failed: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.String(http.StatusOK, "published")
-}
-
-func (svc *serviceContext) unpublishOAWork(c *gin.Context) {
-	workID := c.Param("id")
-	err := svc.unpublishWork(svc.Namespaces.oa, workID)
-	if err != nil {
-		log.Printf("ERROR: unpublish oa work %s failed: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.String(http.StatusOK, "unpublished")
-}
-
 func (svc *serviceContext) unpublishETDWork(c *gin.Context) {
 	workID := c.Param("id")
-	err := svc.unpublishWork(svc.Namespaces.etd, workID)
+	err := svc.unpublishWork(svc.Namespace, workID)
 	if err != nil {
 		log.Printf("ERROR: unpublish etd work %s failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -410,10 +274,10 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObject) string {
 	fields := tgtObj.Fields()
 	visibility := fields["default-visibility"]
-	// both ETD and OA can have an embaro period when files can only be accessed by admin/author
-	// only ETD works can have uva visibility for a limited time
-	// in either case, the date is held in embargo-release and the visibility in embargo-release-visibility
-	if visibility == "embargo" || tgtObj.Namespace() == svc.Namespaces.etd && visibility == "uva" {
+	// ETD can have an embaro period when files can only be accessed by admin/author
+	// ETD works can have uva visibility for a limited time
+	// In either case, the date is held in embargo-release and the visibility in embargo-release-visibility
+	if visibility == "embargo" || visibility == "uva" {
 		releaseDateStr := fields["embargo-release"]
 		if releaseDateStr == "" {
 			// no release date means forever embargoed; just return the default visibility (embargo or uva)
@@ -433,22 +297,10 @@ func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObje
 	return visibility
 }
 
-func (svc *serviceContext) deleteOAWork(c *gin.Context) {
-	workID := c.Param("id")
-	log.Printf("INFO: request to delete oa work %s", workID)
-	err := svc.deleteWork(svc.Namespaces.oa, workID)
-	if err != nil {
-		log.Printf("ERROR: unable to delete oa work %s: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.String(http.StatusOK, "deleted")
-}
-
 func (svc *serviceContext) deleteETDWork(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: request to delete etd work %s", workID)
-	err := svc.deleteWork(svc.Namespaces.etd, workID)
+	err := svc.deleteWork(svc.Namespace, workID)
 	if err != nil {
 		log.Printf("ERROR: unable to delete etd work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -473,14 +325,7 @@ func (svc *serviceContext) downloadETDFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
 	log.Printf("INFO: request to download file %s from etd work %s", tgtFile, workID)
-	svc.doFileDownload(c, svc.Namespaces.etd, workID, tgtFile)
-}
-
-func (svc *serviceContext) downloadOAFile(c *gin.Context) {
-	workID := c.Param("id")
-	tgtFile := c.Param("name")
-	log.Printf("INFO: request to download file %s from oa work %s", tgtFile, workID)
-	svc.doFileDownload(c, svc.Namespaces.oa, workID, tgtFile)
+	svc.doFileDownload(c, svc.Namespace, workID, tgtFile)
 }
 
 func (svc *serviceContext) doFileDownload(c *gin.Context, namespace, workID, tgtFile string) {
@@ -536,7 +381,7 @@ func (svc *serviceContext) publishWork(namespace string, workID string) error {
 	if err != nil {
 		return fmt.Errorf("publish failed: %s", err.Error())
 	}
-	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespaces.etd, tgtObj.Id())
+	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespace, tgtObj.Id())
 	return nil
 }
 
@@ -557,7 +402,7 @@ func (svc *serviceContext) unpublishWork(namespace string, workID string) error 
 	if err != nil {
 		return fmt.Errorf("unpublish failed: %s", err.Error())
 	}
-	svc.publishEvent(uvalibrabus.EventWorkUnpublish, svc.Namespaces.etd, tgtObj.Id())
+	svc.publishEvent(uvalibrabus.EventWorkUnpublish, svc.Namespace, tgtObj.Id())
 	return nil
 }
 
@@ -635,43 +480,5 @@ func (svc *serviceContext) parseETDWork(tgtObj uvaeasystore.EasyStoreObject, can
 	} else {
 		log.Printf("INFO: access to files for work %s is restricted", tgtObj.Id())
 	}
-	return &resp, nil
-}
-
-func (svc *serviceContext) parseOAWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*oaWorkDetails, error) {
-	mdBytes, err := tgtObj.Metadata().Payload()
-	if err != nil {
-		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
-	}
-	oaWork, err := librametadata.OAWorkFromBytes(mdBytes)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse payload: %s", err.Error())
-	}
-
-	visibility := svc.calculateVisibility(tgtObj)
-	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
-	resp := oaWorkDetails{
-		commonWorkDetails: &commonWorkDetails{
-			ID:             tgtObj.Id(),
-			IsDraft:        isDraft,
-			Version:        tgtObj.VTag(),
-			Visibility:     visibility,
-			Depositor:      tgtObj.Fields()["depositor"],
-			PersistentLink: tgtObj.Fields()["doi"],
-			Files:          make([]librametadata.FileData, 0),
-		},
-		OAWork: oaWork,
-	}
-	resp.commonWorkDetails.parseDates(tgtObj)
-
-	if canAccessFiles {
-		for _, oaFile := range tgtObj.Files() {
-			log.Printf("INFO: add file %s %s to work", oaFile.Name(), oaFile.Url())
-			resp.Files = append(resp.Files, librametadata.FileData{Name: oaFile.Name(), MimeType: oaFile.MimeType(), CreatedAt: oaFile.Created()})
-		}
-	} else {
-		log.Printf("INFO: access to files for work %s is restricted", tgtObj.Id())
-	}
-
 	return &resp, nil
 }

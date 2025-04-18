@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useSystemStore } from './system'
 import { useETDStore } from './etd'
-import { useOAStore } from './oa'
 
 export const useAdminStore = defineStore('admin', {
    state: () => ({
@@ -33,24 +32,21 @@ export const useAdminStore = defineStore('admin', {
          })
       },
 
-      unpublish(type, id) {
-         axios.delete(`/api/admin/${type}/${id}/publish`).then(() => {
+      unpublish(id) {
+         axios.delete(`/api/admin/works/${id}/publish`).then(() => {
             let hit = this.hits.find( h=> h.id == id)
             if ( hit ) delete hit.publishedAt
-            if (type == "etd") {
-               useETDStore().publishedAt = null
-            } else {
-               useOAStore().publishedAt = null
-            }
+            useETDStore().publishedAt = null
+
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
          })
       },
 
-      delete(type, id) {
+      delete(id) {
          this.working = true
-         axios.delete(`/api/admin/${type}/${id}`).then( ()=> {
+         axios.delete(`/api/admin/works/${id}`).then( ()=> {
             let idx = this.hits.findIndex( h=> h.id == id)
             if (idx > -1) {
                this.hits.splice(idx,1)

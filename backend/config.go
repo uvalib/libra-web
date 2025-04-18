@@ -27,11 +27,6 @@ type easyStoreConfig struct {
 	s3Bucket  string
 }
 
-type namespaceConfig struct {
-	oa  string
-	etd string
-}
-
 type configData struct {
 	port            int
 	userService     userServiceCfg
@@ -41,7 +36,7 @@ type configData struct {
 	devBus          bool
 	jwtKey          string
 	easyStore       easyStoreConfig
-	namespace       namespaceConfig
+	namespace       string
 	busName         string
 	eventSourceName string
 }
@@ -70,9 +65,8 @@ func getConfiguration() *configData {
 	flag.IntVar(&config.easyStore.dbTimeout, "esdbtimeout", 30, "EasyStore psql password")
 	flag.StringVar(&config.easyStore.s3Bucket, "esbucket", "", "EasyStore S3 bucket name for file storage")
 
-	// namespaces
-	flag.StringVar(&config.namespace.oa, "oanamespace", "oa", "Namespace for OA processing")
-	flag.StringVar(&config.namespace.etd, "etdnamespace", "etd", "Namespace for ETD processing")
+	// namespace
+	flag.StringVar(&config.namespace, "namespace", "etd", "Namespace for work processing")
 
 	// event bus
 	flag.StringVar(&config.busName, "busname", "", "Event bus name")
@@ -104,10 +98,10 @@ func getConfiguration() *configData {
 
 	log.Printf("[CONFIG] port          = [%d]", config.port)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
+	log.Printf("[CONFIG] getorcidurl   = [%s]", config.orcidService.GetURL)
 	log.Printf("[CONFIG] auditqueryurl = [%s]", config.auditQueryURL)
 	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
-	log.Printf("[CONFIG] oanamespace   = [%s]", config.namespace.oa)
-	log.Printf("[CONFIG] etdnamespace  = [%s]", config.namespace.etd)
+	log.Printf("[CONFIG] namespace     = [%s]", config.namespace)
 	log.Printf("[CONFIG] eventsrc      = [%s]", config.eventSourceName)
 	log.Printf("[CONFIG] busname       = [%s]", config.busName)
 

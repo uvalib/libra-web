@@ -36,8 +36,7 @@ onMounted(()=>{
 const libraMenu = computed( () => {
    let menu = [
       {label: "Home", route: "/"},
-      {label: "LibraETD", route: "/etd"},
-      {label: "LibraOpen", route: "/oa"},
+      {label: "My Theses", route: "/etd"},
    ]
    if ( user.admin ) {
       menu.push({label: "Admin", route: "/admin"})

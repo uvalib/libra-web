@@ -3,54 +3,54 @@
       "value": "1",
       "url": "http://creativecommons.org/licenses/by/4.0/",
       "label": "Attribution 4.0 International (CC BY)",
-      "oa": true, "etd": true
+      "adminOnly": false
    },
    {
       "value": "2",
       "url": "http://creativecommons.org/licenses/by-nd/4.0",
       "label": "Attribution-NoDerivatives 4.0 International (CC BY-ND)",
-      "oa": true, "etd": false
+      "adminOnly": true
    },
    {
       "value": "3",
       "url": "http://creativecommons.org/licenses/by-sa/4.0/",
       "label": "Attribution-ShareAlike 4.0 International (CC BY-SA)",
-      "oa": true, "etd": false
+      "adminOnly": true
    },
    {
       "value": "4",
       "url": "http://creativecommons.org/licenses/by-nc/4.0/",
       "label": "Attribution-NonCommercial 4.0 International (CC BY-NC)",
-      "oa": true, "etd": false
+      "adminOnly": true
    },
    {
       "value": "5",
       "url": "http://creativecommons.org/licenses/by-nc-nd/4.0/",
       "label": "Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND)",
-      "oa": true, "etd": false
+      "adminOnly": true
    },
    {
       "value": "6",
       "url": "http://creativecommons.org/licenses/by-nc-sa/4.0",
       "label": "Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA)",
-      "oa": true, "etd": false
+      "adminOnly": true
    },
    {
       "value": "7",
       "url": "http://creativecommons.org/publicdomain/zero/1.0/",
       "label": "CC0 1.0 Universal",
-      "oa": true, "etd": false
+      "adminOnly": true
    },
    {
       "value": "8",
       "url": "",
       "label": "All rights reserved (no additional license for public reuse)",
-      "oa": true, "etd": true
+      "adminOnly": false
    },
    {
       "value": "9",
       "url": "https://creativecommons.org/licenses/by/2.0/",
       "label": "Attribution 2.0 Generic (CC BY)",
-      "oa": true, "etd": false
+      "adminOnly": true
    }
 ]

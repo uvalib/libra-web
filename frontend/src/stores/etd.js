@@ -47,7 +47,7 @@ export const useETDStore = defineStore('etd', {
       async getWork(id) {
          this.$reset
          this.working = true
-         return axios.get(`/api/works/etd/${id}`).then(response => {
+         return axios.get(`/api/works/${id}`).then(response => {
             this.setWorkDetails(response.data)
             this.working = false
          }).catch( err => {
@@ -97,7 +97,7 @@ export const useETDStore = defineStore('etd', {
 
          // lookup licence ID based on URL
          const system = useSystemStore()
-         let lic = system.etdLicenses.find( l => l.url == this.work.licenseURL )
+         let lic = system.licenses.find( l => l.url == this.work.licenseURL )
          if (lic) {
             this.licenseID = lic.value
          }
@@ -133,7 +133,7 @@ export const useETDStore = defineStore('etd', {
       },
 
       async downloadFile( name ) {
-         return axios.get(`/api/works/etd/${this.work.id}/files/${name}`,{responseType: "blob"}).then((response) => {
+         return axios.get(`/api/works/${this.work.id}/files/${name}`,{responseType: "blob"}).then((response) => {
             let ct = response.headers["content-type"]
             const fileURL = window.URL.createObjectURL(new Blob([response.data], {type: ct}))
             const fileLink = document.createElement('a')
@@ -158,7 +158,7 @@ export const useETDStore = defineStore('etd', {
             payload.embargoReleaseDate = this.embargoReleaseDate
             payload.embargoReleaseVisibility = this.embargoReleaseVisibility
          }
-         let url = `/api/works/etd/${this.work.id}`
+         let url = `/api/works/${this.work.id}`
          return axios.put(url, payload).then(response => {
             this.setWorkDetails( response.data )
             this.working = false
@@ -173,7 +173,7 @@ export const useETDStore = defineStore('etd', {
 
       async publish(  ) {
          this.working = true
-         return axios.post(`/api/works/etd/${this.work.id}/publish`).then(()=> {
+         return axios.post(`/api/works/${this.work.id}/publish`).then(()=> {
             this.isDraft = false
             this.publishedAt = new Date()
             this.working = false
