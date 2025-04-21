@@ -1,4 +1,11 @@
 #app {
+   button.p-scrolltop {
+      border: 2px solid white;
+      &:focus {
+         outline: 2px dashed white;
+         outline-offset: 3px;
+      }
+   }
    button.p-button.checked {
       .p-button-icon {
          color: $uva-brand-blue-100;

@@ -221,30 +221,7 @@ import Column from 'primevue/column'
 import { useConfirm } from "primevue/useconfirm"
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
-
-// FIXME pinnable is broken. It als0 blocks the filses section after an advisor is added
-// because the screen height is fixed and the hight changes as advisors are added
-//
-// import { usePinnable } from '@/composables/pin'
-
-// usePinnable("user-header", "scroll-body", ( (isPinned) => {
-//    const formEle = document.getElementById("etd-form-layout")
-//    const compStyles = window.getComputedStyle(formEle)
-//    const flowType = compStyles.getPropertyValue("flex-flow")
-
-//    // in mobile mode, the panel is at the bottom of the screen and doesn't need to be pinned
-//    // when this is the case, the flex-flow will be "column-reverse".
-//    if ( flowType.indexOf("column") == -1) {
-//       let panelEle = savepanel.value.$el
-//       if ( isPinned ) {
-//          panelEle.style.top = `85px` // HACK: top padding + height of user toolbar
-//          panelEle.style.width = `${panelEle.getBoundingClientRect().width}px`
-//          panelEle.classList.add("pinned")
-//       } else {
-//          panelEle.classList.remove("pinned")
-//       }
-//    }
-// }))
+import { usePinnable } from '@/composables/pin'
 
 const confirm = useConfirm()
 const router = useRouter()
@@ -273,6 +250,7 @@ onBeforeMount( async () => {
       return
    }
    await etdRepo.getWork( route.params.id )
+   usePinnable("save-panel", "etd-form-layout", "libra-footer")
 })
 
 const uploadRequested = ( (request) => {
@@ -403,14 +381,13 @@ const cancelClicked = (() => {
       flex-flow: row nowrap;
       justify-content: flex-start;
       align-items: flex-start;
+      gap: 25px;
    }
    .sidebar-col {
       width: 400px;
-      margin-right: 25px;
    }
    .sidebar-col.admin {
-      width: 400px;
-      margin-right: 25px;
+      width: 470px;
    }
    .main-form {
       margin-bottom: 20px;
@@ -422,6 +399,7 @@ const cancelClicked = (() => {
       text-align: left;
       display: flex;
       flex-flow: column-reverse;
+      gap: 0;
    }
    .audit {
       display: none;
@@ -435,8 +413,6 @@ const cancelClicked = (() => {
 }
 
 .scroll-body {
-   position: relative;
-
    .work-header {
       display: flex;
       flex-flow: row nowrap;

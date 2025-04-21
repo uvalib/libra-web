@@ -1,5 +1,5 @@
 <template>
-   <footer role="contentinfo" id="v4footer">
+   <footer role="contentinfo" id="libra-footer">
       <div class="footer-container">
          <div class="footer-bucket">
             <h3>Contact Us</h3>

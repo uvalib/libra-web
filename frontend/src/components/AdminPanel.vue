@@ -1,5 +1,5 @@
 <template>
-   <Panel header="Admin Info" class="admin-panel">
+   <Panel header="Admin Info" class="admin-panel" id="save-panel">
       <div class="admin-content">
          <table>
             <tbody>
@@ -224,6 +224,7 @@ const saveClicked = (() => {
 
 <style lang="scss" scoped>
 .admin-panel {
+   font-size: 0.9em;
    .admin-content {
       display: flex;
       flex-direction: column;

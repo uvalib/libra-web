@@ -20,3 +20,10 @@
    background-color: $uva-grey-100;
    color: $uva-text-color-dark;
 }
+
+.sticky {
+   position: fixed !important;
+   top: 0;
+   width: 100%;
+   z-index: 500;
+}

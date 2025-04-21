@@ -1,5 +1,5 @@
 <template>
-   <Panel header="Save Work" class="save-panel">
+   <Panel header="Save Work" class="save-panel" id="save-panel">
       <div class="panel-content">
          <Fieldset legend="Requirements">
             <div class="requirement">
@@ -156,6 +156,7 @@ const saveClicked = (() => {
 
 <style lang="scss" scoped>
 .save-panel {
+   font-size: 0.9em;
    .panel-content {
       display: flex;
       flex-direction: column;
