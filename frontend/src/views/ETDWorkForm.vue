@@ -61,12 +61,8 @@
 
                <FormKit label="Title" type="text" v-model="etdRepo.work.title" validation="required" outer-class="first"/>
 
-               <Panel class="sub-panel">
-                  <template #header>
-                     <span class="hdr">
-                        <div>Author</div>
-                     </span>
-                  </template>
+               <Panel>
+                  <template #header>Author</template>
                   <FormKit type="group" v-model="etdRepo.work.author">
                      <div class="author">
                         <div class="two-col">
@@ -77,27 +73,27 @@
                   </FormKit>
                </Panel>
 
-               <Panel class="sub-panel">
+               <Panel>
                   <template #header>
-                     <span class="hdr">
-                        <div>Advisors</div>
-                        <span class="req-field margin-right">Required</span>
-                        <Button label="Add Advisor" size="small" @click="addAdvisor"/>
-                     </span>
+                     <div>Advisors<span class='libra-required'><span class='star'>*</span>(required)</span></div>
                   </template>
                   <FormKit v-model="etdRepo.work.advisors" type="list" dynamic #default="{ items }" validation="required">
-                     <p class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</p>
-                     <div class="authors">
+                     <div v-if="etdRepo.work.advisors.length == 0" class="no-advisor">
+                        <div class="note">One or more advisors is required</div>
+                        <Button label="Add Advisor" size="small" @click="addAdvisor"/>
+                     </div>
+                     <div v-else class="advisors">
+                        <div class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</div>
                         <FormKit type="group" v-for="(item, index) in items" :key="item" :index="index">
-                           <div class="author">
+                           <div class="advisor">
                               <div class="id-field">
                                  <div class="search-field"  :id="`advisor-${index+1}`">
                                     <FormKit type="text" name="computeID" label="Computing ID"/>
                                     <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAdvisorID(index)"/>
                                  </div>
-                                 <Button v-if="index > 0" class="remove" icon="pi pi-trash" severity="danger" aria-label="remove contributor" @click="removeAdvisor(index)"/>
+                                 <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)"/>
                               </div>
-                              <p v-if="etdRepo.work.advisors[index].msg != ''" class="err">{{ etdRepo.work.advisors[index].msg }}</p>
+                              <p v-if="etdRepo.work.advisors[index].msg" class="err">{{ etdRepo.work.advisors[index].msg }}</p>
                               <div class="two-col">
                                  <FormKit type="text" name="firstName" label="First Name"/>
                                  <FormKit type="text" name="lastName" label="Last Name"/>
@@ -106,6 +102,9 @@
                                  <FormKit type="text" name="department" label="Department"/>
                                  <FormKit type="text" name="institution" label="Institution"/>
                               </div>
+                           </div>
+                           <div class="acts">
+                              <Button label="Add Advisor" size="small" @click="addAdvisor"/>
                            </div>
                         </FormKit>
                      </div>
@@ -168,7 +167,7 @@
                <template v-if="etdRepo.work.files.length > 0">
                   <label class="libra-form-label">Previously Uploaded Files</label>
                   <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
-                        stripedRows showGridlines responsiveLayout="scroll"
+                        stripedRows showGridlines size="small"
                         :lazy="false" :paginator="true" :alwaysShowPaginator="false"
                         :rows="30" :totalRecords="etdRepo.work.files.length"
                         paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
@@ -189,7 +188,7 @@
                      </Column>
                   </DataTable>
                </template>
-               <label class="libra-form-label">Files</label>
+               <label for="file" class="libra-form-label">Files</label>
                <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
                   @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                   @removeUploadedFile="fileRemoved($event)"
@@ -457,7 +456,9 @@ const cancelClicked = (() => {
    .acts {
       display: flex;
       flex-flow: row nowrap;
+      justify-content: flex-end;
       gap: 0.5rem;
+      width: fit-content;
    }
    table {
       td.label {
@@ -472,56 +473,52 @@ const cancelClicked = (() => {
       justify-content: space-between;
       align-items: flex-start;
       gap: 25px;
-
       div.formkit-outer {
          flex-grow: 1;
       }
    }
 
-   .sub-panel {
-      margin-top: 25px;
-      .id-field {
+   .no-advisor {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      gap: 0.3rem;
+   }
+
+   .advisors {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      gap: 15px;
+      .advisor {
          display: flex;
-         flex-flow: row nowrap;
-         align-items: baseline;
-         justify-content: space-between;
-      }
-      .note {
-         padding: 0;
-         margin-bottom: 0px;
-      }
-      .hdr {
-         width: 100%;
-         display: flex;
-         flex-flow: row nowrap;
-         justify-content: space-between;
-         align-items: center;
-      }
-      .authors {
-         padding: 0;
-         .author {
-            position: relative;
-            border-top: 1px solid $uva-grey-100;
-            margin-top: 20px;
+         flex-direction: column;
+         justify-content: flex-start;
+         align-items: stretch;
+         gap: 15px;
+         border-top: 1px solid $uva-grey-100;
+         padding-top: 15px;
+         .id-field {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: baseline;
+            justify-content: space-between;
+            .search-field {
+               display: flex;
+               flex-flow: row nowrap;
+               align-items: flex-end;
+               gap: 0.5rem;
+            }
          }
       }
    }
-
    .err {
       padding: 0;
       margin: 2px 0 0 0;
       color: $uva-red-A;
       font-style: italic;
    }
-
-   .search-field {
-      display: flex;
-      flex-flow: row nowrap;
-      justify-content: flex-start;
-      align-items: flex-end;
-      gap: 5px;
-   }
-
    .input-row {
       display: flex;
       flex-flow: row nowrap;

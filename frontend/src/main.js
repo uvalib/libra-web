@@ -50,8 +50,6 @@ const fkCfg = defaultConfig({
          messages: '$reset libra-form-invalid',
          help: '$reset libra-form-help',
       },
-      incompleteMessage: false,
-      validationVisibility: 'submit'
    }
 })
 app.use(plugin, fkCfg)
@@ -79,9 +77,8 @@ function addRequiredNotePlugin(node) {
                $el: 'span',
                if: '$state.required',
                attrs: {
-                  class: 'req-field',
+                  innerHTML: "<span class='libra-required'><span class='star'>*</span>(required)</span>"
                },
-               children: ['Required']
             }]
          }
          return schemaFn(sectionsSchema)

@@ -3,8 +3,12 @@ form.formkit-form {
    flex-direction: column;
    justify-content: flex-start;
    align-items: stretch;
-   gap: 15px;
-   .scroller, .section, .content {
+   gap: 25px;
+   font-family: "franklin-gothic-urw", arial, sans-serif;
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+
+   .section, .content {
       background: white;
       display: flex;
       flex-direction: column;
@@ -13,153 +17,66 @@ form.formkit-form {
       gap: 15px;
       padding: 5px;
    }
-}
-
-.form-controls {
-   display: flex;
-   flex-flow: row nowrap;
-   justify-content: flex-end;
-   align-items: stretch;
-   margin: 10px 0 0 0;
-   padding: 0;
-   gap: 1rem;
-}
-
-input[type=color],
-input[type=date],
-input[type=datetime-local],
-input[type=datetime],
-input[type=email],
-input[type=month],
-input[type=number],
-input[type=password],
-input[type=search],
-input[type=tel],
-input[type=text],
-input[type=time],
-input[type=url],
-input[type=week],
-select,
-.libra-form-input {
-   padding: 0.5em 0.6em;
-   display: inline-block;
-   border: 1px solid #ccc;
-   -webkit-box-shadow: inset 0 1px 3px #ddd;
-   box-shadow: inset 0 1px 3px #ddd;
-   border-radius: 4px;
-   vertical-align: middle;
-   -webkit-box-sizing: border-box;
-   box-sizing: border-box;
-   box-shadow: none;
-}
-
-textarea {
-   font-family: "franklin-gothic-urw", arial, sans-serif;
-   -webkit-font-smoothing: antialiased;
-   -moz-osx-font-smoothing: grayscale;
-}
-
-@media only screen and (min-width: 768px) {
-   .formkit-form {
-      padding: 20px;
+   .formkit-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
    }
-}
-@media only screen and (max-width: 768px) {
-   .formkit-form {
-      padding: 5px;
-   }
-}
-button.libra-form-input {
-   font-family: inherit;
-   font-size: 100%;
-   padding: 0.5em 1em;
-   text-decoration: none;
-   margin: 0;
-   border-radius: 0.3rem;
-   font-weight: 400;
-   background-color: $uva-grey-200;
-   border: 1px solid $uva-grey;
-   color: #000;
-   cursor: pointer;
-
-   &:hover {
-      background-image: -webkit-gradient(linear, left top, left bottom, from(transparent), color-stop(40%, rgba(0, 0, 0, .05)), to(rgba(0, 0, 0, .1)));
-      background-image: linear-gradient(transparent, rgba(0, 0, 0, .05) 40%, rgba(0, 0, 0, .1));
-   }
-
-   &:focus {
-      outline: 1px dashed $uva-brand-blue-100;
-      outline-offset: 2px;
-   }
-}
-
-.formkit-outer[data-type="radio"] {
-   margin-top: 20px;
-   .libra-form-help {
-      margin: 5px 0 20px 5px;
-   }
-   fieldset {
+   input[type=color],
+   input[type=date],
+   input[type=datetime-local],
+   input[type=datetime],
+   input[type=email],
+   input[type=month],
+   input[type=number],
+   input[type=password],
+   input[type=search],
+   input[type=tel],
+   input[type=text],
+   input[type=time],
+   input[type=url],
+   input[type=week],
+   select,
+   textarea,
+   .libra-form-input {
+      padding: 0.7em;
+      display: inline-block;
       border: 1px solid $uva-grey-100;
-      border-radius: 5px;
-      legend {
-         padding: 0 5px;
-      }
-      ul.formkit-options {
-         list-style-type: none;
-         padding: 0;
-         margin: 5px 10px;
-         display: flex;
-         flex-flow: row wrap;
-         justify-content: flex-start;
-         li {
-            margin: 5px 0;
-            .formkit-inner {
-               display: inline-block;
-            }
-         }
-      }
-      .libra-form-label  {
-         display: inline-block;
-         margin: 0 20px 0 5px;
+      border-radius: 4px;
+      vertical-align: middle;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+      box-shadow: none;
+      width: 100%
+   }
+   textarea {
+      font-family: "franklin-gothic-urw", arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-size: 1.0em;
+      color: $uva-text-color-base;
+   }
+   .libra-form-label {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-start;
+      align-items: center;
+   }
+   .libra-form-invalid {
+      list-style: none;
+      padding: 0;
+      margin: 0.3rem 0 0 0;
+      font-size: 0.9em;
+      color: $uva-red-A;
+   }
+   .libra-required {
+      color: $uva-grey;
+      font-size: 0.9em;
+      .star {
+         color: $uva-text-color-base;
+         font-size: 1.3em;
+         font-weight: bold;
+         margin-right: 0.5rem;
       }
    }
- }
-
-span.req-field {
-   color: $uva-text-color-base;
-   font-size: 0.75em;
-   background-color: $uva-teal-200;
-   padding: 2px 8px;
-   border-radius: 5px;
-   margin-left: auto;
-   border: 1px solid $uva-teal;
-}
-.libra-form-help {
-   margin: 5px 0;
-   font-size: 0.9em;
-   color: $uva-grey;
-}
-
-.libra-form-invalid {
-   list-style: none;
-   padding: 0;
-   margin: 5px 0;
-   color: $uva-red-A;
-   text-align: center;
-   margin-top: 20px;
-}
-
-.libra-form-label {
-   display: flex;
-   flex-flow: row nowrap;
-   justify-content: flex-start;
-   align-items: center;
-   margin-bottom: 0.3em;
-   margin-top: 20px;
-   color: $uva-text-color-base;
-   font-weight: normal;
-}
-
-.libra-form-input {
-   width: 100%
 }
