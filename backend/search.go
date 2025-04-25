@@ -80,7 +80,6 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		adminHit := adminSearchHit{Source: obj.Fields()["source"], Namespace: obj.Namespace()}
 		var hit *searchHit
 		if obj.Namespace() != svc.Namespace {
-			log.Printf("INFO: skipping hit with mismatched namespace %s vs expected %s", obj.Namespace(), svc.Namespace)
 			continue
 		}
 
@@ -123,7 +122,6 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 	for err == nil {
 		var hit *searchHit
 		if obj.Namespace() != svc.Namespace {
-			log.Printf("INFO: skipping hit with mismatched namespace %s vs expected %s", obj.Namespace(), svc.Namespace)
 			continue
 		}
 
