@@ -67,6 +67,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	log.Printf("INFO: admin search for works by %s", computeID)
 	fields := uvaeasystore.DefaultEasyStoreFields()
 	fields["depositor"] = computeID
+	startTime := time.Now()
 	hits, err := svc.EasyStore.GetByFields("", fields, uvaeasystore.Metadata|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: search failed: %s", err.Error())
@@ -77,22 +78,22 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	resp := make([]adminSearchHit, 0)
 	obj, err := hits.Next()
 	for err == nil {
-		adminHit := adminSearchHit{Source: obj.Fields()["source"], Namespace: obj.Namespace()}
-		var hit *searchHit
-		if obj.Namespace() != svc.Namespace {
-			continue
+		if obj.Namespace() == svc.Namespace {
+			hit, parseErr := svc.parseETDSearchHit(obj)
+			if parseErr != nil {
+				log.Printf("ERROR: unable to parse search result %s: %s", obj.Id(), parseErr.Error())
+			} else {
+				adminHit := adminSearchHit{Source: obj.Fields()["source"], Namespace: obj.Namespace()}
+				adminHit.searchHit = hit
+				resp = append(resp, adminHit)
+			}
 		}
-
-		hit, err = svc.parseETDSearchHit(obj)
-		if err != nil {
-			log.Printf("ERROR: unable to parse search result %s: %s", obj.Id(), err.Error())
-			continue
-		}
-
-		adminHit.searchHit = hit
-		resp = append(resp, adminHit)
 		obj, err = hits.Next()
 	}
+
+	elapsedNanoSec := time.Since(startTime)
+	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
+	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp), elapsedMS)
 
 	c.JSON(http.StatusOK, resp)
 }
