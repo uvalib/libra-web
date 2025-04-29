@@ -24,7 +24,6 @@ import { useOrcidStore } from "@/stores/orcid"
 import { useRouter} from "vue-router"
 import ORCIDLogo from '@/assets/ORCID-iD_icon-vector.svg';
 
-
 const router = useRouter()
 const user = useUserStore()
 const orcid = useOrcidStore()
@@ -34,32 +33,40 @@ onMounted(()=>{
 })
 
 const libraMenu = computed( () => {
-   let menu = [
-      {label: "Home", route: "/"},
-      {label: "My Theses", route: "/etd"},
-   ]
-   if ( user.admin ) {
-      menu.push({label: "Admin", route: "/admin"})
-   }
-   let orcidMenu = [
-      {label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
-      { visible: (orcid.userURI != "") , label: orcid.userURI, img: ORCIDLogo, alt: "ORCID logo", target: "_blank", url: orcid.userURI, icon: "pi pi-external-link"}
-   ]
-   let userMenu =
-      {label: `${user.firstName} ${user.lastName}`, items: [
-         {  label: "ORCID",
-            items: orcidMenu
-         },
-         {label: "Sign out",  command: ()=>signOut()}
-      ]}
+   let menu = []
+   if (user.registrar) {
+      let userMenu =
+         {label: `${user.firstName} ${user.lastName}`, items: [
+            {label: "Sign out",  command: ()=>signOut()}
+         ]}
+      menu.push(userMenu)
+   } else {
+      // TODO push email for non-admin
 
-   menu.push(userMenu)
+      menu.push({label: "Dashboard", route: "/"})
+      if ( user.admin ) {
+         menu.push({label: "Admin", route: "/admin"})
+      }
+      let orcidMenu = [
+         {label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
+         { visible: (orcid.userURI != "") , label: orcid.userURI, img: ORCIDLogo, alt: "ORCID logo", target: "_blank", url: orcid.userURI, icon: "pi pi-external-link"}
+      ]
+      let userMenu =
+         {label: `${user.firstName} ${user.lastName}`, items: [
+            {  label: "ORCID",
+               items: orcidMenu
+            },
+            {label: "Sign out",  command: ()=>signOut()}
+         ]}
+
+      menu.push(userMenu)
+   }
    return menu
 })
 
 const signOut = (() => {
    user.signOut()
-   router.push("/")
+   router.push("/signedout")
 })
 
 </script>

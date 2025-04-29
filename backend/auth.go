@@ -34,6 +34,7 @@ type UserDetails struct {
 	Email       string   `json:"email"`
 	Private     string   `json:"private"`
 	IsAdmin     bool     `json:"admin"`
+	IsRegistrar bool     `json:"registrar"`
 }
 
 type userServiceResp struct {
@@ -97,6 +98,9 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		if strings.Contains(membershipStr, "libra-admins") {
 			log.Printf("INFO: user %s is an admin", computingID)
 			jsonResp.User.IsAdmin = true
+		} else if strings.Contains(membershipStr, "libra-optional-reg") {
+			log.Printf("INFO: user %s can add deposit registrations", computingID)
+			jsonResp.User.IsRegistrar = true
 		}
 	} else {
 		// dev mode user is always an admin

@@ -10,8 +10,7 @@
             </a>
          </div>
          <div class="site-link">
-            <router-link v-if="isLibraETD" to="/etd"><img src="@/assets/LibraETD.svg"/></router-link>
-            <router-link v-else to="/"><img src="@/assets/Libra.svg"/></router-link>
+            <router-link to="/"><img src="@/assets/LibraETD.svg"/></router-link>
             <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
       </div>
@@ -38,7 +37,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref, watch, computed } from 'vue'
+import { onBeforeMount, ref, watch } from 'vue'
 import UvaLibraryLogo from "@/components/UvaLibraryLogo.vue"
 import LibraryFooter from "@/components/LibraryFooter.vue"
 import MenuBar from "@/components/MenuBar.vue"
@@ -49,17 +48,11 @@ import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import ScrollTop from 'primevue/scrolltop'
 import { useToast } from "primevue/usetoast"
-import { useRoute } from 'vue-router'
 
 const toast = useToast()
 const systemStore = useSystemStore()
 const user = useUserStore()
 const configuring = ref(true)
-const route = useRoute()
-
-const isLibraETD = computed( () => {
-   return route.fullPath.indexOf("/etd") > -1
-})
 
 watch(() => systemStore.toast.show, (newShow) => {
    if ( newShow == true) {
@@ -110,12 +103,13 @@ body {
    outline: 0;
    border: 0;
 
-   h1 {
-      color: $uva-brand-blue;
-      margin: 2rem 2.5rem;
-      font-weight: 700;
+   #app h1 {
+      padding: 3rem 0;
       position: relative;
-      text-align: center;
+      font-weight: 700;
+      color: #232d4b;
+      line-height: 1.15;
+      margin: 0;
    }
    h2 {
       color: $uva-brand-blue;

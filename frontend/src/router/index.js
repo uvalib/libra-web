@@ -1,9 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 import AdminDashboard from '../views/AdminDashboard.vue'
 import ETDPublicView from '../views/ETDPublicView.vue'
 import ETDWorkForm from '../views/ETDWorkForm.vue'
-import ETDDashboard from '../views/ETDDashboard.vue'
+import UserDashboard from '../views/UserDashboard.vue'
+import RegistrationForm from '../views/RegistrationForm.vue'
+import SignedOut from '../views/SignedOut.vue'
 import Expired from '../views/Expired.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import NotFound from '../views/NotFound.vue'
@@ -15,8 +16,8 @@ const router = createRouter({
    routes: [
       {
          path: '/',
-         name: 'home',
-         component: HomeView
+         name: 'dashboard',
+         component: UserDashboard
       },
       {
          path: '/admin',
@@ -24,9 +25,9 @@ const router = createRouter({
          component: AdminDashboard
       },
       {
-         path: '/etd',
-         name: 'libraetd',
-         component: ETDDashboard
+         path: '/register',
+         name: 'register',
+         component: RegistrationForm
       },
       {
          path: '/etd/:id',
@@ -38,6 +39,11 @@ const router = createRouter({
          path: '/public/etd/:id',
          name: 'etdpublic',
          component: ETDPublicView
+      },
+      {
+         path: '/signedout',
+         name: "signedout",
+         component: SignedOut
       },
       {
          path: '/expired',
@@ -71,8 +77,7 @@ const router = createRouter({
 router.beforeEach( async (to) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
-   const noAuthRoutes = ["not_found", "forbidden", "expired", "home"]
-   const isPublicPage = (to.name == "etdpublic" )
+   const noAuthRoutes = ["not_found", "forbidden", "expired", "etdpublic", "signedout"]
    const isAdminPage = (to.name == "admin" || to.path.includes("/admin"))
 
    // the /signedin endpoint called after authorization. it has no page itself; it just
@@ -82,42 +87,41 @@ router.beforeEach( async (to) => {
       userStore.setJWT(jwtStr)
       if ( userStore.isSignedIn  ) {
          console.log(`GRANTED [${jwtStr}]`)
-         let priorURL = localStorage.getItem('prior_libra3_url')
-         localStorage.removeItem("prior_libra3_url")
-         if ( priorURL && priorURL != "/signedin" && priorURL != "/") {
-            console.log("RESTORE "+priorURL)
-            return {path: priorURL}
+         if ( userStore.registrar) {
+            return {name: "register"}
          }
-         return {name: "home"}
+         return {name: "dashboard"}
       }
       return {name: "forbidden"}
    }
 
    // for all other routes, pull the existing jwt from storage from storage and set in the user store.
-   // depending upon the page resuested, this token may or may not be used.
+   // depending upon the page requested, this token may or may not be used.
    const jwtStr = localStorage.getItem('libra3_jwt')
    userStore.setJWT(jwtStr)
 
+   // public view requires no auth, but will use it if present
    if ( noAuthRoutes.includes(to.name)) {
       console.log("NOT A PROTECTED PAGE")
    } else {
-      if (userStore.isSignedIn == false) {
-         if ( isPublicPage == false ) {
-            console.log("AUTHENTICATE")
-            localStorage.setItem("prior_libra3_url", to.fullPath)
-            window.location.href = "/authenticate"
-            return false   // cancel the original navigation
+      // force authentication for all other pages
+      if ( userStore.isSignedIn == false) {
+         console.log("AUTHENTICATE")
+         window.location.href = "/authenticate"
+         return false   // cancel the original navigation
+      }
+
+      if ( isAdminPage) {
+         console.log(`REQUEST ADMIN PAGE WITH JWT`)
+         if ( userStore.admin == false ) {
+            console.log("REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
+            return {name: "forbidden"}
          }
-         console.log("UNAUTHENTICATED REQUEST FOR PUBLIC VIEW PAGE")
-      } else {
-         if ( isAdminPage) {
-            console.log(`REQUEST ADMIN PAGE WITH JWT`)
-            if ( userStore.admin == false ) {
-               console.log("REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
-               return {name: "forbidden"}
-            }
-         } else {
-            console.log(`REQUEST AUTHENTICATED PAGE WITH JWT`)
+      } else if ( to.name == "register") {
+         console.log(`REQUEST REGISTER PAGE WITH JWT`)
+         if ( userStore.registrar == false && userStore.admin == false) {
+            console.log("REJECT NON-REGISTRAR REQUEST FOR REGISTER PAGE")
+            return {name: "forbidden"}
          }
       }
 
@@ -125,7 +129,6 @@ router.beforeEach( async (to) => {
       await userStore.validateAuth()
       if (userStore.isSignedIn == false) {
          console.log("JWT HAS EXPIRED")
-         localStorage.setItem("prior_libra3_url", to.fullPath)
          return {name: "expired"}
       }
    }

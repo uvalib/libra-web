@@ -30,11 +30,12 @@ export const useUserStore = defineStore('user', {
       email: "",
       private: "",
       admin: false,
+      registrar: false,
    }),
    getters: {
       isSignedIn: state => {
          return state.jwt != "" && state.computeID != ""
-      }
+      },
    },
    actions: {
       async validateAuth() {
@@ -50,7 +51,6 @@ export const useUserStore = defineStore('user', {
       },
       signOut() {
          localStorage.removeItem("libra3_jwt")
-         localStorage.removeItem("prior_libra3_url")
          this.$reset()
       },
       setJWT(jwt) {
@@ -78,6 +78,7 @@ export const useUserStore = defineStore('user', {
          this.email = parsed.email
          this.private = parsed.private
          this.admin = parsed.admin
+         this.registrar = parsed.registrar
 
          // add interceptor to put bearer token in header
          const system = useSystemStore()
