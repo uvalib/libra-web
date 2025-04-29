@@ -3,6 +3,7 @@
       <h1>My Active Theses</h1>
       <WaitSpinner v-if="searchStore.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active theses</p>" />
       <template v-else>
+         <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
          <div  v-if="searchStore.hits.length == 0" class="none">You have no active theses</div>
          <DataTable v-else :value="searchStore.hits" ref="etdWorks" dataKey="id"
             stripedRows showGridlines responsiveLayout="scroll"
@@ -95,6 +96,9 @@ const previewWorkClicked = ( (id) => {
    margin: 0 auto;
    min-height: 600px;
    text-align: left;
+   .help {
+      margin: 1.5rem 0;
+   }
    .none {
       color: $uva-grey-50;
       font-style: italic;

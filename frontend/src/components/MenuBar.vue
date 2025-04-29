@@ -1,5 +1,8 @@
 <template>
    <Menubar :model="libraMenu">
+      <template #start>
+         <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">Libra Support</a>
+      </template>
       <template #item="{ item, props, hasSubmenu }">
          <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
             <a :href="href" v-bind="props.action" @click="navigate">
@@ -41,8 +44,6 @@ const libraMenu = computed( () => {
          ]}
       menu.push(userMenu)
    } else {
-      // TODO push email for non-admin
-
       menu.push({label: "Dashboard", route: "/"})
       if ( user.admin ) {
          menu.push({label: "Admin", route: "/admin"})
@@ -72,5 +73,15 @@ const signOut = (() => {
 </script>
 
 <style scoped lang="scss">
+.menu-link {
+   color: $uva-text-color-dark;
+   border-radius: 0.4rem;
+   padding: 0.5rem 0.75rem;
+   &:hover {
+      text-decoration: none;
+      background: $uva-brand-blue-200;
+      color: white;
+   }
+}
 </style>
 
