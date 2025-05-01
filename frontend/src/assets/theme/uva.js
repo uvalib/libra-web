@@ -4,7 +4,6 @@ import ripple from '@primeuix/themes/aura/ripple'
 import tooltip from '@primeuix/themes/aura/tooltip'
 import './styles.scss'
 import './styleoverrides.scss'
-import './forms.scss'
 import colors from './colors.module.scss'
 
 const UVA = definePreset(Aura, {
@@ -106,6 +105,10 @@ const UVA = definePreset(Aura, {
          },
          colorScheme: {
             light: {
+               success: {
+                  background: colors.greenDark,
+                  hoverBackground: colors.green,
+               },
                secondary: {
                   background: colors.grey200,
                   hoverBackground: colors.grey100,

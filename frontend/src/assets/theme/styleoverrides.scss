@@ -34,6 +34,12 @@
    }
 }
 
+div.p-fieldset-content {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+}
+
 div.p-select-overlay.p-component {
    background: white;
    padding: 0;

@@ -128,7 +128,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: load existing oa work %s", workID)
+	log.Printf("INFO: load existing work %s", workID)
 	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: get work %s for update failed: %s", workID, err.Error())

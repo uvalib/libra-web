@@ -11,7 +11,7 @@ export const useETDStore = defineStore('etd', {
       visibility: "",
       embargoReleaseDate: null,
       embargoReleaseVisibility: "",
-      licenseID: "",
+      licenseID: "0",
       persistentLink: "",
       source: "",
       sourceID: "",
@@ -91,15 +91,15 @@ export const useETDStore = defineStore('etd', {
             delete data.embargo
          }
          this.work = data
-         if ( this.work.keywords.length == 0) this.work.keywords.push("")
-         if ( this.work.relatedURLs.length == 0) this.work.relatedURLs.push("")
-         if ( this.work.sponsors.length == 0) this.work.sponsors.push("")
 
          // lookup licence ID based on URL
-         const system = useSystemStore()
-         let lic = system.licenses.find( l => l.url == this.work.licenseURL )
-         if (lic) {
-            this.licenseID = lic.value
+         this.licenseID = "0"
+         if ( this.work.licenseURL && this.work.license) {
+            const system = useSystemStore()
+            let lic = system.licenses.find( l => l.url == this.work.licenseURL )
+            if (lic) {
+               this.licenseID =""+lic.value
+            }
          }
       },
 
@@ -183,26 +183,5 @@ export const useETDStore = defineStore('etd', {
             this.working = false
          })
       },
-      removeKeyword(idx) {
-         if ( idx == 0 &&  this.work.keywords.length == 1) {
-            this.work.keywords[0] = ""
-         } else {
-            this.work.keywords.splice(idx,1)
-         }
-      },
-      removeAgency(idx) {
-         if ( idx == 0 &&  this.work.sponsors.length == 1) {
-            this.work.sponsors[0] = ""
-         } else {
-            this.work.sponsors.splice(idx,1)
-         }
-      },
-      removeURL(idx) {
-         if ( idx == 0 &&  this.work.relatedURLs.length == 1) {
-            this.work.relatedURLs[0] = ""
-         } else {
-            this.work.relatedURLs.splice(idx,1)
-         }
-      }
    }
 })
