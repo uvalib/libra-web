@@ -8,7 +8,7 @@ export const useETDStore = defineStore('etd', {
       error: "",
       work: {},
       isDraft: true,
-      visibility: "",
+      visibility: "open",
       embargoReleaseDate: null,
       embargoReleaseVisibility: "",
       licenseID: "0",
@@ -24,17 +24,19 @@ export const useETDStore = defineStore('etd', {
    }),
    getters: {
       hasKeywords: state => {
-         if ( state.work.keywords.length == 0 ) return false
-         if ( state.work.keywords.length > 1) return true
-         return state.work.keywords[0] != ""
+         return ( state.work.keywords.length > 0 )
+      },
+      hasLicense: state => {
+         return ( state.licenseID != "0")
       },
       hasRelatedURLs: state => {
-         if ( state.work.relatedURLs.length > 1) return true
-         return state.work.relatedURLs[0] != ""
+         return ( state.work.relatedURLs.length > 0)
       },
       hasSponsors: state => {
-         if ( state.work.sponsors.length > 1) return true
-         return state.work.sponsors[0] != ""
+         return ( state.work.sponsors.length > 0)
+      },
+      hasFiles: state => {
+         return (state.pendingFileAdd.length > 0 || state.work.files.length > 0)
       },
       hasAdvisor: state => {
          if ( state.work.advisors.length == 0) return false

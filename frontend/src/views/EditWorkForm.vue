@@ -103,41 +103,11 @@
          </Panel>
 
          <Panel header="Files" toggleable>
-            <template v-if="etdRepo.work.files.length > 0">
-               <label class="libra-form-label">Previously Uploaded Files</label>
-               <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
-                     stripedRows showGridlines size="small"
-                     :lazy="false" :paginator="true" :alwaysShowPaginator="false"
-                     :rows="30" :totalRecords="etdRepo.work.files.length"
-                     paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-                     :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
-                     currentPageReportTemplate="{first} - {last} of {totalRecords}"
-                  >
-                  <Column field="name" header="Name" />
-                  <Column field="createdAt" header="Date Uploaded" >
-                     <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
-                  </Column>
-                  <Column  header="Actions" >
-                     <template #body="slotProps">
-                        <div class="acts">
-                           <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
-                           <Button class="action" icon="pi pi-cloud-download" label="Download" severity="secondary" size="small" @click="downloadFileClicked(slotProps.data.name)"/>
-                        </div>
-                     </template>
-                  </Column>
-               </DataTable>
+            <FilesPanel />
+            <template #icons>
+               <i v-if="etdRepo.hasFiles" class="complete pi pi-check-circle"></i>
+               <i v-else class="incomplete pi pi-exclamation-circle"></i>
             </template>
-
-            <label for="file" class="libra-form-label">Upload Files</label>
-            <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
-               @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
-               @removeUploadedFile="fileRemoved($event)"
-               :multiple="true" :withCredentials="true" :auto="true"
-               :showUploadButton="false" :showCancelButton="false">
-               <template #empty>
-                  <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
-               </template>
-            </FileUpload>
          </Panel>
 
          <Panel header="License" toggleable>
@@ -182,6 +152,10 @@
                   including discussing my deposit access options with my faculty advisor.
                </label>
             </div>
+            <template #icons>
+               <i v-if="etdRepo.hasLicense" class="complete pi pi-check-circle"></i>
+               <i v-else class="incomplete pi pi-exclamation-circle"></i>
+            </template>
          </Panel>
       </Form>
       <div class="toolbar">
@@ -199,12 +173,8 @@ import AuditsPanel from '@/components/AuditsPanel.vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useETDStore } from "@/stores/etd"
-import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
-import { useConfirm } from "primevue/useconfirm"
 import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -219,8 +189,8 @@ import RepeatField from '@/components/RepeatField.vue'
 import Checkbox from 'primevue/checkbox'
 import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import RadioButton from 'primevue/radiobutton'
+import FilesPanel from '@/components/FilesPanel.vue'
 
-const confirm = useConfirm()
 const router = useRouter()
 const route = useRoute()
 const system = useSystemStore()
@@ -233,6 +203,8 @@ const postSave = ref("edit")
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
    etdForm.value.submit()
+   // etdForm.value.validate() // manual calls
+   // console.log(etdForm.value.states) // grab state data
 })
 
 const saveChanges = ( async (valid ) => {
@@ -285,20 +257,6 @@ onBeforeMount( async () => {
    }
    await etdRepo.getWork( route.params.id )
 })
-
-const uploadRequested = ( (request) => {
-   request.xhr.setRequestHeader('Authorization', 'Bearer ' + user.jwt)
-   return request
-})
-
-const fileRemoved = ( event => {
-   etdRepo.removeFile( event.file.name )
-})
-const fileUploaded = ( (event) => {
-   event.files.forEach( f => {
-      etdRepo.addFile( f.name )
-   })
-})
 const addAdvisor = ( () => {
    etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
 })
@@ -314,21 +272,6 @@ const checkAdvisorID = ((idx) => {
    }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
-})
-
-const deleteFileClicked = ( (name) => {
-   confirm.require({
-      message: `Delete file ${name}?`,
-      header: 'Confirm Delete',
-      icon: 'pi pi-question-circle',
-      rejectClass: 'p-button-secondary',
-      accept: (  ) => {
-         etdRepo.removeFile(name)
-      },
-   })
-})
-const downloadFileClicked = ( (name) => {
-   etdRepo.downloadFile(name)
 })
 
 const visibilityUpdated = (() => {
@@ -397,6 +340,15 @@ const adminSaveCliced = ( async(data) => {
          border: 1px solid $uva-grey-100;
          background: $uva-grey-200;
       }
+   }
+
+   .complete {
+      font-size: 1.25rem;
+      color: $uva-green-A;
+   }
+   .incomplete {
+      font-size: 1.25rem;
+      color: $uva-red-A;
    }
 
    .sections {
