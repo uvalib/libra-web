@@ -1,11 +1,13 @@
 <template>
    <label>
-      <span>{{ props.label }}</span>
-      <span v-if="required" class="required"><span class="star">*</span>(required)</span>
+      <div class="text">
+         <span>{{ props.label }}</span>
+         <span v-if="required" class="required"><span class="star">*</span>(required)</span>
+      </div>
       <InputText v-if="props.type=='text'" v-model="model" :name="props.name" fluid/>
       <Textarea v-if="props.type=='textarea'" v-model="model" :name="props.name" fluid rows="10" />
       <Select v-if="props.type=='select'" :options="props.options" optionLabel="label" optionValue="value"
-         v-model="model" :name="props.name" fluid :placeholder="`Select ${props.label}`" />
+         v-model="model" :name="props.name" :placeholder="`Select ${props.label}`" />
    </label>
 </template>
 
@@ -40,6 +42,11 @@ const props = defineProps({
 </script>
 
 <style lang="scss" scoped>
+label {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
+}
 .required {
    color: $uva-grey;
    font-size: 0.9em;
@@ -49,8 +56,5 @@ const props = defineProps({
       font-weight: bold;
       margin-right: 0.5rem;
    }
-}
-.p-component {
-   margin-top: 5px;
 }
 </style>

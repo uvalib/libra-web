@@ -5,7 +5,7 @@
          <span v-if="adminEdit==false && etdRepo.isDraft" class="draft">DRAFT</span>
       </h1>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
-      <Form v-else v-slot="$form" :initialValues="etdRepo.work" :resolver="resolver" class="sections" ref="etdForm" @submit="submitTest">
+      <Form v-else v-slot="$form" :initialValues="etdRepo.work" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges">
          <Panel header="Metadata" toggleable>
             <div class="two-col">
                <table>
@@ -141,39 +141,60 @@
          </Panel>
 
          <Panel header="License" toggleable>
-            <div class="fields">
-               <div class="note">
-                  Libra lets you choose an open license when you post your work, and will prominently display the
-                  license you choose as part of the record for your work. See
-                  <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
-                  for option details.
-               </div>
-               <div class="field" >
+            <div class="license-content">
+               <Fieldset legend="Visibility" class="visibility-panel">
+                  <div v-if="etdRepo.visibility == 'embargo'" class="embargo">
+                     <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
+                     <div>This work is under embargo.</div>
+                     <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
+                  </div>
+                  <div v-else v-for="v in system.userVisibility" :key="v.value" class="visibility-opt">
+                     <RadioButton v-model="etdRepo.visibility" :inputId="v.value"  :value="v.value" @update:model-value="visibilityUpdated"/>
+                     <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+                  </div>
+                  <div v-if="etdRepo.visibility == 'uva'" class="limited">
+                     <div>Files available to UVA only until:</div>
+                     <div class="embargo-date">
+                        <span>{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
+                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="false"
+                           :visibility="etdRepo.visibility" @picked="endDatePicked"
+                           :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
+                     </div>
+                     <div>After that, files will be be available worldwide.</div>
+                  </div>
+               </Fieldset>
+               <div class="license" >
                   <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.userLicenses" />
                   <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
+                  <div class="note">
+                     Libra lets you choose an open license when you post your work, and will prominently display the
+                     license you choose as part of the record for your work. See
+                     <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+                     for option details.
+                  </div>
                </div>
-               <div class="agree">
-                  <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
-                  <label for="agree-cb">
-                     I have read and agree to the
-                     <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
-                     including discussing my deposit access options with my faculty advisor.
-                  </label>
-               </div>
+            </div>
+            <div class="agree">
+               <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
+               <label for="agree-cb">
+                  I have read and agree to the
+                  <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
+                  including discussing my deposit access options with my faculty advisor.
+               </label>
             </div>
          </Panel>
       </Form>
       <div class="toolbar">
          <Button label="Discard changes" severity="danger" @click="router.push('/')" style="margin-right:auto"/>
-         <Button label="Save" @click="etdForm.submit()"/>
-         <Button label="Save and exit" />
-         <Button label="Preview" severity="success" />
+         <Button label="Save" @click="saveClicked('edit')"/>
+         <Button label="Save and exit" @click="saveClicked('exit')"/>
+         <Button label="Preview" severity="success" @click="saveClicked('preview')"/>
       </div>
    </div>
 </template>
 
 <script setup>
-import { ref, onBeforeMount, computed, nextTick } from 'vue'
+import { ref, onBeforeMount, computed } from 'vue'
 import AuditsPanel from '@/components/AuditsPanel.vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
@@ -196,6 +217,8 @@ import Fieldset from 'primevue/fieldset'
 import LabeledInput from '@/components/LabeledInput.vue'
 import RepeatField from '@/components/RepeatField.vue'
 import Checkbox from 'primevue/checkbox'
+import DatePickerDialog from "@/components/DatePickerDialog.vue"
+import RadioButton from 'primevue/radiobutton'
 
 const confirm = useConfirm()
 const router = useRouter()
@@ -205,16 +228,29 @@ const user = useUserStore()
 const etdRepo = useETDStore()
 const etdForm = ref(null)
 const agree = ref(false)
+const postSave = ref("edit")
 
-const submitTest = ( (valid ) => {
-   console.log("SUBMIT , LICENSE ["+etdRepo.licenseID+"]")
+const saveClicked = ((postSaveAct) => {
+   postSave.value = postSaveAct
+   etdForm.value.submit()
+})
+
+const saveChanges = ( async (valid ) => {
    let license = system.licenseDetail(etdRepo.licenseID)
    if (license) {
       etdRepo.work.license = license.label
       etdRepo.work.licenseURL = license.url
-      console.log("SET LIC URL "+license.url)
    }
    console.log(valid)
+   await etdRepo.update( )
+   if ( system.showError == false ) {
+      system.toastMessage("Saved", "All changes have been saved")
+      if ( postSave.value == "exit") {
+         router.push("/")
+      } else if ( postSave.value == "preview") {
+         router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
+      }
+   }
 })
 
 const resolver = ref(
@@ -294,24 +330,18 @@ const deleteFileClicked = ( (name) => {
 const downloadFileClicked = ( (name) => {
    etdRepo.downloadFile(name)
 })
-const saveClicked = ( async (visibility, releaseDate, releaseVisibility) => {
-   updateWorkModel(visibility, releaseDate, releaseVisibility)
-   etdForm.value.node.submit()
-})
-const updateWorkModel = (( visibility, releaseDate, releaseVisibility ) => {
-   etdRepo.visibility = visibility
-   etdRepo.embargoReleaseDate =  releaseDate
-   etdRepo.embargoReleaseVisibility =  releaseVisibility
-   let license = system.licenseDetail(etdRepo.licenseID)
-   etdRepo.work.license = license.label
-   etdRepo.work.licenseURL = license.url
+
+const visibilityUpdated = (() => {
+   if (etdRepo.visibility == "embargo" || etdRepo.visibility == "uva") {
+      etdRepo.embargoReleaseVisibility = "open"
+      let endDate = new Date()
+      endDate.setMonth( endDate.getMonth() + 6)
+      etdRepo.embargoReleaseDate = endDate.toJSON()
+   }
 })
 
-const submitHandler = ( async () => {
-   await etdRepo.update( )
-   if ( system.showError == false ) {
-      router.push("/etd")
-   }
+const endDatePicked = ( (newDate) => {
+   etdRepo.embargoReleaseDate = newDate
 })
 
 const adminSaveCliced = ( async(data) => {
@@ -326,11 +356,6 @@ const adminSaveCliced = ( async(data) => {
       router.back()
    }
 })
-
-const cancelClicked = (() => {
-   etdRepo.cancelEdit()
-   router.back()
-})
 </script>
 
 <style lang="scss" scoped>
@@ -339,11 +364,20 @@ const cancelClicked = (() => {
       margin-left: 5%;
       margin-right: 5%;
    }
+   .visibility-panel {
+      min-width: 375px;
+   }
+   .license {
+      max-width: 50%;
+   }
 }
 @media only screen and (max-width: 768px) {
    .sections, h1 {
       margin-left: 15px;
       margin-right: 15px;
+   }
+   .visibility-panel, .license {
+     flex-grow: 1;
    }
 }
 
@@ -387,6 +421,56 @@ const cancelClicked = (() => {
          border-radius: 0.3rem;
       }
 
+      .license-content {
+         display: flex;
+         flex-flow: row wrap;
+         gap: 25px;
+         .license {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+         }
+         .visibility-panel {
+            .p-fieldset-content {
+               display: flex;
+               flex-direction: column;
+               gap: 15px;
+               .visibility-opt {
+                  display: flex;
+                  flex-flow: row nowrap;
+                  gap: 15px;
+                  align-items: center;
+                  .visibility {
+                     flex-grow: 1;
+                  }
+               }
+               .limited {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: center;
+                  gap: 5px;
+                  margin-top: 15px;
+                  .embargo-date {
+                     display: flex;
+                     flex-flow: row nowrap;
+                     align-items: baseline;
+                     gap: 20px;
+                  }
+               }
+            }
+         }
+      }
+
+      .agree {
+         display: flex;
+         flex-flow: row nowrap;
+         justify-content: center;
+         align-items: center;
+         gap: 15px;
+         padding: 20px 0 0 0;
+         margin-top: 15px;
+      }
+
       .fields {
          display: flex;
          flex-direction: column;
@@ -395,14 +479,6 @@ const cancelClicked = (() => {
             display: flex;
             flex-direction: column;
             gap: 5px;
-         }
-         .agree {
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            padding: 20px 0 0 0;
          }
          .id-field {
             display: flex;

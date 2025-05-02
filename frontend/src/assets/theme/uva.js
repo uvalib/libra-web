@@ -250,14 +250,10 @@ const UVA = definePreset(Aura, {
             padding: '1.25rem 1.25rem 1.25rem 1.25rem'
          }
       },
-      popover: {
-         root: {
-            borderColor: colors.grey100,
-            color: colors.textDark,
-         },
-         content: {
-            padding: '0',
-        }
+      radiobutton: {
+         icon: {
+            checkedColor: colors.brandBlue300,
+         }
       },
       select: {
          root: {
@@ -271,41 +267,6 @@ const UVA = definePreset(Aura, {
             selectedFocusColor: colors.textDark,
             selectedBackground: colors.blueAlt300,
             selectedColor: colors.textDark
-         }
-      },
-      tabs: {
-         tab: {
-            background: '#ffffff',
-            hoverBackground: '{surface.100}',
-            activeBackground: colors.brandBlue,
-            borderWidth: '1px 1px 1px 1px',
-            activeColor: '#ffffff',
-            activeBorderColor: colors.brandBlue,
-         },
-         tabpanel: {
-            background: '#ffffff',
-            color: colors.textDark,
-            padding: '0 0 0 0',
-         },
-         activeBar: {
-            height: '1px',
-            bottom: '-1px',
-            background: colors.grey100
-        },
-      },
-      togglebutton: {
-         colorScheme: {
-            light: {
-               root: {
-                  background: '#ffffff',
-                  checkedBackground: colors.blueAlt300,
-                  hoverBackground: '{surface.100}',
-                  borderColor: colors.grey100,
-                  color: colors.textDark,
-                  checkedColor: colors.textDark,
-                  checkedBorderColor: colors.blueAlt300,
-               },
-            }
          }
       },
       toast: {
