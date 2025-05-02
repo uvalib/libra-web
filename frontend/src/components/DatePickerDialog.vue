@@ -73,7 +73,7 @@ const show = (() => {
 })
 
 const okClicked = (() => {
-   emit("picked", endDate.value.toJSON() )
+   emit("picked", endDate.value )
    isOpen.value = false
 })
 

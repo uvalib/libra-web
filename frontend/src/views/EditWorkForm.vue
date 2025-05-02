@@ -113,20 +113,22 @@
          <Panel header="License" toggleable>
             <div class="license-content">
                <Fieldset legend="Visibility" class="visibility-panel">
-                  <div v-if="etdRepo.visibility == 'embargo'" class="embargo">
+                  <div v-if="etdRepo.visibility == 'embargo' && adminEdit == false" class="embargo">
                      <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
                      <div>This work is under embargo.</div>
                      <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
                   </div>
-                  <div v-else v-for="v in system.userVisibility" :key="v.value" class="visibility-opt">
+                  <div v-else v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
                      <RadioButton v-model="etdRepo.visibility" :inputId="v.value"  :value="v.value" @update:model-value="visibilityUpdated"/>
                      <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
                   </div>
-                  <div v-if="etdRepo.visibility == 'uva'" class="limited">
-                     <div>Files available to UVA only until:</div>
+                  <div v-if="etdRepo.visibility == 'uva' || (adminEdit && etdRepo.visibility == 'embargo')" class="limited">
+                     <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
+                     <div v-else>Files unavailable to anyone until:</div>
                      <div class="embargo-date">
-                        <span>{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
-                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="false"
+                        <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
+                        <span v-else>Never</span>
+                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="adminEdit"
                            :visibility="etdRepo.visibility" @picked="endDatePicked"
                            :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
                      </div>
@@ -144,7 +146,7 @@
                   </div>
                </div>
             </div>
-            <div class="agree">
+            <div class="agree" v-if="adminEdit == false">
                <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
                <label for="agree-cb">
                   I have read and agree to the
@@ -244,6 +246,13 @@ const resolver = ref(
         })
     )
 )
+
+const visibilityOpts = computed( () => {
+   if (adminEdit.value) {
+      return system.visibility
+   }
+   return system.userVisibility
+})
 
 const adminEdit = computed( () => {
    return route.path.includes("/admin")
