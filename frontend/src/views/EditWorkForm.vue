@@ -7,34 +7,7 @@
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
       <Form v-else v-slot="$form" :initialValues="etdRepo.work" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges">
          <Panel header="Metadata" toggleable>
-            <div class="two-col">
-               <table>
-                  <tbody>
-                     <tr>
-                        <td class="label">Institution:</td><td>{{ etdRepo.work.author.institution  }}</td>
-                     </tr>
-                     <tr>
-                        <td class="label">Program:</td><td>{{ etdRepo.work.program  }}</td>
-                     </tr>
-                     <tr>
-                        <td class="label">Degree:</td><td>{{ etdRepo.work.degree }}</td>
-                     </tr>
-                  </tbody>
-               </table>
-               <table>
-                  <tbody>
-                     <tr>
-                        <td class="label">Date Created:</td><td>{{ $formatDate(etdRepo.createdAt) }}</td>
-                     </tr>
-                     <tr v-if="etdRepo.isDraft==false">
-                        <td class="label">Date Published:</td><td>{{ $formatDate(etdRepo.publishedAt) }}</td>
-                     </tr>
-                     <tr>
-                        <td></td><td><AuditsPanel :workID="etdRepo.work.id"/></td>
-                     </tr>
-                  </tbody>
-               </table>
-            </div>
+            <ProgramPanel :admin="adminEdit" />
             <div class="fields">
                <div class="field" >
                   <LabeledInput label="Title" name="title" :required="true" v-model="etdRepo.work.title"/>
@@ -171,7 +144,6 @@
 
 <script setup>
 import { ref, onBeforeMount, computed } from 'vue'
-import AuditsPanel from '@/components/AuditsPanel.vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useETDStore } from "@/stores/etd"
@@ -183,6 +155,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { Form } from '@primevue/forms'
 import { yupResolver } from '@primevue/forms/resolvers/yup'
 import * as yup from 'yup'
+import ProgramPanel from '@/components/ProgramPanel.vue'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
@@ -364,14 +337,6 @@ const adminSaveCliced = ( async(data) => {
       display: flex;
       flex-direction: column;
       gap: 25px;
-      table {
-         td.label {
-            font-weight: bold;
-            text-align: right;
-            padding-right: 10px;
-         }
-         margin-bottom: 25px;
-      }
 
       .advisor {
          border: 1px solid $uva-grey-100;
