@@ -6,7 +6,11 @@
             <td class="label">Institution:</td><td>{{ etdRepo.work.author.institution  }}</td>
          </tr>
          <tr>
-            <td class="label">Program:</td><td>{{ etdRepo.work.program  }}</td>
+            <td class="label">Program:</td>
+            <td v-if="props.admin == false">{{ etdRepo.work.program  }}</td>
+            <td v-else>
+               <Select v-model="etdRepo.work.program" :options="programs" editable/>
+            </td>
          </tr>
          <tr>
             <td class="label">Degree:</td>

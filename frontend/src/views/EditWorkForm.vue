@@ -71,7 +71,8 @@
                <LabeledInput label="Language" name="notes" v-model="etdRepo.work.language" type="select" :options="system.languages" />
                <RepeatField label="Related Links" help="A link to a website or other specific content (audio, video, PDF document) related to the work" v-model="etdRepo.work.relatedURLs"/>
                <RepeatField label="Sponsoring Agencies" v-model="etdRepo.work.sponsors"/>
-               <LabeledInput label="Notes" name="language" v-model="etdRepo.work.notes" type="textarea" />
+               <LabeledInput label="Notes" name="notes" v-model="etdRepo.work.notes" type="textarea" />
+               <LabeledInput v-if="adminEdit" label="Admin Notes" name="adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
             </div>
          </Panel>
 
@@ -134,10 +135,18 @@
          </Panel>
       </Form>
       <div class="toolbar">
-         <Button label="Discard changes" severity="danger" @click="router.push('/')" style="margin-right:auto"/>
-         <Button label="Save" @click="saveClicked('edit')"/>
-         <Button label="Save and exit" @click="saveClicked('exit')"/>
-         <Button label="Preview" severity="success" @click="saveClicked('preview')"/>
+         <span class="group">
+            <template v-if="adminEdit">
+               <Button v-if="etdRepo.publishedAt" label="Unpublish" severity="danger" @click="unpublishClicked" />
+               <Button v-else label="Delete" severity="danger" @click="deleteClicked" />
+            </template>
+            <Button label="Discard changes" severity="secondary" @click="discardClicked" />
+         </span>
+         <span class="group">
+            <Button label="Save" @click="saveClicked('edit')"/>
+            <Button label="Save and exit" @click="saveClicked('exit')"/>
+            <Button label="Preview" severity="success" @click="saveClicked('preview')"/>
+         </span>
       </div>
    </div>
 </template>
@@ -147,6 +156,7 @@ import { ref, onBeforeMount, computed } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
 import { useETDStore } from "@/stores/etd"
+import { useAdminStore } from "@/stores/admin"
 import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import axios from 'axios'
@@ -165,12 +175,16 @@ import Checkbox from 'primevue/checkbox'
 import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import RadioButton from 'primevue/radiobutton'
 import FilesPanel from '@/components/FilesPanel.vue'
+import { useConfirm } from "primevue/useconfirm"
 
+const confirm = useConfirm()
 const router = useRouter()
 const route = useRoute()
 const system = useSystemStore()
 const user = useUserStore()
 const etdRepo = useETDStore()
+const admin = useAdminStore()
+
 const etdForm = ref(null)
 const agree = ref(false)
 const postSave = ref("edit")
@@ -180,6 +194,39 @@ const saveClicked = ((postSaveAct) => {
    etdForm.value.submit()
    // etdForm.value.validate() // manual calls
    // console.log(etdForm.value.states) // grab state data
+})
+
+const discardClicked = (() => {
+   if ( adminEdit.value) {
+      router.push("/admin")
+   } else {
+      router.push("/")
+   }
+})
+
+const unpublishClicked = ( () => {
+   confirm.require({
+      message: "Unpublish this work? It will no longer be visible to UVA or worldwide users. Are you sure?",
+      header: 'Confirm Work Unpublish',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: (  ) => {
+         admin.unpublish( etdRepo.work.id )
+      },
+   })
+})
+
+const deleteClicked = ( () => {
+   confirm.require({
+      message: "Delete this work? All data will be lost. This cannot be reversed. Are you sure?",
+      header: 'Confirm Work Delete',
+      icon: 'pi pi-question-circle',
+      rejectClass: 'p-button-secondary',
+      accept: (  ) => {
+         admin.delete( etdRepo.work.id )
+         router.push("/admin")
+      },
+   })
 })
 
 const saveChanges = ( async (valid ) => {
@@ -193,7 +240,11 @@ const saveChanges = ( async (valid ) => {
    if ( system.showError == false ) {
       system.toastMessage("Saved", "All changes have been saved")
       if ( postSave.value == "exit") {
-         router.push("/")
+         if ( adminEdit.value) {
+            router.push("/admin")
+         } else {
+            router.push("/")
+         }
       } else if ( postSave.value == "preview") {
          router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
       }
@@ -267,19 +318,6 @@ const visibilityUpdated = (() => {
 
 const endDatePicked = ( (newDate) => {
    etdRepo.embargoReleaseDate = newDate
-})
-
-const adminSaveCliced = ( async(data) => {
-   etdRepo.visibility = data.visibility
-   etdRepo.embargoReleaseDate = data.embargoEndDate
-   etdRepo.embargoReleaseVisibility = data.embargoEndVisibility
-   etdRepo.work.program = data.program
-   etdRepo.work.degree = data.degree
-   etdRepo.work.adminNotes = data.adminNotes
-   await etdRepo.update( )
-   if ( system.showError == false ) {
-      router.back()
-   }
 })
 </script>
 
@@ -429,16 +467,22 @@ const adminSaveCliced = ( async(data) => {
    }
 
    .toolbar {
-      background: $uva-grey-200;
-      border-top: 2px solid $uva-grey-100;
-      padding: 15px;
+      background: $uva-grey-100;
+      border-top: 1px solid $uva-grey;
+      padding: 10px;
       margin-top: 50px;
       position: sticky;
       bottom: 0;
       display: flex;
       flex-flow: row wrap;
-      gap: 5px;
-      justify-content: flex-end;
+      gap: 10px;
+      justify-content: space-between;
+      .group {
+         display: flex;
+         flex-flow: row wrap;
+         gap: 10px;
+         justify-content: flex-start;
+      }
    }
 
    .two-col {
