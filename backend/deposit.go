@@ -84,7 +84,7 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 		fields := uvaeasystore.DefaultEasyStoreFields()
 		fields["create-date"] = time.Now().Format(time.RFC3339)
 		fields["draft"] = "true"
-		fields["default-visibility"] = "open"
+		fields["default-visibility"] = ""
 		fields["depositor"] = student.ComputeID
 		fields["source"] = "optional"
 		obj.SetMetadata(etdReg)

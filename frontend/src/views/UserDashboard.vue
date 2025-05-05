@@ -41,16 +41,10 @@
             <Column header="Actions" style="width:175px;">
                <template #body="slotProps">
                   <div  class="acts">
-                     <template v-if="slotProps.data.publishedAt">
-                        <Button class="action" icon="pi pi-eye" label="Public View" severity="secondary"
-                           size="small" @click="previewWorkClicked(slotProps.data.id)"/>
-                     </template>
-                     <template v-else>
-                        <Button class="action" label="Edit Thesis" severity="secondary"
-                           size="small" @click="editWorkClicked(slotProps.data.id)"/>
-                        <Button class="action" v-if="slotProps.data.title" label="Preview"
-                           size="small" @click="previewWorkClicked(slotProps.data.id)"/>
-                     </template>
+                     <Button v-if="slotProps.data.publishedAt" class="action" icon="pi pi-eye" label="Public View" severity="secondary"
+                        size="small" @click="previewWorkClicked(slotProps.data.id)"/>
+                     <Button v-else class="action" label="Edit Thesis" severity="secondary"
+                        size="small" @click="editWorkClicked(slotProps.data.id)"/>
                   </div>
                </template>
             </Column>

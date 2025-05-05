@@ -8,7 +8,7 @@ export const useETDStore = defineStore('etd', {
       error: "",
       work: {},
       isDraft: true,
-      visibility: "open",
+      visibility: "",
       embargoReleaseDate: null,
       embargoReleaseVisibility: "",
       licenseID: "0",
@@ -27,7 +27,7 @@ export const useETDStore = defineStore('etd', {
          return ( state.work.keywords.length > 0 )
       },
       hasLicense: state => {
-         return ( state.licenseID != "0")
+         return (  parseInt(state.licenseID,10) != 0)
       },
       hasRelatedURLs: state => {
          return ( state.work.relatedURLs.length > 0)
@@ -99,7 +99,7 @@ export const useETDStore = defineStore('etd', {
 
          // lookup licence ID based on URL
          this.licenseID = "0"
-         if ( this.work.licenseURL && this.work.license) {
+         if ( this.work.licenseURL || this.work.license) {
             const system = useSystemStore()
             let lic = system.licenses.find( l => l.url == this.work.licenseURL )
             if (lic) {

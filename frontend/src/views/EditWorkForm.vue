@@ -75,6 +75,16 @@
                <RepeatField label="Sponsoring Agencies" v-model="etdRepo.work.sponsors"/>
                <LabeledInput label="Notes" name="notes" v-model="etdRepo.work.notes" type="textarea" />
                <LabeledInput v-if="adminEdit" label="Admin Notes" name="adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
+               <div class="field" >
+                  <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.userLicenses" />
+                  <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
+                  <div class="note">
+                     Libra lets you choose an open license when you post your work, and will prominently display the
+                     license you choose as part of the record for your work. See
+                     <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+                     for option details.
+                  </div>
+               </div>
             </div>
             <template #icons>
                <i v-if="metadataComplete" class="complete pi pi-check-circle"></i>
@@ -90,52 +100,41 @@
             </template>
          </Panel>
 
-         <Panel header="License" toggleable>
-            <div class="license-content">
-               <Fieldset legend="Visibility" class="visibility-panel">
-                  <div v-if="etdRepo.visibility == 'embargo' && adminEdit == false" class="embargo">
-                     <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
-                     <div>This work is under embargo.</div>
-                     <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
+         <Panel header="Access and Visibility" toggleable>
+            <div class="license">
+               <div class="note">
+                  For more information, see the
+                  <a href="https://uvapolicy.virginia.edu/policy/PROV-014" target="_blank">Provost Policy on Access Levels for Libra ETD deposits</a>.
+               </div>
+
+               <div v-if="etdRepo.visibility == 'embargo' && adminEdit == false" class="embargo">
+                  <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
+                  <div>This work is under embargo.</div>
+                  <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
+               </div>
+               <div v-else v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
+                  <RadioButton v-model="etdRepo.visibility" :inputId="v.value"  :value="v.value" @update:model-value="visibilityUpdated"/>
+                  <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+               </div>
+               <div v-if="etdRepo.visibility == 'uva' || (adminEdit && etdRepo.visibility == 'embargo')" class="limited">
+                  <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
+                  <div v-else>Files unavailable to anyone until:</div>
+                  <div class="embargo-date">
+                     <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
+                     <span v-else>Never</span>
+                     <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="adminEdit"
+                        :visibility="etdRepo.visibility" @picked="endDatePicked"
+                        :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
                   </div>
-                  <div v-else v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
-                     <RadioButton v-model="etdRepo.visibility" :inputId="v.value"  :value="v.value" @update:model-value="visibilityUpdated"/>
-                     <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
-                  </div>
-                  <div v-if="etdRepo.visibility == 'uva' || (adminEdit && etdRepo.visibility == 'embargo')" class="limited">
-                     <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
-                     <div v-else>Files unavailable to anyone until:</div>
-                     <div class="embargo-date">
-                        <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
-                        <span v-else>Never</span>
-                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="adminEdit"
-                           :visibility="etdRepo.visibility" @picked="endDatePicked"
-                           :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
-                     </div>
-                     <div>After that, files will be be available worldwide.</div>
-                  </div>
-               </Fieldset>
-               <div class="license" >
-                  <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.userLicenses" />
-                  <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
-                  <div class="note">
-                     Libra lets you choose an open license when you post your work, and will prominently display the
-                     license you choose as part of the record for your work. See
-                     <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
-                     for option details.
-                  </div>
+                  <div>After that, files will be be available worldwide.</div>
+               </div>
+               <div v-else>
+                  All files will be available worldwide.
                </div>
             </div>
-            <div class="agree" v-if="adminEdit == false">
-               <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
-               <label for="agree-cb">
-                  I have read and agree to the
-                  <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
-                  including discussing my deposit access options with my faculty advisor.
-               </label>
-            </div>
+
             <template #icons>
-               <i v-if="etdRepo.hasLicense" class="complete pi pi-check-circle"></i>
+               <i v-if="etdRepo.visibility != ''" class="complete pi pi-check-circle"></i>
                <i v-else class="incomplete pi pi-exclamation-circle"></i>
             </template>
          </Panel>
@@ -151,7 +150,7 @@
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')"/>
             <Button label="Save and exit" @click="saveClicked('exit')"/>
-            <Button label="Preview" severity="success" @click="saveClicked('preview')"/>
+            <Button label="Preview" severity="success" @click="saveClicked('preview')" :disabled="metadataComplete==false || etdRepo.hasFiles==false"/>
          </span>
       </div>
    </div>
@@ -175,7 +174,6 @@ import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
 import LabeledInput from '@/components/LabeledInput.vue'
 import RepeatField from '@/components/RepeatField.vue'
-import Checkbox from 'primevue/checkbox'
 import DatePickerDialog from "@/components/DatePickerDialog.vue"
 import RadioButton from 'primevue/radiobutton'
 import FilesPanel from '@/components/FilesPanel.vue'
@@ -190,7 +188,6 @@ const etdRepo = useETDStore()
 const admin = useAdminStore()
 
 const etdForm = ref(null)
-const agree = ref(false)
 const postSave = ref("edit")
 const metadataComplete = ref(false)
 
@@ -238,6 +235,7 @@ const saveChanges = ( async () => {
       etdRepo.work.license = license.label
       etdRepo.work.licenseURL = license.url
    }
+
    await etdRepo.update( )
    if ( system.showError == false ) {
       system.toastMessage("Saved", "All changes have been saved")
@@ -260,7 +258,6 @@ const resolver = ({ values }) => {
       abstract: [], licenseID: []
    }
    metadataComplete.value = true
-   console.log(values)
 
    if ( values.title == "" ) {
       metadataComplete.value = false
@@ -293,7 +290,11 @@ const resolver = ({ values }) => {
       metadataComplete.value = false
       errors.abstract = [{ message: 'Abstract is required' }]
    }
-   if ( !values.licenseID || values.licenseID && values.licenseID == "0" ) {
+
+   console.log(values)
+   let licID = parseInt(values.licenseID)
+   if ( licID == 0 ) {
+      metadataComplete.value = false
       errors.licenseID = [{ message: 'Rights are required' }]
    }
 
@@ -320,12 +321,15 @@ onBeforeMount( async () => {
    await etdRepo.getWork( route.params.id )
    etdForm.value.validate()
 })
+
 const addAdvisor = ( () => {
    etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
 })
+
 const removeAdvisor = ((idx)=> {
    etdRepo.work.advisors.splice(idx,1)
 })
+
 const checkAdvisorID = ((idx) => {
    let cID = etdRepo.work.advisors[idx].computeID
    etdRepo.work.advisors[idx].msg = ""
@@ -363,17 +367,11 @@ const endDatePicked = ( (newDate) => {
    .visibility-panel {
       min-width: 375px;
    }
-   .license {
-      max-width: 50%;
-   }
 }
 @media only screen and (max-width: 768px) {
    .sections, h1 {
       margin-left: 15px;
       margin-right: 15px;
-   }
-   .visibility-panel, .license {
-     flex-grow: 1;
    }
 }
 
@@ -418,54 +416,33 @@ const endDatePicked = ( (newDate) => {
          border-radius: 0.3rem;
       }
 
-      .license-content {
+      .license {
          display: flex;
-         flex-flow: row wrap;
-         gap: 25px;
-         .license {
+         flex-direction: column;
+         gap: 10px;
+
+         .visibility-opt {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-         }
-         .visibility-panel {
-            .p-fieldset-content {
-               display: flex;
-               flex-direction: column;
-               gap: 15px;
-               .visibility-opt {
-                  display: flex;
-                  flex-flow: row nowrap;
-                  gap: 15px;
-                  align-items: center;
-                  .visibility {
-                     flex-grow: 1;
-                  }
-               }
-               .limited {
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  gap: 5px;
-                  margin-top: 15px;
-                  .embargo-date {
-                     display: flex;
-                     flex-flow: row nowrap;
-                     align-items: baseline;
-                     gap: 20px;
-                  }
-               }
+            flex-flow: row nowrap;
+            gap: 15px;
+            align-items: center;
+            .visibility {
+               width: 200px;
             }
          }
-      }
-
-      .agree {
-         display: flex;
-         flex-flow: row nowrap;
-         justify-content: center;
-         align-items: center;
-         gap: 15px;
-         padding: 20px 0 0 0;
-         margin-top: 15px;
+         .limited {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-top: 15px;
+            .embargo-date {
+               display: flex;
+               flex-flow: row nowrap;
+               align-items: baseline;
+               gap: 20px;
+            }
+         }
       }
 
       .fields {

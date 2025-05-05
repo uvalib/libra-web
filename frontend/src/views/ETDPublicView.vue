@@ -68,10 +68,18 @@
                Before proceeding, we encourage you to review the information in this page.
                If you experience problems with your submission, please <a href="mailto:libra@virginia.edu">contact</a> us.
             </div>
+            <div class="agree">
+               <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
+               <label for="agree-cb">
+                  I have read and agree to the
+                  <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
+                  including discussing my deposit access options with my faculty advisor.
+               </label>
+            </div>
             <div class="buttons">
                <Button severity="secondary" label="Cancel" size="small" @click="cancelPreview"/>
                <Button severity="secondary" label="Edit" size="small" @click="editThesis"/>
-               <Button severity="primary" label="Submit Thesis" size="small"  @click="submitThesis"/>
+               <Button severity="primary" label="Submit Thesis" size="small"  @click="submitThesis" :disabled="!agree"/>
             </div>
          </div>
          <div class="published" v-if="justPublished">
@@ -90,6 +98,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Fieldset from 'primevue/fieldset'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import { useConfirm } from "primevue/useconfirm"
+import Checkbox from 'primevue/checkbox'
 
 const etdRepo = useETDStore()
 const system = useSystemStore()
@@ -98,6 +107,7 @@ const router = useRouter()
 const confirm = useConfirm()
 
 const justPublished = ref(false)
+const agree = ref(false)
 
 const authorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${a.program}, ${a.institution}`
@@ -241,6 +251,14 @@ div.public-work {
          flex-flow: row wrap;
          justify-content: center;
          gap: 5px;
+      }
+      .agree {
+         display: flex;
+         flex-flow: row nowrap;
+         justify-content: center;
+         align-items: flex-start;
+         gap: 10px;
+         margin: 10px 0;
       }
    }
 
