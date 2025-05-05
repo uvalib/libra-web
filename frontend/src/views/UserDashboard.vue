@@ -46,9 +46,9 @@
                            size="small" @click="previewWorkClicked(slotProps.data.id)"/>
                      </template>
                      <template v-else>
-                        <Button class="action" icon="pi pi-file-edit" label="Edit Thesis" severity="secondary"
+                        <Button class="action" label="Edit Thesis" severity="secondary"
                            size="small" @click="editWorkClicked(slotProps.data.id)"/>
-                        <Button class="action" v-if="slotProps.data.title" icon="pi pi-check" label="Preview / Submit"
+                        <Button class="action" v-if="slotProps.data.title" label="Preview"
                            size="small" @click="previewWorkClicked(slotProps.data.id)"/>
                      </template>
                   </div>
@@ -110,7 +110,7 @@ const previewWorkClicked = ( (id) => {
    .acts {
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
       justify-content: flex-start;
       gap: 0.5rem;
       width:max-content;

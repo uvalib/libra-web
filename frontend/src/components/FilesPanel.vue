@@ -26,16 +26,18 @@
       </div>
 
       <div class="section">
-         <label for="file" class="libra-form-label">Upload Files</label>
-         <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
-            @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
-            @removeUploadedFile="fileRemoved($event)"
-            :multiple="true" :withCredentials="true" :auto="true"
-            :showUploadButton="false" :showCancelButton="false">
-            <template #empty>
-               <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
-            </template>
-         </FileUpload>
+         <label class="libra-form-label">
+            Upload Files
+            <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
+               @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
+               @removeUploadedFile="fileRemoved($event)"
+               :multiple="true" :withCredentials="true" :auto="true"
+               :showUploadButton="false" :showCancelButton="false">
+               <template #empty>
+                  <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
+               </template>
+            </FileUpload>
+         </label>
       </div>
    </div>
 </template>

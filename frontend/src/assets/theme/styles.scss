@@ -21,9 +21,13 @@
    color: $uva-text-color-dark;
 }
 
-.sticky {
-   position: fixed !important;
-   top: 0;
-   width: 100%;
-   z-index: 500;
+.required {
+   color: $uva-grey;
+   font-size: 0.9em;
+   .star {
+      color: $uva-text-color-base;
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-right: 0.5rem;
+   }
 }

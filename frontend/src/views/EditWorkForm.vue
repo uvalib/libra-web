@@ -5,7 +5,8 @@
          <span v-if="adminEdit==false && etdRepo.isDraft" class="draft">DRAFT</span>
       </h1>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
-      <Form v-else v-slot="$form" :initialValues="etdRepo.work" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges">
+      <Form v-else v-slot="$form" :initialValues="etdRepo.work" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true">
+         <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
          <Panel header="Metadata" toggleable>
             <ProgramPanel :admin="adminEdit" />
             <div class="fields">
@@ -25,12 +26,13 @@
                      </div>
                   </div>
                </Fieldset>
+
                <Fieldset>
                   <template #legend>
-                     <span>Advisors</span><span class="libra-required"><span class="star">*</span>(one or more required)</span>
+                     <span>Advisors</span><span class="required"><span class="star">*</span>(required)</span>
                   </template>
-                  <div class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</div>
                   <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
+                     <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</div>
                      <div class="id-field">
                         <div class="control-group">
                            <InputText type="text" v-model="item.computeID" :name="`advisors[${index}].computeID`" placeholder="Computing ID"/>
@@ -68,12 +70,16 @@
                   <Message v-if="$form.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.abstract.error.message }}</Message>
                </div>
                <RepeatField label="Keywords" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords"/>
-               <LabeledInput label="Language" name="notes" v-model="etdRepo.work.language" type="select" :options="system.languages" />
+               <LabeledInput label="Language" name="language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
                <RepeatField label="Related Links" help="A link to a website or other specific content (audio, video, PDF document) related to the work" v-model="etdRepo.work.relatedURLs"/>
                <RepeatField label="Sponsoring Agencies" v-model="etdRepo.work.sponsors"/>
                <LabeledInput label="Notes" name="notes" v-model="etdRepo.work.notes" type="textarea" />
                <LabeledInput v-if="adminEdit" label="Admin Notes" name="adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
             </div>
+            <template #icons>
+               <i v-if="metadataComplete" class="complete pi pi-check-circle"></i>
+               <i v-else class="incomplete pi pi-exclamation-circle"></i>
+            </template>
          </Panel>
 
          <Panel header="Files" toggleable>
@@ -163,8 +169,6 @@ import axios from 'axios'
 import { useRouter, useRoute } from 'vue-router'
 
 import { Form } from '@primevue/forms'
-import { yupResolver } from '@primevue/forms/resolvers/yup'
-import * as yup from 'yup'
 import ProgramPanel from '@/components/ProgramPanel.vue'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
@@ -188,12 +192,11 @@ const admin = useAdminStore()
 const etdForm = ref(null)
 const agree = ref(false)
 const postSave = ref("edit")
+const metadataComplete = ref(false)
 
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
    etdForm.value.submit()
-   // etdForm.value.validate() // manual calls
-   // console.log(etdForm.value.states) // grab state data
 })
 
 const discardClicked = (() => {
@@ -229,13 +232,12 @@ const deleteClicked = ( () => {
    })
 })
 
-const saveChanges = ( async (valid ) => {
+const saveChanges = ( async () => {
    let license = system.licenseDetail(etdRepo.licenseID)
    if (license) {
       etdRepo.work.license = license.label
       etdRepo.work.licenseURL = license.url
    }
-   console.log(valid)
    await etdRepo.update( )
    if ( system.showError == false ) {
       system.toastMessage("Saved", "All changes have been saved")
@@ -251,25 +253,52 @@ const saveChanges = ( async (valid ) => {
    }
 })
 
-const resolver = ref(
-    yupResolver(
-        yup.object().shape({
-            title: yup.string().required('Title is required'),
-            author:  yup.object({
-               firstName: yup.string().required('First name is required'),
-               lastName: yup.string().required('Last name is required')
-            }),
-            advisors: yup.array(
-               yup.object({
-                  firstName: yup.string().required('Advisor first name is required'),
-                  lastName: yup.string().required('Advisor last name is required')
-               })
-            ),
-            abstract: yup.string().required('Abstract is required'),
-            licenseID: yup.string().required('Rights are required'),
-        })
-    )
-)
+const resolver = ({ values }) => {
+   const errors = {
+      title: [], author: { lastName: [], firstName: []},
+      advisors: [ {advisor: { lastName: [], firstName: [] } } ],
+      abstract: [], licenseID: []
+   }
+   metadataComplete.value = true
+   console.log(values)
+
+   if ( values.title == "" ) {
+      metadataComplete.value = false
+      errors.title = [{ message: 'Title is required' }]
+   }
+   if ( values.author ) {
+      if (values.author.firstName == "") {
+         metadataComplete.value = false
+         errors.author.firstName = [{ message: 'Author first name is required' }]
+      }
+      if (values.author.lastName == "") {
+         metadataComplete.value = false
+         errors.author.lastName = [{ message: 'Author last name is required' }]
+      }
+   }
+
+   values.advisors.forEach( (a,idx) => {
+      errors.advisors.push ({ firstName: [], lastName: []})
+      if ( a.firstName == "") {
+         metadataComplete.value = false
+         errors.advisors[ idx ].firstName = [{ message: 'Advisor first name is required' }]
+      }
+      if ( a.lastName == "") {
+         metadataComplete.value = false
+         errors.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
+      }
+   })
+
+   if ( values.abstract == "" ) {
+      metadataComplete.value = false
+      errors.abstract = [{ message: 'Abstract is required' }]
+   }
+   if ( !values.licenseID || values.licenseID && values.licenseID == "0" ) {
+      errors.licenseID = [{ message: 'Rights are required' }]
+   }
+
+   return { values,errors }
+}
 
 const visibilityOpts = computed( () => {
    if (adminEdit.value) {
@@ -289,6 +318,7 @@ onBeforeMount( async () => {
       return
    }
    await etdRepo.getWork( route.params.id )
+   etdForm.value.validate()
 })
 const addAdvisor = ( () => {
    etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
@@ -302,6 +332,9 @@ const checkAdvisorID = ((idx) => {
    axios.get(`/api/users/lookup/${cID}`).then(r => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
       etdRepo.work.advisors.splice(idx,1, auth)
+      // set firs/last name in the form state data so validation works
+      etdForm.value.setFieldValue(`advisors[${idx}].firstName`, r.data.first_name)
+      etdForm.value.setFieldValue(`advisors[${idx}].lastName`, r.data.last_name)
    }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })

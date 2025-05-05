@@ -42,7 +42,7 @@ export const useETDStore = defineStore('etd', {
          if ( state.work.advisors.length == 0) return false
          if ( state.work.advisors.length > 1) return true
          let a = state.work.advisors[0]
-         return a.firstName != "" && a.lastName != "" && a.computeID != ""
+         return a.firstName != "" && a.lastName != ""
       },
    },
    actions: {
@@ -93,6 +93,9 @@ export const useETDStore = defineStore('etd', {
             delete data.embargo
          }
          this.work = data
+         if (this.work.advisors.length == 0) {
+            this.work.advisors.push({firstName: "", lastName:"", department: "", institution: ""})
+         }
 
          // lookup licence ID based on URL
          this.licenseID = "0"
@@ -154,7 +157,6 @@ export const useETDStore = defineStore('etd', {
       },
 
       async update( ) {
-         this.working = true
          let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility}
          if ( this.visibility == "embargo" || this.visibility == "uva") {
             payload.embargoReleaseDate = this.embargoReleaseDate
@@ -163,13 +165,11 @@ export const useETDStore = defineStore('etd', {
          let url = `/api/works/${this.work.id}`
          return axios.put(url, payload).then(response => {
             this.setWorkDetails( response.data )
-            this.working = false
             this.pendingFileAdd = []
             this.pendingFileDel = []
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
-            this.working = false
          })
       },
 

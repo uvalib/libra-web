@@ -47,14 +47,4 @@ label {
    flex-direction: column;
    gap: 5px;
 }
-.required {
-   color: $uva-grey;
-   font-size: 0.9em;
-   .star {
-      color: $uva-text-color-base;
-      font-size: 1.3em;
-      font-weight: bold;
-      margin-right: 0.5rem;
-   }
-}
 </style>
