@@ -295,22 +295,27 @@ const deleteClicked = ( () => {
    })
 })
 
+const isDirty = ((data) => {
+   let dirty = false
+   Object.keys(data).some((key) => {
+      if (key == "dirty") {
+         if (data[key]) {
+            dirty = true
+         }
+         return dirty
+      }
+      if (data[key] && typeof data[key] === 'object') {
+         dirty = isDirty(data[key])
+         return dirty
+      }
+   })
+   return dirty
+})
+
 const saveChanges = ( async (data) => {
    let needSave = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0)
    if ( needSave == false) {
-      for (const [key, value] of Object.entries(data.states)) {
-         if (key == "work") {
-            for (const [_, wVal] of Object.entries(value)) {
-               if (wVal.dirty) {
-                  needSave = true
-               }
-            }
-         } else {
-            if (value.dirty) {
-               needSave = true
-            }
-         }
-      }
+      needSave = isDirty( data.states )
    }
 
    let license = system.licenseDetail(etdRepo.licenseID)
@@ -327,6 +332,8 @@ const saveChanges = ( async (data) => {
       } else {
          return
       }
+   } else {
+      console.log("no changes made; no sve necessary")
    }
 
    if ( postSave.value == "exit") {
