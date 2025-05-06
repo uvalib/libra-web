@@ -59,10 +59,9 @@
             <Column header="Actions" style="width:110px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button class="action" icon="pi pi-file-edit" label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
-                     <Button v-if="!slotProps.data.publishedAt" class="action" size="small"
-                        icon="pi pi-trash" label="Delete" severity="danger" @click="deleteWorkClicked(slotProps.data)"/>
-                     <Button v-else class="action" icon="pi pi-eye-slash" label="Unpublish" severity="warning" size="small"  @click="unpublishWorkClicked(slotProps.data)"/>
+                     <Button class="action" label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
+                     <Button v-if="slotProps.data.publishedAt" class="action" icon="pi pi-eye" label="Public View" severity="secondary"
+                        size="small" @click="viewWorkClicked(slotProps.data.id)"/>
                   </div>
                </template>
             </Column>
@@ -112,28 +111,9 @@ const editWorkClicked = ( (id) => {
    router.push(url)
 })
 
-const unpublishWorkClicked = ( (work) => {
-   confirm.require({
-      message: "Unpublish this work? It will no longer be visible to UVA or worldwide users. Are you sure?",
-      header: 'Confirm Work Unpublish',
-      icon: 'pi pi-question-circle',
-      rejectClass: 'p-button-secondary',
-      accept: (  ) => {
-         admin.unpublish(work.type, work.id)
-      },
-   })
-})
-
-const deleteWorkClicked = ( (work) => {
-   confirm.require({
-      message: "Delete this work? All data will be lost. This cannot be reversed. Are you sure?",
-      header: 'Confirm Work Delete',
-      icon: 'pi pi-question-circle',
-      rejectClass: 'p-button-secondary',
-      accept: (  ) => {
-         admin.delete(work.type, work.id)
-      },
-   })
+const viewWorkClicked = ( (id) => {
+   let url = `/public/etd/${id}`
+   router.push(url)
 })
 </script>
 

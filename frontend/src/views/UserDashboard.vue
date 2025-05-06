@@ -60,7 +60,6 @@ import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
 
-import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import WaitSpinner from "@/components/WaitSpinner.vue"
