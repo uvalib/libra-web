@@ -295,25 +295,48 @@ const deleteClicked = ( () => {
    })
 })
 
-const saveChanges = ( async () => {
+const saveChanges = ( async (data) => {
+   let needSave = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0)
+   if ( needSave == false) {
+      for (const [key, value] of Object.entries(data.states)) {
+         if (key == "work") {
+            for (const [_, wVal] of Object.entries(value)) {
+               if (wVal.dirty) {
+                  needSave = true
+               }
+            }
+         } else {
+            if (value.dirty) {
+               needSave = true
+            }
+         }
+      }
+   }
+
    let license = system.licenseDetail(etdRepo.licenseID)
    if (license) {
       etdRepo.work.license = license.label
       etdRepo.work.licenseURL = license.url
    }
 
-   await etdRepo.update( )
-   if ( system.showError == false ) {
-      system.toastMessage("Saved", "All changes have been saved")
-      if ( postSave.value == "exit") {
-         if ( adminEdit.value) {
-            router.push("/admin")
-         } else {
-            router.push("/")
-         }
-      } else if ( postSave.value == "preview") {
-         router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
+   if ( needSave ) {
+      console.log("data has been edited; saving")
+      await etdRepo.update( )
+      if ( system.showError == false ) {
+         system.toastMessage("Saved", "All changes have been saved")
+      } else {
+         return
       }
+   }
+
+   if ( postSave.value == "exit") {
+      if ( adminEdit.value) {
+         router.push("/admin")
+      } else {
+         router.push("/")
+      }
+   } else if ( postSave.value == "preview") {
+      router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
    }
 })
 
@@ -334,6 +357,7 @@ const addAdvisor = ( () => {
 
 const removeAdvisor = ((idx)=> {
    etdRepo.work.advisors.splice(idx,1)
+   etdForm.value.validate()
 })
 
 const checkAdvisorID = ((idx) => {
