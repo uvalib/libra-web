@@ -111,12 +111,6 @@ body {
       line-height: 1.15;
       margin: 0;
    }
-   h2 {
-      color: $uva-brand-blue;
-      text-align: center;
-      font-size: 1.3em;
-      margin: 1rem 1.5rem;
-   }
 }
 
 a {
