@@ -284,7 +284,7 @@ func (svc *serviceContext) getVersion(c *gin.Context) {
 
 func (svc *serviceContext) getConfig(c *gin.Context) {
 	verInfo := svc.lookupVersion()
-	ver := fmt.Sprintf("v%s-build%s", verInfo["version"], verInfo["build"])
+	ver := fmt.Sprintf("v%s-%s", verInfo["version"], verInfo["build"])
 	resp := configResponse{Version: ver, Namespace: libraNamespace{Label: "LibraETD", Namespace: svc.Namespace}}
 
 	err := loadETDConfig(&resp)

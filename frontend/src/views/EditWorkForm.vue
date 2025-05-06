@@ -5,24 +5,24 @@
          <span v-if="adminEdit==false && etdRepo.isDraft" class="draft">DRAFT</span>
       </h1>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
-      <Form v-else v-slot="$form" :initialValues="etdRepo.work" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true">
+      <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
          <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
          <Panel header="Metadata" toggleable>
             <ProgramPanel :admin="adminEdit" />
             <div class="fields">
                <div class="field" >
-                  <LabeledInput label="Title" name="title" :required="true" v-model="etdRepo.work.title"/>
-                  <Message v-if="$form.title?.invalid" severity="error" size="small" variant="simple">{{ $form.title.error.message }}</Message>
+                  <LabeledInput label="Title" name="work.title" :required="true" v-model="etdRepo.work.title"/>
+                  <Message v-if="$form.work?.title?.invalid" severity="error" size="small" variant="simple">{{ $form.work.title.error.message }}</Message>
                </div>
                <Fieldset legend="Author">
                   <div class="two-col">
                      <div class="field" >
-                        <LabeledInput label="First Name" name="author.firstName" :required="true" v-model="etdRepo.work.author.firstName"/>
-                        <Message v-if="$form.author?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.author.firstName.error.message }}</Message>
+                        <LabeledInput label="First Name" name="work.author.firstName" :required="true" v-model="etdRepo.work.author.firstName"/>
+                        <Message v-if="$form.work?.author?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.author.firstName.error.message }}</Message>
                      </div>
                      <div class="field" >
-                        <LabeledInput label="Last Name" name="author.lastName" :required="true" v-model="etdRepo.work.author.lastName"/>
-                        <Message v-if="$form.author?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.author.lastName.error.message }}</Message>
+                        <LabeledInput label="Last Name" name="work.author.lastName" :required="true" v-model="etdRepo.work.author.lastName"/>
+                        <Message v-if="$form.work?.author?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.author.lastName.error.message }}</Message>
                      </div>
                   </div>
                </Fieldset>
@@ -35,7 +35,7 @@
                      <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</div>
                      <div class="id-field">
                         <div class="control-group">
-                           <InputText type="text" v-model="item.computeID" :name="`advisors[${index}].computeID`" placeholder="Computing ID"/>
+                           <InputText type="text" v-model="item.computeID" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID"/>
                            <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAdvisorID(index)"/>
                         </div>
                         <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)"/>
@@ -43,20 +43,20 @@
                      <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
                      <div class="two-col">
                         <div class="field" >
-                           <LabeledInput label="First Name" :name="`advisors[${index}].firstName`" :required="true" v-model="item.firstName"/>
-                           <Message v-if="$form.advisors?.[index]?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.advisors[index].firstName.error.message }}</Message>
+                           <LabeledInput label="First Name" :name="`work.advisors[${index}].firstName`" :required="true" v-model="item.firstName"/>
+                           <Message v-if="$form.work?.advisors?.[index]?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.advisors[index].firstName.error.message }}</Message>
                         </div>
                         <div class="field" >
-                           <LabeledInput label="Last Name" :name="`advisors[${index}].lastName`" :required="true" v-model="item.lastName"/>
-                           <Message v-if="$form.advisors?.[index]?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.advisors[index].lastName.error.message }}</Message>
+                           <LabeledInput label="Last Name" :name="`work.advisors[${index}].lastName`" :required="true" v-model="item.lastName"/>
+                           <Message v-if="$form.work?.advisors?.[index]?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.advisors[index].lastName.error.message }}</Message>
                         </div>
                      </div>
                      <div class="two-col">
                         <div class="field" >
-                           <LabeledInput label="Department" :name="`advisors[${index}].department`" v-model="item.department"/>
+                           <LabeledInput label="Department" :name="`work.advisors[${index}].department`" v-model="item.department"/>
                         </div>
                         <div class="field" >
-                           <LabeledInput label="Institution" :name="`advisors[${index}].institution`" v-model="item.institution"/>
+                           <LabeledInput label="Institution" :name="`work.advisors[${index}].institution`" v-model="item.institution"/>
                         </div>
                      </div>
                   </div>
@@ -66,15 +66,15 @@
                </Fieldset>
 
                <div class="field" >
-                  <LabeledInput label="Abstract" name="abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
-                  <Message v-if="$form.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.abstract.error.message }}</Message>
+                  <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
+                  <Message v-if="$form.work?.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.work.abstract.error.message }}</Message>
                </div>
                <RepeatField label="Keywords" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords"/>
-               <LabeledInput label="Language" name="language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
+               <LabeledInput label="Language" name="work.language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
                <RepeatField label="Related Links" help="A link to a website or other specific content (audio, video, PDF document) related to the work" v-model="etdRepo.work.relatedURLs"/>
                <RepeatField label="Sponsoring Agencies" v-model="etdRepo.work.sponsors"/>
-               <LabeledInput label="Notes" name="notes" v-model="etdRepo.work.notes" type="textarea" />
-               <LabeledInput v-if="adminEdit" label="Admin Notes" name="adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
+               <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
+               <LabeledInput v-if="adminEdit" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
                <div class="field" >
                   <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.userLicenses" />
                   <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
@@ -113,10 +113,11 @@
                   <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
                </div>
                <div v-else v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
-                  <RadioButton v-model="etdRepo.visibility" :inputId="v.value"  :value="v.value" @update:model-value="visibilityUpdated"/>
+                  <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
                   <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
                </div>
-               <div v-if="etdRepo.visibility == 'uva' || (adminEdit && etdRepo.visibility == 'embargo')" class="limited">
+               <Message v-if="$form.visibility?.invalid" severity="error" size="small" variant="simple">{{ $form.visibility.error.message }}</Message>
+               <div v-if="etdRepo.visibility == 'uva' || (adminEdit && etdRepo.visibility == 'embargo')" class="visibility-info">
                   <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
                   <div v-else>Files unavailable to anyone until:</div>
                   <div class="embargo-date">
@@ -128,7 +129,7 @@
                   </div>
                   <div>After that, files will be be available worldwide.</div>
                </div>
-               <div v-else>
+               <div v-else class="visibility-info">
                   All files will be available worldwide.
                </div>
             </div>
@@ -175,8 +176,8 @@ import Fieldset from 'primevue/fieldset'
 import LabeledInput from '@/components/LabeledInput.vue'
 import RepeatField from '@/components/RepeatField.vue'
 import DatePickerDialog from "@/components/DatePickerDialog.vue"
-import RadioButton from 'primevue/radiobutton'
 import FilesPanel from '@/components/FilesPanel.vue'
+import RadioButton from 'primevue/radiobutton'
 import { useConfirm } from "primevue/useconfirm"
 
 const confirm = useConfirm()
@@ -190,6 +191,71 @@ const admin = useAdminStore()
 const etdForm = ref(null)
 const postSave = ref("edit")
 const metadataComplete = ref(false)
+
+onBeforeMount( async () => {
+   document.title = "LibraETD"
+   if ( user.isSignedIn == false) {
+      router.push("/forbidden")
+      return
+   }
+   await etdRepo.getWork( route.params.id )
+})
+
+const resolver = ({ values }) => {
+   const errors = {
+      work: {
+         title: [],
+         author: { lastName: [], firstName: [] },
+         advisors: [ {advisor: { lastName: [], firstName: [] } } ],
+         abstract: [] },
+      licenseID: [],
+      visibility: [],
+   }
+   metadataComplete.value = true
+
+   if ( values.work.title == "" ) {
+      metadataComplete.value = false
+      errors.work.title = [{ message: 'Title is required' }]
+   }
+
+   if (values.work.author.firstName == "") {
+      metadataComplete.value = false
+      errors.work.author.firstName = [{ message: 'Author first name is required' }]
+   }
+   if (values.work.author.lastName == "") {
+      metadataComplete.value = false
+      errors.work.author.lastName = [{ message: 'Author last name is required' }]
+   }
+
+   values.work.advisors.forEach( (a,idx) => {
+      errors.work.advisors.push ({ firstName: [], lastName: []})
+      if ( a.firstName == "") {
+         metadataComplete.value = false
+         errors.work.advisors[ idx ].firstName = [{ message: 'Advisor first name is required' }]
+      }
+      if ( a.lastName == "") {
+         metadataComplete.value = false
+         errors.work.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
+      }
+   })
+
+   if ( values.work.abstract == "" ) {
+      metadataComplete.value = false
+      errors.work.abstract = [{ message: 'Abstract is required' }]
+   }
+
+   let licID = parseInt(values.licenseID)
+   if ( licID == 0 ) {
+      metadataComplete.value = false
+      errors.licenseID = [{ message: 'Rights are required' }]
+   }
+
+   if ( !values.visibility || values.visibility == "") {
+      errors.visibility = [{ message: 'Visibility is required' }]
+   }
+
+   return { values,errors }
+}
 
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
@@ -251,56 +317,6 @@ const saveChanges = ( async () => {
    }
 })
 
-const resolver = ({ values }) => {
-   const errors = {
-      title: [], author: { lastName: [], firstName: []},
-      advisors: [ {advisor: { lastName: [], firstName: [] } } ],
-      abstract: [], licenseID: []
-   }
-   metadataComplete.value = true
-
-   if ( values.title == "" ) {
-      metadataComplete.value = false
-      errors.title = [{ message: 'Title is required' }]
-   }
-   if ( values.author ) {
-      if (values.author.firstName == "") {
-         metadataComplete.value = false
-         errors.author.firstName = [{ message: 'Author first name is required' }]
-      }
-      if (values.author.lastName == "") {
-         metadataComplete.value = false
-         errors.author.lastName = [{ message: 'Author last name is required' }]
-      }
-   }
-
-   values.advisors.forEach( (a,idx) => {
-      errors.advisors.push ({ firstName: [], lastName: []})
-      if ( a.firstName == "") {
-         metadataComplete.value = false
-         errors.advisors[ idx ].firstName = [{ message: 'Advisor first name is required' }]
-      }
-      if ( a.lastName == "") {
-         metadataComplete.value = false
-         errors.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
-      }
-   })
-
-   if ( values.abstract == "" ) {
-      metadataComplete.value = false
-      errors.abstract = [{ message: 'Abstract is required' }]
-   }
-
-   console.log(values)
-   let licID = parseInt(values.licenseID)
-   if ( licID == 0 ) {
-      metadataComplete.value = false
-      errors.licenseID = [{ message: 'Rights are required' }]
-   }
-
-   return { values,errors }
-}
-
 const visibilityOpts = computed( () => {
    if (adminEdit.value) {
       return system.visibility
@@ -310,16 +326,6 @@ const visibilityOpts = computed( () => {
 
 const adminEdit = computed( () => {
    return route.path.includes("/admin")
-})
-
-onBeforeMount( async () => {
-   document.title = "LibraETD"
-   if ( user.isSignedIn == false) {
-      router.push("/forbidden")
-      return
-   }
-   await etdRepo.getWork( route.params.id )
-   etdForm.value.validate()
 })
 
 const addAdvisor = ( () => {
@@ -337,8 +343,8 @@ const checkAdvisorID = ((idx) => {
       let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
       etdRepo.work.advisors.splice(idx,1, auth)
       // set firs/last name in the form state data so validation works
-      etdForm.value.setFieldValue(`advisors[${idx}].firstName`, r.data.first_name)
-      etdForm.value.setFieldValue(`advisors[${idx}].lastName`, r.data.last_name)
+      etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
+      etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
    }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
@@ -430,17 +436,16 @@ const endDatePicked = ( (newDate) => {
                width: 200px;
             }
          }
-         .limited {
+         .visibility-info {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 5px;
+            align-items: flex-start;
+            gap: 10px;
             margin-top: 15px;
             .embargo-date {
-               display: flex;
-               flex-flow: row nowrap;
-               align-items: baseline;
-               gap: 20px;
+               span {
+                  margin-right: 20px;
+               }
             }
          }
       }
