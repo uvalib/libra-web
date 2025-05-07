@@ -69,10 +69,14 @@
                   <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
                   <Message v-if="$form.work?.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.work.abstract.error.message }}</Message>
                </div>
-               <RepeatField label="Keywords" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords"/>
+
+               <RepeatField label="Keywords" @change="listChanged=true" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords" />
                <LabeledInput label="Language" name="work.language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
-               <RepeatField label="Related Links" help="A link to a website or other specific content (audio, video, PDF document) related to the work" v-model="etdRepo.work.relatedURLs"/>
-               <RepeatField label="Sponsoring Agencies" v-model="etdRepo.work.sponsors"/>
+               <RepeatField label="Related Links" @change="listChanged=true"
+                  help="A link to a website or other specific content (audio, video, PDF document) related to the work"
+                  v-model="etdRepo.work.relatedURLs"
+               />
+               <RepeatField label="Sponsoring Agencies" @change="listChanged=true" v-model="etdRepo.work.sponsors"/>
                <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
                <LabeledInput v-if="adminEdit" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
                <div class="field" >
@@ -190,6 +194,7 @@ const admin = useAdminStore()
 
 const etdForm = ref(null)
 const postSave = ref("edit")
+const listChanged = ref(false)
 const metadataComplete = ref(false)
 
 onBeforeMount( async () => {
@@ -313,7 +318,7 @@ const isDirty = ((data) => {
 })
 
 const saveChanges = ( async (data) => {
-   let needSave = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0)
+   let needSave = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 || listChanged.value)
    if ( needSave == false) {
       needSave = isDirty( data.states )
    }

@@ -2,7 +2,7 @@
     <Fieldset :legend="props.label">
       <div class="list">
          <div class="note" v-if="model.length == 0">None</div>
-         <Chip v-for="(k,idx) in model" removable @remove="model.splice(idx,1)" :label="k" />
+         <Chip v-for="(k,idx) in model" removable @remove="removeValue(idx)" :label="k" />
       </div>
       <div class="control-group">
          <InputText type="text" v-model="newValue" fluid />
@@ -20,6 +20,8 @@ import Chip from 'primevue/chip'
 
 const model = defineModel()
 
+const emit = defineEmits(['change'])
+
 const props = defineProps({
    label: {
       type: String,
@@ -32,9 +34,15 @@ const props = defineProps({
 })
 const newValue = ref("")
 
+const removeValue = ((idx) => {
+   model.value.splice(idx,1)
+   emit('change')
+})
+
 const addValue = (() => {
    model.value.push(newValue.value)
    newValue.value = ""
+   emit('change')
 })
 
 </script>
