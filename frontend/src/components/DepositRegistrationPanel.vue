@@ -8,18 +8,24 @@
          <label>Degree:</label>
          <Select v-model="degree" :options="system.optDegrees" />
       </div>
-      <FieldSet legend="User List">
+      <FieldSet legend="Registrants">
          <div class="lookup">
-            <div class="user-lookup">
-               <InputText v-model="computeID" placeholder="Compute ID" @update:modelValue="idChanged"/>
-               <Button class="check" icon="pi pi-search" severity="secondary" @click="lookupComputeID"/>
+            <div class="note">
+               Add one ore more computing IDs to register. IDs can be separated by spaces, commas or newlines. Click 'Add'
+               to validate the IDs and add them to the registration list.
             </div>
-            <span v-if="userError" class="err">{{ userError }}</span>
+            <div class="user-lookup">
+               <TextArea v-model="computeID"  rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs"/>
+               <Button label="Add" size="small" severity="secondary" @click="lookup" :loading="working"/>
+            </div>
             <div class="users">
                <Chip v-for="u in users" removable @remove="removeUser(u.computeID)">
                   <span class="computeID">{{  u.computeID }}</span>
                   <span class="name">- {{  u.lastName }}, {{ u.firstName }}</span>
                </Chip>
+            </div>
+            <div class="errors">
+               <div v-for="err in userErrors" class="err">{{ err }}</div>
             </div>
          </div>
       </FieldSet>
@@ -34,7 +40,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
-import InputText from 'primevue/inputtext'
+import TextArea from 'primevue/textarea'
 import Chip from 'primevue/chip'
 import { useSystemStore } from "@/stores/system"
 import axios from 'axios'
@@ -43,8 +49,9 @@ const system = useSystemStore()
 const program = ref("")
 const degree = ref("")
 const computeID = ref("")
-const userError = ref("")
+const userErrors = ref([])
 const users = ref([])
+const working = ref(false)
 
 const emit = defineEmits( ['cancel', 'submit'])
 const props = defineProps({
@@ -66,12 +73,12 @@ const resetForm = (() => {
    program.value = ""
    degree.value = ""
    computeID.value = ""
-   userError.value = ""
+   userErrors.value = []
    users.value = []
 })
 
 const idChanged = (() => {
-   userError.value=""
+   userErrors.value=[]
 })
 
 const removeUser = ( (cID) => {
@@ -81,22 +88,33 @@ const removeUser = ( (cID) => {
    }
 })
 
-const lookupComputeID = ( () => {
-   userError.value = ""
-   axios.get(`/api/users/lookup/${computeID.value}`).then(r => {
-      const idx = users.value.findIndex( u => u.computeID == r.data.cid)
-      if ( idx == -1) {
-         let user = {
-            computeID: r.data.cid, firstName: r.data.first_name, lastName:
-            r.data.last_name, email: r.data.email }
-         users.value.push( user )
-         computeID.value = ""
-      } else {
-         userError.value = `${computeID.value} already added`
-      }
-   }).catch( () => {
-      userError.value = `${computeID.value} is not a valid compute ID`
+const lookup = ( () => {
+   let normalized = computeID.value.replace(/\n|\s+/g, ',').trim()
+   normalized = normalized.replace(/,+/g, ',')
+   let request = [ normalized ]
+   if ( normalized.includes(",")) {
+      request = normalized.split(",")
+   }
+
+   working.value = true
+   userErrors.value = []
+   request.forEach( computeID => {
+      axios.get(`/api/users/lookup/${computeID}`).then(r => {
+         const idx = users.value.findIndex( u => u.computeID == r.data.cid)
+         if ( idx == -1) {
+            let user = {
+               computeID: r.data.cid, firstName: r.data.first_name, lastName:
+               r.data.last_name, email: r.data.email }
+            users.value.push( user )
+         } else {
+            userErrors.value.push(`${computeID} already added`)
+         }
+      }).catch( () => {
+         userErrors.value.push(`${computeID} is not a valid compute ID`)
+      })
    })
+   computeID.value = ""
+   working.value = false
 })
 
 const submitClicked = (() => {
@@ -108,6 +126,9 @@ const submitClicked = (() => {
 </script>
 
 <style lang="scss" scoped>
+.note {
+   color: $uva-grey;
+}
 div.row {
    display: flex;
    flex-flow: row nowrap;
@@ -133,8 +154,8 @@ div.row {
    div.user-lookup {
       display: flex;
       flex-flow: row nowrap;
-      gap: 5px;
-      align-items: stretch;
+      gap: 0.5rem;
+      align-items: flex-start;
    }
    .users {
       padding: 10px;
@@ -148,11 +169,16 @@ div.row {
       gap: 5px;
    }
 }
-span.err {
-   display: inline-block;
-   color: $uva-red-A;
-   margin-left: 10px;
-   font-style: italic;
+.errors {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
+   .err {
+      display: inline-block;
+      color: $uva-red-A;
+      margin-left: 10px;
+      font-style: italic;
+   }
 }
 .controls {
    margin-top: 15px;
