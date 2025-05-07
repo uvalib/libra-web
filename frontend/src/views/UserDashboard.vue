@@ -41,7 +41,7 @@
             <Column header="Actions" style="width:175px;">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button v-if="slotProps.data.publishedAt" class="action" icon="pi pi-eye" label="Public View" severity="secondary"
+                     <Button v-if="slotProps.data.publishedAt" class="action" label="Public View" severity="secondary"
                         size="small" @click="previewWorkClicked(slotProps.data.id)"/>
                      <Button v-else class="action" label="Edit Thesis" severity="secondary"
                         size="small" @click="editWorkClicked(slotProps.data.id)"/>
