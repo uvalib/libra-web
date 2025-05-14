@@ -36,6 +36,10 @@
      "degree": "MFA (Master of Fine Arts)"
    },
    {
+     "sisKey": "MLAR",
+     "degree": "MLA (Master of Landscape Architecture)"
+   },
+   {
      "sisKey": "MS",
      "degree": "MS (Master of Science)"
    },

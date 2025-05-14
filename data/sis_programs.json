@@ -517,5 +517,17 @@
   {
     "sisKey": "MECULTE-MA",
     "program": "Media, Culture, and Technology - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "EUROPE-MA",
+    "program": "European Studies - Graduate School of Arts and Sciences"
+  },
+  {
+    "sisKey": "LAND-MLAR",
+    "program": "School of Architecture"
+  },
+  {
+    "sisKey": "DS-PHD",
+    "program": "School of Data Science"
   }
 ]
