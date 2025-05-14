@@ -256,13 +256,14 @@ func (svc *serviceContext) checkUserServiceJWT() error {
 		})
 		if jwtErr != nil {
 			log.Printf("INFO: existing user ws jwt is not valid; generate another: %s", jwtErr.Error())
+		} else {
+			log.Printf("INFO: user ws jwt already exists and is valid")
+			return nil
 		}
-		log.Printf("INFO: user ws jwt already exists and is valid")
-		return nil
 	}
 
 	log.Printf("INFO: generate jwt for userws")
-	expirationTime := time.Now().Add(8 * time.Hour)
+	expirationTime := time.Now().Add(30 * time.Second) // 8 * time.Hour)
 	claims := jwt.StandardClaims{
 		ExpiresAt: expirationTime.Unix(),
 		Issuer:    "libra3",
