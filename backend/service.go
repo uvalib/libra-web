@@ -263,7 +263,7 @@ func (svc *serviceContext) checkUserServiceJWT() error {
 	}
 
 	log.Printf("INFO: generate jwt for userws")
-	expirationTime := time.Now().Add(30 * time.Second) // 8 * time.Hour)
+	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwt.StandardClaims{
 		ExpiresAt: expirationTime.Unix(),
 		Issuer:    "libra3",
