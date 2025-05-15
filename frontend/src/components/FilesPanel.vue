@@ -1,7 +1,7 @@
 <template>
    <div class="files">
       <div class="section" v-if="etdRepo.work.files.length > 0">
-         <label class="libra-form-label">Previously Uploaded Files</label>
+         <div>Previously Uploaded Files</div>
          <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
                stripedRows showGridlines size="small"
                :lazy="false" :paginator="true" :alwaysShowPaginator="false"
@@ -30,7 +30,7 @@
             Upload Files
             <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
                @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
-               @removeUploadedFile="fileRemoved($event)"
+               @removeUploadedFile="fileRemoved($event)" :previewWidth="0"
                :multiple="true" :withCredentials="true" :auto="true"
                :showUploadButton="false" :showCancelButton="false">
                <template #empty>
@@ -86,10 +86,38 @@ const downloadFileClicked = ( (name) => {
 </script>
 
 <style lang="scss" scoped>
+:deep(.p-fileupload-header) {
+   border-bottom: 1px solid $uva-grey-200;
+   margin-bottom: 15px;
+}
+:deep(.p-fileupload-content) {
+   .p-fileupload-file-list {
+      gap: 15px;
+      .p-fileupload-file {
+         padding: 0 0 10px 0;
+         gap: 30px;
+         img.p-fileupload-file-thumbnail {
+            display: none;
+         }
+         .p-badge-success.p-fileupload-file-badge {
+            background: $uva-green-A;
+            border-radius: 0;
+         }
+      }
+   }
+}
+.p-fileupload {
+   margin-top: 5px;
+}
+.section {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
+}
 .files {
    display: flex;
    flex-direction: column;
-   gap: 15px;
+   gap: 25px;
    label {
       display: block;
       margin-bottom: 5px;

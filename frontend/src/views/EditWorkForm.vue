@@ -70,13 +70,13 @@
                   <Message v-if="$form.work?.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.work.abstract.error.message }}</Message>
                </div>
 
-               <RepeatField label="Keywords" @change="listChanged=true" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords" />
+               <RepeatField label="Keywords" name="keyword" @change="listChanged=true" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords" />
                <LabeledInput label="Language" name="work.language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
-               <RepeatField label="Related Links" @change="listChanged=true"
+               <RepeatField label="Related Links" @change="listChanged=true" name="related"
                   help="A link to a website or other specific content (audio, video, PDF document) related to the work"
                   v-model="etdRepo.work.relatedURLs"
                />
-               <RepeatField label="Sponsoring Agencies" @change="listChanged=true" v-model="etdRepo.work.sponsors"/>
+               <RepeatField label="Sponsoring Agencies" name="agency" @change="listChanged=true" v-model="etdRepo.work.sponsors"/>
                <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
                <LabeledInput v-if="adminEdit" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
                <div class="field" >
@@ -338,7 +338,7 @@ const saveChanges = ( async (data) => {
          return
       }
    } else {
-      console.log("no changes made; no sve necessary")
+      console.log("no changes made; no save necessary")
    }
 
    if ( postSave.value == "exit") {

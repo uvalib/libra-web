@@ -5,7 +5,7 @@
          <Chip v-for="(k,idx) in model" removable @remove="removeValue(idx)" :label="k" />
       </div>
       <div class="control-group">
-         <InputText type="text" v-model="newValue" fluid />
+         <InputText type="text" :name="name" v-model="newValue" fluid />
          <Button label="Add" severity="secondary" @click="addValue"/>
       </div>
       <div v-if="props.help" class="note">{{ props.help }}</div>
@@ -31,6 +31,10 @@ const props = defineProps({
       type: String,
       default: ""
    },
+   name: {
+      type: String,
+      required: true
+   }
 })
 const newValue = ref("")
 
