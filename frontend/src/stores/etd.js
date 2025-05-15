@@ -44,6 +44,19 @@ export const useETDStore = defineStore('etd', {
          let a = state.work.advisors[0]
          return a.firstName != "" && a.lastName != ""
       },
+      suggestedCitation: state => {
+         //[Author LastName], [Author FirstName]. [Title]. [Author Institution], [program], [Degree], [Published Year], [DOI URI].
+         let c = `${state.work.author.lastName}, ${state.work.author.firstName}. ${state.work.title}. ${state.work.author.institution}, `
+         c += `${state.work.program}, ${state.work.degree}`
+         if ( state.publishedAt) {
+            c += `, ${state.publishedAt.split("T")[0]}`
+         }
+         if ( state.persistentLink) {
+            c += state.persistentLink
+         }
+         c+="."
+         return c
+      }
    },
    actions: {
       async getWork(id) {

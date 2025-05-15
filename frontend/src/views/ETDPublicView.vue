@@ -73,7 +73,7 @@
                </section>
                <section>
                   <h2>Abstract</h2>
-                  <div>{{ etdRepo.work.abstract }}</div>
+                  <div style="white-space: pre-wrap;">{{ etdRepo.work.abstract }}</div>
                </section>
                <section>
                   <h2>Degree</h2>
@@ -97,7 +97,7 @@
                </section>
                <section v-if="etdRepo.work.notes">
                   <h2>Notes</h2>
-                  <div>{{ etdRepo.work.notes }}</div>
+                  <div style="white-space: pre-wrap;">{{ etdRepo.work.notes }}</div>
                </section>
                <section v-if="etdRepo.work.language">
                   <h2>Language</h2>
@@ -113,6 +113,11 @@
                   <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
                   <span v-else>Persistent link will appear here after submission.</span>
                </section>
+               <section>
+                  <h2>Suggested Citation</h2>
+                  <span id="citation">{{ etdRepo.suggestedCitation }}</span>
+                  <Button v-if="canClipboard" severity="secondary" size="small" label="Copy citation" @click="copyCitation"/>
+               </section>
             </div>
          </div>
       </div>
@@ -127,12 +132,16 @@ import { useRoute, useRouter } from 'vue-router'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import { useConfirm } from "primevue/useconfirm"
 import Checkbox from 'primevue/checkbox'
+import { useClipboard, usePermission } from '@vueuse/core'
 
 const etdRepo = useETDStore()
 const system = useSystemStore()
 const route = useRoute()
 const router = useRouter()
 const confirm = useConfirm()
+
+const canClipboard = usePermission('clipboard-write')
+const { copy, copied } = useClipboard()
 
 const justPublished = ref(false)
 const agree = ref(false)
@@ -144,6 +153,13 @@ onBeforeMount( async () => {
 
 const authorDisplay = ((a) => {
    return `${a.lastName}, ${a.firstName}, ${etdRepo.work.program}, ${a.institution}`
+})
+
+const copyCitation = (() => {
+   copy( etdRepo.suggestedCitation )
+   if (copied) {
+      system.toastMessage("Copied", "Citaion has been copied to the clipboard.")
+   }
 })
 
 const downloadFileClicked = ( (name) => {
@@ -227,6 +243,12 @@ div.work-bkg {
 
 div.public-work {
    position: relative;
+   section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+   }
    .details {
       border: 1px solid $uva-grey-100;
       font-family: 'Open Sans', sans-serif;
@@ -284,7 +306,7 @@ div.public-work {
             text-align: left;
             font-size: 1.15em;
             padding:0;
-            margin:0 0 10px 0;
+            margin:0 0 5px 0;
          }
       }
    }
