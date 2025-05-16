@@ -7,13 +7,12 @@
                <DepositRegistrationDialog />
             </div>
          </template>
-         <Fieldset legend="Find Works By">
-            <IconField iconPosition="left">
-               <InputIcon class="pi pi-search" />
-               <InputText v-model="computeID" placeholder="Compute ID" @keypress="searchKeyPressed($event)"/>
-               <Button class="search" icon="pi pi-search" severity="secondary" @click="searchClicked()"/>
-            </IconField>
-         </Fieldset>
+
+         <IconField iconPosition="left">
+            <InputIcon class="pi pi-search" />
+            <InputText v-model="queryString" placeholder="Compute ID" @keypress="searchKeyPressed($event)" fluid/>
+         </IconField>
+
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
                stripedRows showGridlines responsiveLayout="scroll"
                :lazy="false" :paginator="true" :alwaysShowPaginator="false"
@@ -24,7 +23,7 @@
                :loading="admin.working"
          >
             <template #empty>
-               <div v-if="computeID" class="none">No matching works found for {{ computeID }}</div>
+               <div v-if="queryString" class="none">No matching works found for {{ queryString }}</div>
                <div v-else class="none">Search for works by compute ID</div>
             </template>
             <Column field="namespace" header="Source">
@@ -49,7 +48,11 @@
                </template>
             </Column>
             <Column field="id" header="ID" sortable class="nowrap"/>
-            <Column field="computeID" header="Author" sortable style="width: 275px"/>
+            <Column field="author" header="Author" sortable style="width: 275px">
+               <template #body="slotProps">
+                  {{ slotProps.data.author.lastName }}, {{ slotProps.data.author.firstName }}
+               </template>
+            </Column>
             <Column field="title" header="Title" sortable>
                <template #body="slotProps">
                   <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
@@ -79,18 +82,15 @@ import Panel from 'primevue/panel'
 import DepositRegistrationDialog from "@/components/DepositRegistrationDialog.vue"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
-import Fieldset from 'primevue/fieldset'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
-import { useConfirm } from "primevue/useconfirm"
 
 const router = useRouter()
 const admin = useAdminStore()
 const system = useSystemStore()
-const confirm = useConfirm()
 
-const computeID = ref("")
+const queryString = ref("")
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
@@ -98,12 +98,8 @@ onBeforeMount( () => {
 
 const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
-      admin.search(computeID.value)
+      admin.search(queryString.value)
    }
-})
-
-const searchClicked = (() => {
-   admin.search(computeID.value)
 })
 
 const editWorkClicked = ( (id) => {
@@ -124,8 +120,8 @@ const viewWorkClicked = ( (id) => {
    min-height: 600px;
    text-align: left;
 
-   button.search {
-      margin-left: 5px;
+   .p-datatable {
+      margin-top: 20px;
    }
 
    .source {

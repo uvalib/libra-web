@@ -19,9 +19,9 @@ export const useAdminStore = defineStore('admin', {
          })
       },
 
-      search( computeID ) {
+      search( query ) {
          this.working = true
-         let url = `/api/admin/search?cid=${computeID}`
+         let url = `/api/admin/search?q=${query}`
          axios.get(url).then(response => {
             this.hits = response.data
             this.working = false

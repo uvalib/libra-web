@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,17 +13,42 @@ import (
 )
 
 type searchHit struct {
-	ID          string     `json:"id"`
-	Title       string     `json:"title"`
-	ComputeID   string     `json:"computeID"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	ModifiedAt  *time.Time `json:"modifiedAt,omitempty"`
-	PublishedAt *time.Time `json:"publishedAt,omitempty"`
+	ID          string                        `json:"id"`
+	Title       string                        `json:"title"`
+	Author      librametadata.ContributorData `json:"author"`
+	Source      string                        `json:"source"`
+	Visibility  string                        `json:"visibility"`
+	CreatedAt   time.Time                     `json:"createdAt"`
+	ModifiedAt  *time.Time                    `json:"modifiedAt,omitempty"`
+	PublishedAt *time.Time                    `json:"publishedAt,omitempty"`
+}
+
+type searchResp struct {
+	Hits []struct {
+		ID       string `json:"id"`
+		Metadata struct {
+			Version string                        `json:"version"`
+			Program string                        `json:"program"`
+			Degree  string                        `json:"degree"`
+			Title   string                        `json:"title"`
+			Author  librametadata.ContributorData `json:"author"`
+		} `json:"metadata"`
+		Fields struct {
+			CreateDate        string `json:"create-date"`
+			DefaultVisibility string `json:"default-visibility"`
+			Depositor         string `json:"depositor"`
+			Doi               string `json:"doi"`
+			Draft             string `json:"draft"`
+			PublishDate       string `json:"publish-date"`
+			ModifyDate        string `json:"modify-date"`
+			Source            string `json:"source"`
+			SourceID          string `json:"source-id"`
+		} `json:"fields"`
+	} `json:"hits"`
 }
 
 func (hit *searchHit) parseDates(esObj uvaeasystore.EasyStoreObject) {
 	log.Printf("INFO: parse dates for %s", hit.ID)
-	hit.CreatedAt = esObj.Created()
 	pubDateStr, published := esObj.Fields()["publish-date"]
 	if published {
 		log.Printf("INFO: has published date %s", pubDateStr)
@@ -45,50 +71,53 @@ func (hit *searchHit) parseDates(esObj uvaeasystore.EasyStoreObject) {
 	}
 }
 
-type adminSearchHit struct {
-	*searchHit
-	Namespace string `json:"namespace"`
-	Source    string `json:"source"`
-}
-
-type userSearchHit struct {
-	*searchHit
-	Visibility string `json:"visibility"`
-}
-
 func (svc *serviceContext) adminSearch(c *gin.Context) {
-	computeID := c.Query("cid")
-	if computeID == "" {
-		log.Printf("INFO: invalid search; missing cid")
-		c.String(http.StatusBadRequest, "cid is required")
+	qStr := c.Query("q")
+	if qStr == "" {
+		log.Printf("INFO: missing query")
+		c.String(http.StatusBadRequest, "query is required")
 		return
 	}
 
-	log.Printf("INFO: admin search for works by %s", computeID)
-	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = computeID
+	log.Printf("INFO: admin search for works with [%s]", qStr)
 	startTime := time.Now()
-	hits, err := svc.EasyStore.GetByFields("", fields, uvaeasystore.Metadata|uvaeasystore.Fields)
+	payload := map[string]string{"q": qStr}
+	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
+	rawResp, respErr := svc.sendPostRequest(url, payload)
+	if respErr != nil {
+		log.Printf("ERROR: search for [%s] failed: %s", qStr, respErr.Message)
+		c.String(respErr.StatusCode, respErr.Message)
+		return
+	}
+
+	var jsonResp searchResp
+	err := json.Unmarshal(rawResp, &jsonResp)
 	if err != nil {
-		log.Printf("ERROR: search failed: %s", err.Error())
+		log.Printf("ERROR: unable to parse response: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
-	resp := make([]adminSearchHit, 0)
-	obj, err := hits.Next()
-	for err == nil {
-		if obj.Namespace() == svc.Namespace {
-			hit, parseErr := svc.parseETDSearchHit(obj)
-			if parseErr != nil {
-				log.Printf("ERROR: unable to parse search result %s: %s", obj.Id(), parseErr.Error())
-			} else {
-				adminHit := adminSearchHit{Source: obj.Fields()["source"], Namespace: obj.Namespace()}
-				adminHit.searchHit = hit
-				resp = append(resp, adminHit)
-			}
+
+	resp := make([]searchHit, 0)
+	for _, h := range jsonResp.Hits {
+		log.Printf("HIT: %+v", h)
+		hit := searchHit{
+			ID:     h.ID,
+			Title:  h.Metadata.Title,
+			Author: h.Metadata.Author,
+			Source: h.Fields.Source,
 		}
-		obj, err = hits.Next()
+		createDate, _ := time.Parse(time.RFC3339, h.Fields.CreateDate)
+		hit.CreatedAt = createDate
+		if h.Fields.PublishDate != "" {
+			pubDate, _ := time.Parse(time.RFC3339, h.Fields.PublishDate)
+			hit.PublishedAt = &pubDate
+		}
+		if h.Fields.ModifyDate != "" {
+			modDate, _ := time.Parse(time.RFC3339, h.Fields.ModifyDate)
+			hit.ModifiedAt = &modDate
+		}
+		resp = append(resp, hit)
 	}
 
 	elapsedNanoSec := time.Since(startTime)
@@ -118,7 +147,7 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 	}
 
 	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
-	resp := make([]userSearchHit, 0)
+	resp := make([]searchHit, 0)
 	obj, err := hits.Next()
 	for err == nil {
 		var hit *searchHit
@@ -132,11 +161,10 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 			continue
 		}
 
-		userHit := userSearchHit{searchHit: hit}
 		visibility := svc.calculateVisibility(obj)
-		userHit.Visibility = visibility
+		hit.Visibility = visibility
 
-		resp = append(resp, userHit)
+		resp = append(resp, *hit)
 		obj, err = hits.Next()
 	}
 	c.JSON(http.StatusOK, resp)
@@ -153,9 +181,9 @@ func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject)
 		return nil, objErr
 	}
 	hit := searchHit{
-		ID:        esObj.Id(),
-		Title:     etdWork.Title,
-		ComputeID: etdWork.Author.ComputeID,
+		ID:     esObj.Id(),
+		Title:  etdWork.Title,
+		Author: etdWork.Author,
 	}
 	hit.parseDates(esObj)
 	return &hit, nil

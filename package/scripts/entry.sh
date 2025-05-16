@@ -27,6 +27,7 @@ fi
 
 # run application
 cd bin; ./libra-web \
+   -index        ${INDEX_URL} \
    -jwtkey       ${JWT_KEY} \
    -userws       ${USER_WS} \
    -namespace    ${ETD_NAMESPACE} \

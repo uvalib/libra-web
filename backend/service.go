@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,7 +9,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -41,6 +41,7 @@ type serviceContext struct {
 	Namespace     string
 	UVAWhiteList  []*net.IPNet
 	AuditQueryURL string
+	IndexURL      string
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -106,6 +107,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		OrcidService: cfg.orcidService,
 		DevAuthUser:  cfg.devAuthUser,
 		Namespace:    cfg.namespace,
+		IndexURL:     cfg.indexURL,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")
@@ -507,14 +509,20 @@ func (svc *serviceContext) sendGetRequest(url string) ([]byte, *RequestError) {
 	return svc.sendRequest("GET", url, nil)
 }
 
-func (svc *serviceContext) sendRequest(verb string, url string, payload *url.Values) ([]byte, *RequestError) {
+func (svc *serviceContext) sendPostRequest(url string, payload any) ([]byte, *RequestError) {
+	return svc.sendRequest("POST", url, payload)
+}
+
+func (svc *serviceContext) sendRequest(verb string, url string, payload any) ([]byte, *RequestError) {
 	log.Printf("INFO: %s request: %s", verb, url)
 	startTime := time.Now()
 
 	var req *http.Request
 	if verb == "POST" && payload != nil {
-		req, _ = http.NewRequest("POST", url, strings.NewReader(payload.Encode()))
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		b, _ := json.Marshal(payload)
+		req, _ = http.NewRequest("POST", url, bytes.NewBuffer(b))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
 	} else {
 		req, _ = http.NewRequest(verb, url, nil)
 		req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.128 Safari/537.36")

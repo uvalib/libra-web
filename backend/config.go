@@ -39,6 +39,7 @@ type configData struct {
 	namespace       string
 	busName         string
 	eventSourceName string
+	indexURL        string
 }
 
 func getConfiguration() *configData {
@@ -68,6 +69,9 @@ func getConfiguration() *configData {
 	// namespace
 	flag.StringVar(&config.namespace, "namespace", "etd", "Namespace for work processing")
 
+	// search index
+	flag.StringVar(&config.indexURL, "index", "", "Search index URL")
+
 	// event bus
 	flag.StringVar(&config.busName, "busname", "", "Event bus name")
 	flag.StringVar(&config.eventSourceName, "eventsrc", "", "Event source name")
@@ -95,6 +99,9 @@ func getConfiguration() *configData {
 	if config.easyStore.mode == "s3" && config.easyStore.s3Bucket == "" {
 		log.Fatal("Parameter esbucket is required for easystore s3 mode")
 	}
+	if config.indexURL == "" {
+		log.Fatal("Parameter index is required")
+	}
 
 	log.Printf("[CONFIG] port          = [%d]", config.port)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
@@ -104,6 +111,7 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] namespace     = [%s]", config.namespace)
 	log.Printf("[CONFIG] eventsrc      = [%s]", config.eventSourceName)
 	log.Printf("[CONFIG] busname       = [%s]", config.busName)
+	log.Printf("[CONFIG] index         = [%s]", config.indexURL)
 
 	if config.easyStore.mode == "sqlite" {
 		log.Printf("[CONFIG] esdbdir       = [%s]", config.easyStore.dbDir)
