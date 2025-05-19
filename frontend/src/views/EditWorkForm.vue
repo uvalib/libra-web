@@ -376,7 +376,11 @@ const checkAdvisorID = ((idx) => {
    let cID = etdRepo.work.advisors[idx].computeID
    etdRepo.work.advisors[idx].msg = ""
    axios.get(`/api/users/lookup/${cID}`).then(r => {
-      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: r.data.department[0], institution: "University of Virginia"}
+      let department = ""
+      if ( r.data.department && r.data.department.length > 0 ) {
+         department = r.data.department[0]
+      }
+      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
       etdRepo.work.advisors.splice(idx,1, auth)
       // set firs/last name in the form state data so validation works
       etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
