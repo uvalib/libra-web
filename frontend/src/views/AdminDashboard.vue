@@ -10,7 +10,7 @@
 
          <IconField iconPosition="left">
             <InputIcon class="pi pi-search" />
-            <InputText v-model="queryString" placeholder="Compute ID" @keypress="searchKeyPressed($event)" fluid/>
+            <InputText v-model="queryString" @keypress="searchKeyPressed($event)" fluid/>
          </IconField>
 
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
@@ -24,7 +24,7 @@
          >
             <template #empty>
                <div v-if="queryString" class="none">No matching works found for {{ queryString }}</div>
-               <div v-else class="none">Search for works by compute ID</div>
+               <div v-else class="none">Search for works</div>
             </template>
             <Column field="namespace" header="Source">
                <template #body="slotProps">
@@ -35,25 +35,25 @@
             <Column field="createdAt" header="Created" sortable class="nowrap">
                <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
             </Column>
-            <Column field="modifiedAt" header="Modified" sortable class="nowrap">
+            <Column field="modifiedAt" header="Modified" class="nowrap">
                <template #body="slotProps">
                   <div v-if="slotProps.data.modifiedAt">{{ $formatDateTime(slotProps.data.modifiedAt) }}</div>
                   <div v-else class="na">N/A</div>
                </template>
             </Column>
-            <Column field="publishedAt" header="Published" sortable class="nowrap">
+            <Column field="publishedAt" header="Published" class="nowrap">
                <template #body="slotProps">
                   <div v-if="slotProps.data.publishedAt">{{ $formatDateTime(slotProps.data.publishedAt) }}</div>
                   <div v-else class="na">N/A</div>
                </template>
             </Column>
-            <Column field="id" header="ID" sortable class="nowrap"/>
-            <Column field="author" header="Author" sortable style="width: 275px">
+            <Column field="id" header="ID" class="nowrap"/>
+            <Column field="author" header="Author" style="width: 275px">
                <template #body="slotProps">
                   {{ slotProps.data.author.lastName }}, {{ slotProps.data.author.firstName }}
                </template>
             </Column>
-            <Column field="title" header="Title" sortable>
+            <Column field="title" header="Title">
                <template #body="slotProps">
                   <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
                   <span v-else class="na">Undefined</span>
