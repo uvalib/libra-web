@@ -22,7 +22,6 @@
             <Column field="createdAt" header="Date Uploaded" >
                <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
             </Column>
-            <Column header="ORCID Status"/>
             <Column header="Visibility" >
                <template #body="slotProps">
                   <div class="tag">
@@ -55,7 +54,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onBeforeMount } from 'vue'
+import { onMounted } from 'vue'
 import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
@@ -69,7 +68,7 @@ const searchStore = useSearchStore()
 const user = useUserStore()
 const system = useSystemStore()
 
-onBeforeMount( () => {
+onMounted( () => {
    searchStore.search(user.computeID)
 })
 
@@ -86,8 +85,7 @@ const previewWorkClicked = ( (id) => {
 
 <style lang="scss" scoped>
 .dashboard {
-   margin: 0 auto;
-   min-height: 600px;
+   margin: 0 auto 50px auto;
    text-align: left;
    .help {
       margin: 1.5rem 0;

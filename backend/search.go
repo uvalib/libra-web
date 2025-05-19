@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
@@ -47,30 +46,6 @@ type searchResp struct {
 	} `json:"hits"`
 }
 
-func (hit *searchHit) parseDates(esObj uvaeasystore.EasyStoreObject) {
-	log.Printf("INFO: parse dates for %s", hit.ID)
-	pubDateStr, published := esObj.Fields()["publish-date"]
-	if published {
-		log.Printf("INFO: has published date %s", pubDateStr)
-		pubDate, err := time.Parse(time.RFC3339, pubDateStr)
-		if err != nil {
-			log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
-			pubDate = time.Now()
-		}
-		hit.PublishedAt = &pubDate
-	}
-	modDateStr, modified := esObj.Fields()["modify-date"]
-	if modified {
-		log.Printf("INFO: has modified date %s", modDateStr)
-		modDate, err := time.Parse(time.RFC3339, modDateStr)
-		if err != nil {
-			log.Printf("ERROR: unable to parse modify-date [%s]: %s", modDateStr, err.Error())
-			modDate = time.Now()
-		}
-		hit.ModifiedAt = &modDate
-	}
-}
-
 func (svc *serviceContext) adminSearch(c *gin.Context) {
 	qStr := c.Query("q")
 	if qStr == "" {
@@ -90,6 +65,8 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
+	// log.Printf("INDEX RESP: %s", rawResp)
+
 	var jsonResp searchResp
 	err := json.Unmarshal(rawResp, &jsonResp)
 	if err != nil {
@@ -98,14 +75,27 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
+	resp := parseIndexSearchHits(jsonResp)
+
+	elapsedNanoSec := time.Since(startTime)
+	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
+	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp), elapsedMS)
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func parseIndexSearchHits(indexResp searchResp) []searchHit {
 	resp := make([]searchHit, 0)
-	for _, h := range jsonResp.Hits {
-		log.Printf("HIT: %+v", h)
+	for _, h := range indexResp.Hits {
+
+		// TODO:
+		// visibility := svc.calculateVisibility(obj)
 		hit := searchHit{
-			ID:     h.ID,
-			Title:  h.Metadata.Title,
-			Author: h.Metadata.Author,
-			Source: h.Fields.Source,
+			ID:         h.ID,
+			Title:      h.Metadata.Title,
+			Author:     h.Metadata.Author,
+			Source:     h.Fields.Source,
+			Visibility: h.Fields.DefaultVisibility,
 		}
 		createDate, _ := time.Parse(time.RFC3339, h.Fields.CreateDate)
 		hit.CreatedAt = createDate
@@ -119,12 +109,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		}
 		resp = append(resp, hit)
 	}
-
-	elapsedNanoSec := time.Since(startTime)
-	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
-	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp), elapsedMS)
-
-	c.JSON(http.StatusOK, resp)
+	return resp
 }
 
 func (svc *serviceContext) userSearch(c *gin.Context) {
@@ -135,56 +120,24 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 		return
 	}
 
-	fields := uvaeasystore.DefaultEasyStoreFields()
-	fields["depositor"] = computeID
+	log.Printf("INFO: find user %s works", computeID)
+	payload := map[string]string{"filter": fmt.Sprintf("fields.depositor=%s", computeID)}
+	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
+	rawResp, respErr := svc.sendPostRequest(url, payload)
+	if respErr != nil {
+		log.Printf("ERROR: search for %s works failed: %s", computeID, respErr.Message)
+		c.String(respErr.StatusCode, respErr.Message)
+		return
+	}
 
-	log.Printf("INFO: find user %s %s works", computeID, svc.Namespace)
-	hits, err := svc.EasyStore.GetByFields(svc.Namespace, fields, uvaeasystore.Metadata|uvaeasystore.Fields)
+	var jsonResp searchResp
+	err := json.Unmarshal(rawResp, &jsonResp)
 	if err != nil {
-		log.Printf("ERROR: search failed: %s", err.Error())
+		log.Printf("ERROR: unable to parse response: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	log.Printf("INFO: %d hits returned; parsing results", hits.Count())
-	resp := make([]searchHit, 0)
-	obj, err := hits.Next()
-	for err == nil {
-		var hit *searchHit
-		if obj.Namespace() != svc.Namespace {
-			continue
-		}
-
-		hit, err = svc.parseETDSearchHit(obj)
-		if err != nil {
-			log.Printf("ERROR: unable to parse search result %s: %s", obj.Id(), err.Error())
-			continue
-		}
-
-		visibility := svc.calculateVisibility(obj)
-		hit.Visibility = visibility
-
-		resp = append(resp, *hit)
-		obj, err = hits.Next()
-	}
+	resp := parseIndexSearchHits(jsonResp)
 	c.JSON(http.StatusOK, resp)
-}
-
-func (svc *serviceContext) parseETDSearchHit(esObj uvaeasystore.EasyStoreObject) (*searchHit, error) {
-	etdWorkBytes, objErr := esObj.Metadata().Payload()
-	if objErr != nil {
-		return nil, fmt.Errorf("unable to get object %s payload: %s", esObj.Id(), objErr.Error())
-	}
-
-	etdWork, objErr := librametadata.ETDWorkFromBytes(etdWorkBytes)
-	if objErr != nil {
-		return nil, objErr
-	}
-	hit := searchHit{
-		ID:     esObj.Id(),
-		Title:  etdWork.Title,
-		Author: etdWork.Author,
-	}
-	hit.parseDates(esObj)
-	return &hit, nil
 }

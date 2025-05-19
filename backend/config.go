@@ -67,7 +67,7 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.easyStore.s3Bucket, "esbucket", "", "EasyStore S3 bucket name for file storage")
 
 	// namespace
-	flag.StringVar(&config.namespace, "namespace", "etd", "Namespace for work processing")
+	flag.StringVar(&config.namespace, "namespace", "libraetd", "Namespace for work processing")
 
 	// search index
 	flag.StringVar(&config.indexURL, "index", "", "Search index URL")
