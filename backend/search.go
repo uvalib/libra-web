@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,18 @@ type searchHit struct {
 }
 
 type searchResp struct {
-	Hits []struct {
+	Total  int64       `json:"total"`
+	Offset int64       `json:"offset"`
+	Limit  int64       `json:"limit"`
+	Hits   []searchHit `json:"hits"`
+}
+
+type indexResp struct {
+	ProcessingTime int64 `json:"processingTimeMs"`
+	Total          int64 `json:"estimatedTotalHits"`
+	Offset         int64 `json:"offset"`
+	Limit          int64 `json:"limit"`
+	Hits           []struct {
 		ID       string `json:"id"`
 		Metadata struct {
 			Version string                        `json:"version"`
@@ -54,9 +66,19 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
+	offset, pageErr := strconv.ParseInt(c.Query("offset"), 10, 0)
+	if pageErr != nil {
+		log.Printf("ERROR: invalid offset parameter %s: %s", c.Query("offset"), pageErr.Error())
+		return
+	}
+	limit, pageErr := strconv.ParseInt(c.Query("limit"), 10, 0)
+	if pageErr != nil {
+		log.Printf("ERROR: invalid  limit parameter %s: %s", c.Query("offset"), pageErr.Error())
+		return
+	}
+
 	log.Printf("INFO: admin search for works with [%s]", qStr)
-	startTime := time.Now()
-	payload := map[string]string{"q": qStr}
+	payload := map[string]any{"q": qStr, "offset": offset, "limit": limit}
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
 	rawResp, respErr := svc.sendPostRequest(url, payload)
 	if respErr != nil {
@@ -67,7 +89,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 
 	// log.Printf("INDEX RESP: %s", rawResp)
 
-	var jsonResp searchResp
+	var jsonResp indexResp
 	err := json.Unmarshal(rawResp, &jsonResp)
 	if err != nil {
 		log.Printf("ERROR: unable to parse response: %s", err.Error())
@@ -77,17 +99,14 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 
 	resp := parseIndexSearchHits(jsonResp)
 
-	elapsedNanoSec := time.Since(startTime)
-	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
-	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp), elapsedMS)
+	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp.Hits), jsonResp.ProcessingTime)
 
 	c.JSON(http.StatusOK, resp)
 }
 
-func parseIndexSearchHits(indexResp searchResp) []searchHit {
-	resp := make([]searchHit, 0)
-	for _, h := range indexResp.Hits {
-
+func parseIndexSearchHits(rawResp indexResp) searchResp {
+	resp := searchResp{Total: rawResp.Total, Offset: rawResp.Offset, Limit: rawResp.Limit, Hits: make([]searchHit, 0)}
+	for _, h := range rawResp.Hits {
 		// TODO:
 		// visibility := svc.calculateVisibility(obj)
 		hit := searchHit{
@@ -97,18 +116,19 @@ func parseIndexSearchHits(indexResp searchResp) []searchHit {
 			Source:     h.Fields.Source,
 			Visibility: h.Fields.DefaultVisibility,
 		}
-		createDate, _ := time.Parse(time.RFC3339, h.Fields.CreateDate)
-		hit.CreatedAt = createDate
+
+		hit.CreatedAt = parseDate(h.Fields.CreateDate)
 		if h.Fields.PublishDate != "" {
-			pubDate, _ := time.Parse(time.RFC3339, h.Fields.PublishDate)
-			hit.PublishedAt = &pubDate
+			date := parseDate(h.Fields.PublishDate)
+			hit.PublishedAt = &date
 		}
 		if h.Fields.ModifyDate != "" {
-			modDate, _ := time.Parse(time.RFC3339, h.Fields.ModifyDate)
-			hit.ModifiedAt = &modDate
+			date := parseDate(h.Fields.ModifyDate)
+			hit.ModifiedAt = &date
 		}
-		resp = append(resp, hit)
+		resp.Hits = append(resp.Hits, hit)
 	}
+
 	return resp
 }
 
@@ -130,7 +150,7 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 		return
 	}
 
-	var jsonResp searchResp
+	var jsonResp indexResp
 	err := json.Unmarshal(rawResp, &jsonResp)
 	if err != nil {
 		log.Printf("ERROR: unable to parse response: %s", err.Error())

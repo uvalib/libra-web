@@ -5,7 +5,11 @@ export default {
       app.config.globalProperties.$formatDateTime = (dateStr) => {
          if (dateStr) {
             let d = dayjs(dateStr)
-            return d.format("YYYY-MM-DD hh:mm A")
+            if ( dateStr.includes("T00:00:00Z") ) {
+               return d.format("YYYY-MM-DD")
+            } else {
+               return d.format("YYYY-MM-DD hh:mm A")
+            }
          }
          return ""
       }

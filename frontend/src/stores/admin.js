@@ -7,6 +7,10 @@ export const useAdminStore = defineStore('admin', {
    state: () => ({
       working: false,
       hits: [],
+      total: 0,
+      offset: 0,
+      limit: 20,
+      query: "",
    }),
    actions: {
       clearAll() {
@@ -19,11 +23,12 @@ export const useAdminStore = defineStore('admin', {
          })
       },
 
-      search( query ) {
+      search() {
          this.working = true
-         let url = `/api/admin/search?q=${query}`
+         let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}`
          axios.get(url).then(response => {
-            this.hits = response.data
+            this.hits = response.data.hits
+            this.total = response.data.total
             this.working = false
          }).catch( err => {
             const system = useSystemStore()

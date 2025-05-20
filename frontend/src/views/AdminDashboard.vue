@@ -10,20 +10,20 @@
 
          <IconField iconPosition="left">
             <InputIcon class="pi pi-search" />
-            <InputText v-model="queryString" @keypress="searchKeyPressed($event)" fluid/>
+            <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid/>
          </IconField>
 
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
                stripedRows showGridlines responsiveLayout="scroll"
-               :lazy="false" :paginator="true" :alwaysShowPaginator="false"
-               :rows="30" :totalRecords="admin.hits.length"
-               paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-               :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
+               :lazy="true" :paginator="true" :alwaysShowPaginator="false"
+               @page="onPage($event)"  paginatorPosition="both"
+               :first="admin.offset" :rows="admin.limit" :totalRecords="admin.total"
+               paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink"
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
                :loading="admin.working"
          >
             <template #empty>
-               <div v-if="queryString" class="none">No matching works found for {{ queryString }}</div>
+               <div v-if="admin.query" class="none">No matching works found for {{ admin.query }}</div>
                <div v-else class="none">Search for works</div>
             </template>
             <Column field="namespace" header="Source">
@@ -32,6 +32,7 @@
                   <div v-if="slotProps.data.source" class="source">( {{ slotProps.data.source }} )</div>
                </template>
             </Column>
+            <Column field="id" header="ID" class="nowrap"/>
             <Column field="createdAt" header="Created" sortable class="nowrap">
                <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
             </Column>
@@ -47,7 +48,6 @@
                   <div v-else class="na">N/A</div>
                </template>
             </Column>
-            <Column field="id" header="ID" class="nowrap"/>
             <Column field="author" header="Author" style="width: 275px">
                <template #body="slotProps">
                   {{ slotProps.data.author.lastName }}, {{ slotProps.data.author.firstName }}
@@ -75,7 +75,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onBeforeMount, ref } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import { useSystemStore } from "@/stores/system"
 import Panel from 'primevue/panel'
@@ -90,15 +90,18 @@ const router = useRouter()
 const admin = useAdminStore()
 const system = useSystemStore()
 
-const queryString = ref("")
-
 onBeforeMount( () => {
    document.title = "Libra Admin"
 })
 
+const onPage = ((event) => {
+   admin.offset = event.first
+   admin.search()
+})
+
 const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
-      admin.search(queryString.value)
+      admin.search()
    }
 })
 

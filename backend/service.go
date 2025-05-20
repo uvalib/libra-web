@@ -566,3 +566,15 @@ func handleAPIResponse(logURL string, resp *http.Response, err error) ([]byte, *
 	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	return bodyBytes, nil
 }
+
+func parseDate(dateStr string) time.Time {
+	date, err := time.Parse(time.RFC3339, dateStr)
+	if err == nil {
+		return date
+	}
+	date, err = time.Parse("2006-01-02", dateStr)
+	if err != nil {
+		log.Printf("WARNING: unable to parse date %s: %s", dateStr, err.Error())
+	}
+	return date
+}

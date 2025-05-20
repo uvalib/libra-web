@@ -11,6 +11,9 @@
          color: $uva-brand-blue-100;
       }
    }
+   button.p-button {
+      white-space: nowrap
+   }
    button.p-button-link {
       margin: 0;
       padding: 2px 10px;
