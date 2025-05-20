@@ -37,11 +37,11 @@ type serviceContext struct {
 	UserService   userServiceCfg
 	OrcidService  orcidServiceCfg
 	JWTKey        string
-	DevAuthUser   string
 	Namespace     string
 	UVAWhiteList  []*net.IPNet
 	AuditQueryURL string
 	IndexURL      string
+	Dev           devConfig
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -105,7 +105,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		JWTKey:       cfg.jwtKey,
 		UserService:  cfg.userService,
 		OrcidService: cfg.orcidService,
-		DevAuthUser:  cfg.devAuthUser,
+		Dev:          cfg.dev,
 		Namespace:    cfg.namespace,
 		IndexURL:     cfg.indexURL,
 	}
@@ -154,7 +154,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	log.Printf("INFO: configure easystore")
 	// NOTE: easystore will disable the event bus if the bus name is bank. Do this for devBus mode
 	busName := cfg.busName
-	if cfg.devBus {
+	if cfg.dev.fakeBus {
 		log.Printf("INFO: bus is in dev mode; set blank name for easystore config")
 		busName = ""
 	}
@@ -210,12 +210,10 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: easystore configured")
 
-	ctx.Events.DevMode = cfg.devBus
+	ctx.Events.DevMode = cfg.dev.fakeBus
 	ctx.Events.BusName = cfg.busName
 	ctx.Events.EventSource = cfg.eventSourceName
-	if cfg.devBus {
-		log.Printf("INFO: bus is in dev mode - log events instead of sending to bus")
-	} else {
+	if cfg.dev.fakeBus == false {
 		log.Printf("INFO: configure event bus [%s] with source [%s]", cfg.busName, cfg.eventSourceName)
 		busCfg := uvalibrabus.UvaBusConfig{
 			Source:  cfg.eventSourceName,

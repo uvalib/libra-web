@@ -31,6 +31,8 @@ export const useUserStore = defineStore('user', {
       private: "",
       admin: false,
       registrar: false,
+      working: false,
+      theses: []
    }),
    getters: {
       isSignedIn: state => {
@@ -52,6 +54,19 @@ export const useUserStore = defineStore('user', {
       signOut() {
          localStorage.removeItem("libra3_jwt")
          this.$reset()
+      },
+      getTheses() {
+         this.working = true
+         let url = `/api/works/search?cid=${this.computeID}`
+         axios.get(url).then(response => {
+            this.theses = response.data.hits
+            this.working = false
+         }).catch( err => {
+            console.error(err)
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
       },
       setJWT(jwt) {
          if (jwt == null || jwt == "" || jwt == "null") {

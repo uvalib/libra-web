@@ -16,6 +16,7 @@ const router = createRouter({
    routes: [
       {
          path: '/',
+         alias: '/dashboard',
          name: 'dashboard',
          component: UserDashboard
       },
@@ -87,10 +88,12 @@ router.beforeEach( async (to) => {
       userStore.setJWT(jwtStr)
       if ( userStore.isSignedIn  ) {
          console.log(`GRANTED [${jwtStr}]`)
-         if ( userStore.registrar) {
-            return {name: "register"}
+         if ( userStore.admin) {
+            return "/admin"
+         } else if ( userStore.registrar) {
+            return "/register"
          }
-         return {name: "dashboard"}
+         return "/"
       }
       return {name: "forbidden"}
    }

@@ -1,6 +1,6 @@
 <template>
    <Menubar :model="libraMenu">
-      <template #start>
+      <template #start v-if="user.admin == false && user.registrar == false">
          <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">Libra Support</a>
       </template>
       <template #item="{ item, props, hasSubmenu }">
@@ -25,7 +25,7 @@ import { computed, onMounted } from 'vue'
 import { useUserStore } from "@/stores/user"
 import { useOrcidStore } from "@/stores/orcid"
 import { useRouter} from "vue-router"
-import ORCIDLogo from '@/assets/ORCID-iD_icon-vector.svg';
+import ORCIDLogo from '@/assets/ORCID-iD_icon-vector.svg'
 
 const router = useRouter()
 const user = useUserStore()
@@ -37,28 +37,33 @@ onMounted(()=>{
 
 const libraMenu = computed( () => {
    let menu = []
-   if (user.registrar) {
-      let userMenu =
-         {label: `${user.firstName} ${user.lastName}`, items: [
-            {label: "Sign out",  command: ()=>signOut()}
-         ]}
-      menu.push(userMenu)
+   if ( user.admin ) {
+      menu.push({label: "Dashboard", route: "/admin"})
+   } else if ( user.registrar ) {
+      menu.push({label: "Dashboard", route: "/register"})
    } else {
       menu.push({label: "Dashboard", route: "/"})
-      if ( user.admin ) {
-         menu.push({label: "Admin", route: "/admin"})
+   }
+
+   if ( user.admin || user.registrar) {
+      let userMenu =
+      {
+         label: `${user.firstName} ${user.lastName}`, items: [
+            {label: "Sign out",  command: ()=>signOut()}
+         ]
       }
+      menu.push(userMenu)
+   } else {
       let orcidMenu = [
          {label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
          { visible: (orcid.userURI != "") , label: orcid.userURI, img: ORCIDLogo, alt: "ORCID logo", target: "_blank", url: orcid.userURI, icon: "pi pi-external-link"}
       ]
-      let userMenu =
-         {label: `${user.firstName} ${user.lastName}`, items: [
-            {  label: "ORCID",
-               items: orcidMenu
-            },
-            {label: "Sign out",  command: ()=>signOut()}
-         ]}
+      let userMenu = {
+         label: `${user.firstName} ${user.lastName}`, items: [
+            { label: "ORCID", items: orcidMenu },
+            { label: "Sign out",  command: ()=>signOut()}
+         ]
+      }
 
       menu.push(userMenu)
    }

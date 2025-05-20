@@ -27,19 +27,24 @@ type easyStoreConfig struct {
 	s3Bucket  string
 }
 
+type devConfig struct {
+	user    string
+	role    string
+	fakeBus bool
+}
+
 type configData struct {
 	port            int
 	userService     userServiceCfg
 	orcidService    orcidServiceCfg
 	auditQueryURL   string
-	devAuthUser     string
-	devBus          bool
 	jwtKey          string
 	easyStore       easyStoreConfig
 	namespace       string
 	busName         string
 	eventSourceName string
 	indexURL        string
+	dev             devConfig
 }
 
 func getConfiguration() *configData {
@@ -51,8 +56,9 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.orcidService.GetURL, "getorcidurl", "", "GET orcid for user service")
 
 	// dev mode
-	flag.StringVar(&config.devAuthUser, "devuser", "", "Authorized computing id for dev")
-	flag.BoolVar(&config.devBus, "devbus", false, "bus dev mode (no events sent out)")
+	flag.StringVar(&config.dev.user, "devuser", "", "Authorized computing id for dev")
+	flag.StringVar(&config.dev.role, "devrole", "user", "Role for dev user")
+	flag.BoolVar(&config.dev.fakeBus, "devbus", false, "bus dev mode (no events sent out)")
 
 	// easystore cfg
 	flag.StringVar(&config.easyStore.mode, "esmode", "none", "EasyStore mode (sqlite, psql)")
@@ -126,10 +132,11 @@ func getConfiguration() *configData {
 			log.Printf("[CONFIG] esbucket      = [%s]", config.easyStore.s3Bucket)
 		}
 	}
-	if config.devAuthUser != "" {
-		log.Printf("[CONFIG] devuser       = [%s]", config.devAuthUser)
+	if config.dev.user != "" {
+		log.Printf("[CONFIG] devuser       = [%s]", config.dev.user)
+		log.Printf("[CONFIG] devrole       = [%s]", config.dev.role)
 	}
-	if config.devBus {
+	if config.dev.fakeBus {
 		log.Printf("[CONFIG] ** dev mode bus - event publishing is disabled **")
 	}
 

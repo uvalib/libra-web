@@ -9,11 +9,11 @@ require (
 	github.com/gin-contrib/cors v1.7.5
 	github.com/gin-contrib/gzip v1.2.3
 	github.com/gin-gonic/contrib v0.0.0-20250113154928-93b827325fec
-	github.com/gin-gonic/gin v1.10.0
+	github.com/gin-gonic/gin v1.10.1
 	github.com/rs/xid v1.6.0
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20250513144758-d0fd8f4ca690
 	github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250417145647-b8007dc1f770
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f
 )
 
 require (

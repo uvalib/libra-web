@@ -1,17 +1,13 @@
 <template>
    <div class="dashboard">
       <h1>My Active Theses</h1>
-      <WaitSpinner v-if="searchStore.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active theses</p>" />
+      <WaitSpinner v-if="user.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active theses</p>" />
       <template v-else>
          <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
-         <div  v-if="searchStore.hits.length == 0" class="none">You have no active theses</div>
-         <DataTable v-else :value="searchStore.hits" ref="etdWorks" dataKey="id"
+         <div  v-if="user.theses.length == 0" class="none">You have no active theses</div>
+         <DataTable v-else :value="user.theses" ref="etdWorks" dataKey="id"
             stripedRows showGridlines responsiveLayout="scroll"
-            :lazy="false" :paginator="true" :alwaysShowPaginator="false"
-            :rows="30" :totalRecords="searchStore.hits.length"
-            paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-            :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
-            currentPageReportTemplate="{first} - {last} of {totalRecords}"
+            :lazy="false" :paginator="false"
          >
             <Column field="title" header="Title">
                <template #body="slotProps">
@@ -19,8 +15,8 @@
                   <span v-else class="none">Undefined</span>
                </template>
             </Column>
-            <Column field="createdAt" header="Date Uploaded" >
-               <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+             <Column field="created" header="Date Uploaded" >
+               <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
             </Column>
             <Column header="Visibility" >
                <template #body="slotProps">
@@ -29,9 +25,9 @@
                   </div>
                </template>
             </Column>
-            <Column field="publishedAt" header="Date Published" >
+            <Column field="published" header="Date Published" >
                <template #body="slotProps">
-                  <span v-if="slotProps.data.publishedAt">{{ $formatDate(slotProps.data.publishedAt)}}</span>
+                  <span v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published)}}</span>
                   <div v-else class="tag">
                      <span class="visibility draft">Draft</span>
                   </div>
@@ -40,7 +36,7 @@
             <Column header="Actions" style="width:175px;">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button v-if="slotProps.data.publishedAt" class="action" label="Public View" severity="secondary"
+                     <Button v-if="slotProps.data.published" class="action" label="Public View" severity="secondary"
                         size="small" @click="previewWorkClicked(slotProps.data.id)"/>
                      <Button v-else class="action" label="Edit Thesis" severity="secondary"
                         size="small" @click="editWorkClicked(slotProps.data.id)"/>
@@ -55,7 +51,6 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
-import { useSearchStore } from "@/stores/search"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
 
@@ -64,12 +59,11 @@ import Column from 'primevue/column'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 
 const router = useRouter()
-const searchStore = useSearchStore()
 const user = useUserStore()
 const system = useSystemStore()
 
 onMounted( () => {
-   searchStore.search(user.computeID)
+   user.getTheses()
 })
 
 const editWorkClicked = ( (id) => {

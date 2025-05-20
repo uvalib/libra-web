@@ -59,8 +59,8 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	log.Printf("END header dump ===========================================")
 
 	computingID := c.GetHeader("remote_user")
-	if svc.DevAuthUser != "" {
-		computingID = svc.DevAuthUser
+	if svc.Dev.user != "" {
+		computingID = svc.Dev.user
 		log.Printf("INFO: using dev auth user ID: %s", computingID)
 	}
 	if computingID == "" {
@@ -92,7 +92,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	}
 
 	// if not in dev mode check for membership in libra-admins
-	if svc.DevAuthUser == "" {
+	if svc.Dev.user == "" {
 		// Membership format: cn=group_name1;cn=group_name2;...
 		membershipStr := c.GetHeader("member")
 		if strings.Contains(membershipStr, "libra-admins") {
@@ -103,9 +103,13 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 			jsonResp.User.IsRegistrar = true
 		}
 	} else {
-		// dev mode user is always an admin
-		log.Printf("INFO: dev auth user is always admin")
-		jsonResp.User.IsAdmin = true
+		if svc.Dev.role == "admin" {
+			log.Printf("INFO: dev user %s is an admin", svc.Dev.user)
+			jsonResp.User.IsAdmin = true
+		} else if svc.Dev.role == "registrar" {
+			log.Printf("INFO: dev user %s is a registrar", svc.Dev.user)
+			jsonResp.User.IsRegistrar = true
+		}
 	}
 
 	log.Printf("INFO: generate JWT for %+v", jsonResp.User)

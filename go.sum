@@ -62,8 +62,8 @@ github.com/gin-contrib/sse v1.1.0 h1:n0w2GMuUpWDVp7qSpvze6fAu9iRxJY4Hmj6AmBOU05w
 github.com/gin-contrib/sse v1.1.0/go.mod h1:hxRZ5gVpWMT7Z0B0gSNYqqsSCNIJMjzvm6fqCz9vjwM=
 github.com/gin-gonic/contrib v0.0.0-20250113154928-93b827325fec h1:kQFkxb4bEPsGlJ6f562JeZhtPj2NxbtJXpltOJjGFPU=
 github.com/gin-gonic/contrib v0.0.0-20250113154928-93b827325fec/go.mod h1:iqneQ2Df3omzIVTkIfn7c1acsVnMGiSLn4XF5Blh3Yg=
-github.com/gin-gonic/gin v1.10.0 h1:nTuyha1TYqgedzytsKYqna+DfLos46nTv2ygFy86HFU=
-github.com/gin-gonic/gin v1.10.0/go.mod h1:4PMNQiOhvDRa013RKVbsiNwoyezlm2rm0uX/T7kzp5Y=
+github.com/gin-gonic/gin v1.10.1 h1:T0ujvqyCSqRopADpgPgiTT63DUQVSfojyME59Ei63pQ=
+github.com/gin-gonic/gin v1.10.1/go.mod h1:4PMNQiOhvDRa013RKVbsiNwoyezlm2rm0uX/T7kzp5Y=
 github.com/go-playground/assert/v2 v2.2.0 h1:JvknZsQTYeFEAhQwI4qEt9cyV5ONwRHC+lYKSsYSR8s=
 github.com/go-playground/assert/v2 v2.2.0/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
 github.com/go-playground/locales v0.14.1 h1:EWaQ/wswjilfKLTECiXz7Rh+3BjFhfDFKv/oXslEjJA=
@@ -126,8 +126,8 @@ github.com/uvalib/easystore/uvaeasystore v0.0.0-20250513144758-d0fd8f4ca690 h1:J
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20250513144758-d0fd8f4ca690/go.mod h1:7M0hEkOeLqG9KVrJyXiLgBPDf7/xzX3uxHtzQ8ltTGg=
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1 h1:eSDmfVQk1tehn1bgnCwvMxS8kmIXNE1jlXeYlXM8ZI4=
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
-github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250417145647-b8007dc1f770 h1:sHq3qb/ln5bCyoybbwGsU0uqonGzm5ebv5RlKFYEoVI=
-github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250417145647-b8007dc1f770/go.mod h1:3zlSCNudbHP3Lj7BGfTju+2uSlWnDQ2uuLJev/ku8tg=
+github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f h1:foXanRAYw3jJxk0iTBWhHBBcWOwhAACzwsjlNr/CBBg=
+github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f/go.mod h1:3zlSCNudbHP3Lj7BGfTju+2uSlWnDQ2uuLJev/ku8tg=
 golang.org/x/arch v0.17.0 h1:4O3dfLzd+lQewptAHqjewQZQDyEdejz3VwgeYwkZneU=
 golang.org/x/arch v0.17.0/go.mod h1:bdwinDaKcfZUGpH09BB7ZmOfhalA8lQdzl62l8gGWsk=
 golang.org/x/crypto v0.38.0 h1:jt+WWG8IZlBnVbomuhg2Mdq0+BBQaHbtqHEFEigjUV8=
