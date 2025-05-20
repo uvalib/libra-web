@@ -18,9 +18,9 @@ type searchHit struct {
 	Author      librametadata.ContributorData `json:"author"`
 	Source      string                        `json:"source"`
 	Visibility  string                        `json:"visibility"`
-	CreatedAt   time.Time                     `json:"createdAt"`
-	ModifiedAt  *time.Time                    `json:"modifiedAt,omitempty"`
-	PublishedAt *time.Time                    `json:"publishedAt,omitempty"`
+	CreatedAt   time.Time                     `json:"created"`
+	ModifiedAt  *time.Time                    `json:"modified,omitempty"`
+	PublishedAt *time.Time                    `json:"published,omitempty"`
 }
 
 type searchResp struct {
@@ -79,6 +79,10 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 
 	log.Printf("INFO: admin search for works with [%s]", qStr)
 	payload := map[string]any{"q": qStr, "offset": offset, "limit": limit}
+	if c.Query("sort") != "" {
+		payload["sort"] = []string{fmt.Sprintf("%s:%s", c.Query("sort"), c.Query("order"))}
+	}
+	log.Printf("PAYLOAD %v", payload)
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
 	rawResp, respErr := svc.sendPostRequest(url, payload)
 	if respErr != nil {

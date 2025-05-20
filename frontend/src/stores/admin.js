@@ -11,6 +11,8 @@ export const useAdminStore = defineStore('admin', {
       offset: 0,
       limit: 20,
       query: "",
+      sortField: "",
+      sortOrder: ""
    }),
    actions: {
       clearAll() {
@@ -26,6 +28,9 @@ export const useAdminStore = defineStore('admin', {
       search() {
          this.working = true
          let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}`
+         if ( this.sortField != "" ) {
+            url += `&sort=${this.sortField}&order=${this.sortOrder}`
+         }
          axios.get(url).then(response => {
             this.hits = response.data.hits
             this.total = response.data.total

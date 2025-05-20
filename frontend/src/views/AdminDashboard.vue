@@ -20,7 +20,7 @@
                :first="admin.offset" :rows="admin.limit" :totalRecords="admin.total"
                paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink"
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
-               :loading="admin.working"
+               :loading="admin.working" removableSort @sort="onSort($event)"  :sortField="admin.sortField"
          >
             <template #empty>
                <div v-if="admin.query" class="none">No matching works found for {{ admin.query }}</div>
@@ -33,18 +33,18 @@
                </template>
             </Column>
             <Column field="id" header="ID" class="nowrap"/>
-            <Column field="createdAt" header="Created" sortable class="nowrap">
-               <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
+            <Column field="created" header="Created" sortable class="nowrap">
+               <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
             </Column>
-            <Column field="modifiedAt" header="Modified" class="nowrap">
+            <Column field="modified" header="Modified" sortable class="nowrap">
                <template #body="slotProps">
-                  <div v-if="slotProps.data.modifiedAt">{{ $formatDateTime(slotProps.data.modifiedAt) }}</div>
+                  <div v-if="slotProps.data.modified">{{ $formatDateTime(slotProps.data.modified) }}</div>
                   <div v-else class="na">N/A</div>
                </template>
             </Column>
-            <Column field="publishedAt" header="Published" class="nowrap">
+            <Column field="published" header="Published" class="nowrap">
                <template #body="slotProps">
-                  <div v-if="slotProps.data.publishedAt">{{ $formatDateTime(slotProps.data.publishedAt) }}</div>
+                  <div v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published) }}</div>
                   <div v-else class="na">N/A</div>
                </template>
             </Column>
@@ -99,7 +99,24 @@ const onPage = ((event) => {
    admin.search()
 })
 
+const onSort = ((event) => {
+   admin.sortField = ""
+   admin.sortOrder = ""
+   if (event.sortOrder == 1) {
+      admin.sortField = event.sortField
+      admin.sortOrder = "asc"
+
+   } else if (event.sortOrder == -1) {
+      admin.sortField = event.sortField
+      admin.sortOrder = "desc"
+   }
+   admin.search()
+})
+
 const searchKeyPressed = ((event) => {
+   admin.sortField = ""
+   admin.sortOrder = ""
+   admin.offset = 0
    if (event.keyCode == 13) {
       admin.search()
    }
