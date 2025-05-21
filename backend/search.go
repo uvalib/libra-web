@@ -80,7 +80,13 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	log.Printf("INFO: admin search for works with [%s]", qStr)
 	payload := map[string]any{"q": qStr, "offset": offset, "limit": limit}
 	if c.Query("sort") != "" {
-		payload["sort"] = []string{fmt.Sprintf("%s:%s", c.Query("sort"), c.Query("order"))}
+		sort := c.Query("sort")
+		if sort == "created" {
+			sort = "fields.create-date"
+		} else if sort == "title" {
+			sort = "metadata.title"
+		}
+		payload["sort"] = []string{fmt.Sprintf("%s:%s", sort, c.Query("order"))}
 	}
 	log.Printf("PAYLOAD %v", payload)
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)

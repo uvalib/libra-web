@@ -53,7 +53,7 @@
                   {{ slotProps.data.author.lastName }}, {{ slotProps.data.author.firstName }}
                </template>
             </Column>
-            <Column field="title" header="Title">
+            <Column field="title" header="Title" sortable>
                <template #body="slotProps">
                   <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
                   <span v-else class="na">Undefined</span>
