@@ -12,11 +12,14 @@ export const useAdminStore = defineStore('admin', {
       limit: 20,
       query: "",
       sortField: "",
-      sortOrder: ""
+      sortOrder: "",
+      statusFilter: "any",
+      sourceFilter: "any",
    }),
    actions: {
-      clearAll() {
-         this.hits = []
+      resetSearch() {
+         console.log("POPOPOP")
+         this.$reset()
       },
       async addRegistrations( program, degree, students ) {
          return axios.post(`/api/admin/register`, {program: program, degree: degree, students: students}).catch( err => {
@@ -30,6 +33,12 @@ export const useAdminStore = defineStore('admin', {
          let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}`
          if ( this.sortField != "" ) {
             url += `&sort=${this.sortField}&order=${this.sortOrder}`
+         }
+         if ( this.statusFilter != "any") {
+            url += `&draft=${this.statusFilter == 'draft'}`
+         }
+         if ( this.sourceFilter != "any") {
+            url += `&source=${this.sourceFilter}`
          }
          axios.get(url).then(response => {
             this.hits = response.data.hits

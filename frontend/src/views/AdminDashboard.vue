@@ -8,10 +8,21 @@
             </div>
          </template>
 
-         <IconField iconPosition="left">
-            <InputIcon class="pi pi-search" />
-            <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid/>
-         </IconField>
+         <div class="search">
+            <IconField iconPosition="left" class="query">
+               <InputIcon class="pi pi-search" />
+               <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid/>
+            </IconField>
+            <label>
+               Publication Status:
+               <Select v-model="admin.statusFilter" :options="publishOpts" optionLabel="label" optionValue="value" @update:modelValue="onFilter"/>
+            </label>
+            <label>
+               Source:
+               <Select v-model="admin.sourceFilter" :options="sourceOpts" optionLabel="label" optionValue="value" @update:modelValue="onFilter"/>
+            </label>
+            <Button severity="secondary" label="Reset Search" @click="admin.resetSearch"/>
+         </div>
 
          <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
                stripedRows showGridlines responsiveLayout="scroll"
@@ -75,7 +86,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onBeforeMount } from 'vue'
+import { onBeforeMount, computed } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import { useSystemStore } from "@/stores/system"
 import Panel from 'primevue/panel'
@@ -85,13 +96,27 @@ import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
+import Select from 'primevue/select'
 
 const router = useRouter()
 const admin = useAdminStore()
 const system = useSystemStore()
 
+const publishOpts = computed(() => {
+   return[ {label: "Any", value: "any"}, {label: "Draft", value: "draft"}, {label: "Published", value: "published"} ]
+})
+const sourceOpts = computed(() => {
+   return[ {label: "Any", value: "any"}, {label: "SIS", value: "sis"}, {label: "Optional", value: "optional"} ]
+})
+
 onBeforeMount( () => {
    document.title = "Libra Admin"
+})
+
+const onFilter = (() => {
+   if (admin.query != "") {
+      admin.search()
+   }
 })
 
 const onPage = ((event) => {
@@ -142,6 +167,20 @@ const viewWorkClicked = ( (id) => {
 
    .p-datatable {
       margin-top: 20px;
+   }
+
+   .search {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 1rem;
+      .query {
+         flex-grow: 1;
+      }
+      .p-select {
+         margin-left: 5px;
+      }
    }
 
    .source {
