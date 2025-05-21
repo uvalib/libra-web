@@ -15,11 +15,11 @@
             </IconField>
             <label>
                Publication Status:
-               <Select v-model="admin.statusFilter" :options="publishOpts" optionLabel="label" optionValue="value" @update:modelValue="onFilter"/>
+               <Select v-model="admin.statusFilter" :options="publishOpts" optionLabel="label" optionValue="value" @update:modelValue="admin.search()"/>
             </label>
             <label>
                Source:
-               <Select v-model="admin.sourceFilter" :options="sourceOpts" optionLabel="label" optionValue="value" @update:modelValue="onFilter"/>
+               <Select v-model="admin.sourceFilter" :options="sourceOpts" optionLabel="label" optionValue="value" @update:modelValue="admin.search()"/>
             </label>
             <Button severity="secondary" label="Reset Search" @click="admin.resetSearch"/>
          </div>
@@ -111,12 +111,6 @@ const sourceOpts = computed(() => {
 
 onBeforeMount( () => {
    document.title = "Libra Admin"
-})
-
-const onFilter = (() => {
-   if (admin.query != "") {
-      admin.search()
-   }
 })
 
 const onPage = ((event) => {

@@ -61,9 +61,7 @@ type indexResp struct {
 func (svc *serviceContext) adminSearch(c *gin.Context) {
 	qStr := c.Query("q")
 	if qStr == "" {
-		log.Printf("INFO: missing query")
-		c.String(http.StatusBadRequest, "query is required")
-		return
+		qStr = "*"
 	}
 
 	offset, pageErr := strconv.ParseInt(c.Query("offset"), 10, 0)
