@@ -5,6 +5,7 @@ import { useSystemStore } from './system'
 export const useETDStore = defineStore('etd', {
    state: () => ({
       working: false,
+      saving: false,
       error: "",
       work: {},
       isDraft: true,
@@ -170,6 +171,7 @@ export const useETDStore = defineStore('etd', {
       },
 
       async update( ) {
+         this.saving = true
          let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility}
          if ( this.visibility == "embargo" || this.visibility == "uva") {
             payload.embargoReleaseDate = this.embargoReleaseDate
@@ -180,9 +182,11 @@ export const useETDStore = defineStore('etd', {
             this.setWorkDetails( response.data )
             this.pendingFileAdd = []
             this.pendingFileDel = []
+            this.saving = false
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
+            this.saving = false
          })
       },
 

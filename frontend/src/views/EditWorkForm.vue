@@ -154,7 +154,7 @@
          </span>
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
-            <Button label="Save" @click="saveClicked('edit')"/>
+            <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving"/>
             <Button label="Preview" severity="success" @click="saveClicked('preview')" :disabled="metadataComplete==false || etdRepo.hasFiles==false"/>
          </span>
       </div>
@@ -291,6 +291,7 @@ const exitClicked = (() => {
          icon: 'pi pi-question-circle',
          rejectClass: 'p-button-secondary',
          accept: (  ) => {
+            clearEdits()
             router.push(exitRoute)
          },
       })
@@ -343,6 +344,11 @@ const isDirty = ((data) => {
    return dirty
 })
 
+const clearEdits = (() => {
+   etdForm.value.reset()
+   listChanged.value = false
+})
+
 const saveChanges = ( async (data) => {
    if ( isDirty( data.states ) ) {
       console.log("data has been edited; saving")
@@ -355,7 +361,7 @@ const saveChanges = ( async (data) => {
       await etdRepo.update( )
       if ( system.showError == false ) {
          system.toastMessage("Saved", "All changes have been saved")
-         etdForm.value.reset()
+         clearEdits()
       } else {
          return
       }

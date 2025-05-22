@@ -9,14 +9,14 @@
             <td class="label">Program:</td>
             <td v-if="props.admin == false">{{ etdRepo.work.program  }}</td>
             <td v-else>
-               <Select v-model="etdRepo.work.program" :options="programs" editable/>
+               <Select v-model="etdRepo.work.program" :options="programs" editable fluid/>
             </td>
          </tr>
          <tr>
             <td class="label">Degree:</td>
             <td v-if="props.admin == false">{{ etdRepo.work.degree }}</td>
             <td v-else>
-               <Select v-model="etdRepo.work.degree" :options="degrees"/>
+               <Select v-model="etdRepo.work.degree" :options="degrees" fluid/>
             </td>
          </tr>
       </tbody>

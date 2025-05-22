@@ -5,8 +5,8 @@
          <Chip v-for="(k,idx) in model" removable @remove="removeValue(idx)" :label="k" />
       </div>
       <div class="control-group">
-         <InputText type="text" :name="name" v-model="newValue" fluid />
-         <Button label="Add" severity="secondary" @click="addValue"/>
+         <InputText type="text" :name="name" v-model="newValue" @keyup.enter="addValue" fluid />
+         <Button label="Add" severity="secondary" @click="addValue" :disabled="newValue == ''" />
       </div>
       <div v-if="props.help" class="note">{{ props.help }}</div>
     </Fieldset>
@@ -44,9 +44,11 @@ const removeValue = ((idx) => {
 })
 
 const addValue = (() => {
-   model.value.push(newValue.value)
-   newValue.value = ""
-   emit('change')
+   if (newValue.value.length > 0 ) {
+      model.value.push(newValue.value)
+      newValue.value = ""
+      emit('change')
+   }
 })
 
 </script>

@@ -16,7 +16,7 @@
             </div>
             <div class="user-lookup">
                <TextArea v-model="computeID"  rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs"/>
-               <Button label="Add" size="small" severity="secondary" @click="lookup" :loading="working"/>
+               <Button label="Add" size="small" severity="secondary" @click="lookup" :loading="working" :disabled="computeID.length == 0"/>
             </div>
             <div class="users">
                <Chip v-for="u in users" removable @remove="removeUser(u.computeID)">
@@ -99,6 +99,7 @@ const lookup = ( () => {
    working.value = true
    userErrors.value = []
    request.forEach( computeID => {
+      if (computeID.length == 0) return
       axios.get(`/api/users/lookup/${computeID}`).then(r => {
          const idx = users.value.findIndex( u => u.computeID == r.data.cid)
          if ( idx == -1) {
