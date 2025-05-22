@@ -532,8 +532,11 @@ func (svc *serviceContext) sendRequest(verb string, url string, payload any) ([]
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
 
 	if err != nil {
-		log.Printf("ERROR: Failed response from %s %s - %d:%s. Elapsed Time: %d (ms)",
-			verb, url, err.StatusCode, err.Message, elapsedMS)
+		if err.StatusCode == 404 {
+			log.Printf("INFO: 404 response from %s %s - %s. Elapsed Time: %d (ms)", verb, url, err.Message, elapsedMS)
+		} else {
+			log.Printf("ERROR: Failed response from %s %s - %d:%s. Elapsed Time: %d (ms)", verb, url, err.StatusCode, err.Message, elapsedMS)
+		}
 	} else {
 		log.Printf("INFO: Successful response from %s %s. Elapsed Time: %d (ms)", verb, url, elapsedMS)
 	}

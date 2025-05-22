@@ -1,6 +1,6 @@
 <template>
-   <Toast position="top-center" />
-   <ConfirmDialog position="top"/>
+   <Toast position="center" />
+   <ConfirmDialog position="top" />
 
    <header id="libra-header">
       <div class="main-header">
@@ -57,9 +57,9 @@ const configuring = ref(true)
 watch(() => systemStore.toast.show, (newShow) => {
    if ( newShow == true) {
       if ( systemStore.toast.error) {
-         toast.add({severity:'error', summary:  systemStore.toast.summary, detail:  systemStore.toast.message, life: 10000})
+         toast.add({severity:'error', summary:  systemStore.toast.summary, detail:  systemStore.toast.message})
       } else {
-         toast.add({severity:'success', summary:  systemStore.toast.summary, detail:  systemStore.toast.message, life: 5000})
+         toast.add({severity:'success', summary:  systemStore.toast.summary, detail:  systemStore.toast.message})
       }
       systemStore.clearToastMessage()
    }
