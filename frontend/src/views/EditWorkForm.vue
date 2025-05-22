@@ -155,7 +155,7 @@
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
-            <Button label="Preview" severity="success" @click="saveClicked('preview')" :disabled="metadataComplete==false || etdRepo.hasFiles==false"/>
+            <Button label="Preview" severity="success" @click="previewClicked" :disabled="needsSave || metadataComplete==false || etdRepo.hasFiles==false"/>
          </span>
       </div>
    </div>
@@ -279,6 +279,10 @@ const saveClicked = ((postSaveAct) => {
    etdForm.value.submit()
 })
 
+const previewClicked = (() => {
+   router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
+})
+
 const exitClicked = (() => {
    let exitRoute = "/"
    if ( adminEdit.value) {
@@ -367,15 +371,16 @@ const saveChanges = ( async (data) => {
       }
    }
 
-   if ( postSave.value == "exit") {
-      if ( adminEdit.value) {
-         router.push("/admin")
-      } else {
-         router.push("/")
-      }
-   } else if ( postSave.value == "preview") {
-      router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
-   }
+   // TODO NOT NEEDED RIGHT NOW. DELETE LATER, assuming Save and exit button can be left out
+   // if ( postSave.value == "exit") {
+   //    if ( adminEdit.value) {
+   //       router.push("/admin")
+   //    } else {
+   //       router.push("/")
+   //    }
+   // } else if ( postSave.value == "preview") {
+   //    router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
+   // }
 })
 
 const visibilityOpts = computed( () => {

@@ -45,7 +45,7 @@
                   </label>
                </div>
                <div class="buttons">
-                  <Button severity="secondary" label="Cancel" size="small" @click="cancelPreview"/>
+                  <Button severity="secondary" label="Exit" size="small" @click="cancelPreview"/>
                   <Button severity="secondary" label="Edit" size="small" @click="editThesis"/>
                   <Button severity="primary" label="Submit Thesis" size="small"  @click="submitThesis" :disabled="!agree"/>
                </div>
