@@ -161,7 +161,7 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 	}
 
 	log.Printf("INFO: find user %s works", computeID)
-	payload := map[string]string{"filter": fmt.Sprintf("fields.depositor=%s", computeID)}
+	payload := map[string]any{"filter": fmt.Sprintf("fields.depositor=%s", computeID), "limit": 250}
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
 	rawResp, respErr := svc.sendPostRequest(url, payload)
 	if respErr != nil {
