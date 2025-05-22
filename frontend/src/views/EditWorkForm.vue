@@ -150,11 +150,11 @@
                <Button v-if="etdRepo.publishedAt" label="Unpublish" severity="danger" @click="unpublishClicked" />
                <Button v-else label="Delete" severity="danger" @click="deleteClicked" />
             </template>
-            <Button label="Discard changes" severity="secondary" @click="discardClicked" />
+            <Button label="Exit" severity="secondary" @click="exitClicked" />
          </span>
+         <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')"/>
-            <Button label="Save and exit" @click="saveClicked('exit')"/>
             <Button label="Preview" severity="success" @click="saveClicked('preview')" :disabled="metadataComplete==false || etdRepo.hasFiles==false"/>
          </span>
       </div>
@@ -170,7 +170,7 @@ import { useAdminStore } from "@/stores/admin"
 import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import axios from 'axios'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 
 import { Form } from '@primevue/forms'
 import ProgramPanel from '@/components/ProgramPanel.vue'
@@ -204,6 +204,18 @@ onBeforeMount( async () => {
       return
    }
    await etdRepo.getWork( route.params.id )
+})
+
+onBeforeRouteLeave(() => {
+   if (needsSave.value) {
+      const exit = window.confirm('You have unsaved changes that will be lost if you return to the dashboard. Are you sure?')
+      if (!exit) return false
+   }
+})
+
+const needsSave  = computed( () => {
+   if ( !etdForm.value) return false
+   return isDirty(etdForm.value.states)
 })
 
 const resolver = ({ values }) => {
@@ -267,11 +279,23 @@ const saveClicked = ((postSaveAct) => {
    etdForm.value.submit()
 })
 
-const discardClicked = (() => {
+const exitClicked = (() => {
+   let exitRoute = "/"
    if ( adminEdit.value) {
-      router.push("/admin")
+      exitRoute = "/admin"
+   }
+   if ( isDirty(etdForm.value.states) ) {
+      confirm.require({
+         message: "Any unsaved changes will be lost if you exit. Are you sure?",
+         header: 'Confirm Exit',
+         icon: 'pi pi-question-circle',
+         rejectClass: 'p-button-secondary',
+         accept: (  ) => {
+            router.push(exitRoute)
+         },
+      })
    } else {
-      router.push("/")
+      router.push(exitRoute)
    }
 })
 
@@ -301,7 +325,9 @@ const deleteClicked = ( () => {
 })
 
 const isDirty = ((data) => {
-   let dirty = false
+   let dirty = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 || listChanged.value)
+   if (dirty ) return true
+
    Object.keys(data).some((key) => {
       if (key == "dirty") {
          if (data[key]) {
@@ -318,27 +344,23 @@ const isDirty = ((data) => {
 })
 
 const saveChanges = ( async (data) => {
-   let needSave = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 || listChanged.value)
-   if ( needSave == false) {
-      needSave = isDirty( data.states )
-   }
-
-   let license = system.licenseDetail(etdRepo.licenseID)
-   if (license) {
-      etdRepo.work.license = license.label
-      etdRepo.work.licenseURL = license.url
-   }
-
-   if ( needSave ) {
+   if ( isDirty( data.states ) ) {
       console.log("data has been edited; saving")
+      let license = system.licenseDetail(etdRepo.licenseID)
+      if (license) {
+         etdRepo.work.license = license.label
+         etdRepo.work.licenseURL = license.url
+      }
+
       await etdRepo.update( )
       if ( system.showError == false ) {
          system.toastMessage("Saved", "All changes have been saved")
+         etdForm.value.reset()
       } else {
          return
       }
    } else {
-      console.log("no changes made; no save necessary")
+      system.toastMessage("Saved", "All changes have been saved")
    }
 
    if ( postSave.value == "exit") {
@@ -421,6 +443,14 @@ const endDatePicked = ( (newDate) => {
    }
 }
 
+.unsaved {
+   background: $uva-red;
+   padding: 0.5rem 1rem;
+   border-radius: 50px;
+   color: white;
+   border: 1px solid $uva-red-B;
+   font-weight: bold;
+}
 .edit {
    text-align: left;
    position: relative;
@@ -532,6 +562,7 @@ const endDatePicked = ( (newDate) => {
       flex-flow: row wrap;
       gap: 10px;
       justify-content: space-between;
+      align-items: center;
       .group {
          display: flex;
          flex-flow: row wrap;
