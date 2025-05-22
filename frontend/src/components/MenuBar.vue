@@ -1,5 +1,11 @@
 <template>
-   <Menubar :model="libraMenu">
+   <Menubar :model="libraMenu"
+      :pt="{
+            item: {
+               'aria-level': null
+            }
+         }"
+      >
       <template #start v-if="user.admin == false && user.registrar == false">
          <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">Libra Support</a>
       </template>

@@ -5,12 +5,14 @@
    <header id="libra-header">
       <div class="main-header">
          <div class="library-link">
-            <a target="_blank" href="https://library.virginia.edu">
+            <a href="https://library.virginia.edu" aria-label="go to the uva library homepage">
                <UvaLibraryLogo />
             </a>
          </div>
          <div class="site-link">
-            <router-link to="/"><img src="@/assets/LibraETD.svg"/></router-link>
+            <router-link to="/">
+               <img src="@/assets/LibraETD.svg" alt="libra etd"/>
+            </router-link>
             <div class="sub">Online Archive of University of Virginia Scholarship</div>
          </div>
       </div>

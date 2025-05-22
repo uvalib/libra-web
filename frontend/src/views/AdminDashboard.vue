@@ -11,7 +11,7 @@
          <div class="search">
             <IconField iconPosition="left" class="query">
                <InputIcon class="pi pi-search" />
-               <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid/>
+               <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works"/>
             </IconField>
             <label>
                Publication Status:
@@ -194,12 +194,12 @@ const viewWorkClicked = ( (id) => {
    .none {
       text-align: center;
       font-size: 1.25em;
-      color: $uva-grey-100;
+      color: $uva-grey-A;
       font-style: italic;
       padding: 20px;
    }
    .na {
-      color: $uva-grey-100;
+      color: $uva-grey-A;
       font-style: italic;
    }
    .acts {
