@@ -63,13 +63,13 @@
                </section>
                <section>
                   <h2>Advisors</h2>
-                  <ol class="advisors">
+                  <ul class="advisors">
                      <li v-for="advisor in  etdRepo.work.advisors" class="advisor">
-                        <div>{{ advisor.lastName }}, {{ advisor.firstName }}</div>
-                        <div v-if="advisor.department">{{ advisor.department }}</div>
-                        <div v-if="advisor.institution">{{ advisor.institution }}</div>
+                        <span>{{ advisor.lastName }}, {{ advisor.firstName }}</span>
+                        <span v-if="advisor.department">,&nbsp;{{ advisor.department }}</span>
+                        <span v-if="advisor.institution">,&nbsp;{{ advisor.institution }}</span>
                      </li>
-                  </ol>
+                  </ul>
                </section>
                <section>
                   <h2>Abstract</h2>
@@ -85,15 +85,15 @@
                </section>
                <section v-if="etdRepo.hasSponsors">
                   <h2>Sponsors</h2>
-                  <ol>
+                  <ul>
                      <li v-for="s in etdRepo.work.sponsors">{{ s }}</li>
-                  </ol>
+                  </ul>
                </section>
                <section v-if="etdRepo.hasRelatedURLs">
                   <h2>Related Links</h2>
-                  <ol>
+                  <ul>
                      <li v-for="url in etdRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
-                  </ol>
+                  </ul>
                </section>
                <section v-if="etdRepo.work.notes">
                   <h2>Notes</h2>
@@ -128,6 +128,7 @@
 import { onBeforeMount, ref } from 'vue'
 import { useETDStore } from "@/stores/etd"
 import { useSystemStore } from "@/stores/system"
+import { useUserStore } from "@/stores/user"
 import { useRoute, useRouter } from 'vue-router'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import { useConfirm } from "primevue/useconfirm"
@@ -136,6 +137,7 @@ import { useClipboard, usePermission } from '@vueuse/core'
 
 const etdRepo = useETDStore()
 const system = useSystemStore()
+const user = useUserStore()
 const route = useRoute()
 const router = useRouter()
 const confirm = useConfirm()
@@ -167,11 +169,19 @@ const downloadFileClicked = ( (name) => {
 })
 
 const editThesis = (() => {
-   router.push(`/etd/${route.params.id}`)
+   if (user.admin) {
+      router.push(`/admin/etd/${route.params.id}`)
+   } else {
+      router.push(`/etd/${route.params.id}`)
+   }
 })
 
 const cancelPreview = ( () => {
-   router.push("/")
+   if (user.admin) {
+      router.push("/admin")
+   } else {
+      router.push("/")
+   }
 })
 
 const submitThesis = ( () => {
@@ -295,12 +305,13 @@ div.public-work {
          display: flex;
          flex-direction: column;
          gap: 1.5rem;
-         ol,ul {
+         ul {
             display: flex;
             flex-direction: column;
             gap: 5px;
             margin: 0;
-            padding: 0 0 0 20px;
+            list-style: none;
+            padding: 0 0 0 0px;
          }
          h2 {
             text-align: left;

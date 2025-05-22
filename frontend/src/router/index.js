@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AdminDashboard from '../views/AdminDashboard.vue'
-import ETDPublicView from '../views/ETDPublicView.vue'
+import PublicView from '../views/PublicView.vue'
 import EditWorkForm from '../views/EditWorkForm.vue'
 import UserDashboard from '../views/UserDashboard.vue'
 import RegistrationForm from '../views/RegistrationForm.vue'
@@ -39,7 +39,7 @@ const router = createRouter({
       {
          path: '/public/etd/:id',
          name: 'etdpublic',
-         component: ETDPublicView
+         component: PublicView
       },
       {
          path: '/signedout',

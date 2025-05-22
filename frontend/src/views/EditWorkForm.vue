@@ -154,7 +154,7 @@
          </span>
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
-            <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving"/>
+            <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
             <Button label="Preview" severity="success" @click="saveClicked('preview')" :disabled="metadataComplete==false || etdRepo.hasFiles==false"/>
          </span>
       </div>
@@ -365,8 +365,6 @@ const saveChanges = ( async (data) => {
       } else {
          return
       }
-   } else {
-      system.toastMessage("Saved", "All changes have been saved")
    }
 
    if ( postSave.value == "exit") {

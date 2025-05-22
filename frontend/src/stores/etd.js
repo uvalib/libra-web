@@ -53,7 +53,7 @@ export const useETDStore = defineStore('etd', {
             c += `, ${state.publishedAt.split("T")[0]}`
          }
          if ( state.persistentLink) {
-            c += state.persistentLink
+            c += `, ${state.persistentLink}`
          }
          c+="."
          return c
