@@ -1,12 +1,12 @@
 <template>
    <div class="register">
       <div class="row">
-         <label>Program:</label>
-         <Select v-model="program" :options="system.optPrograms" />
+         <label id="program">Program:</label>
+         <Select v-model="program" :options="system.optPrograms" ariaLabelledby="program" />
       </div>
       <div class="row">
-         <label>Degree:</label>
-         <Select v-model="degree" :options="system.optDegrees" />
+         <label id="degree">Degree:</label>
+         <Select v-model="degree" :options="system.optDegrees" ariaLabelledby="degree" />
       </div>
       <FieldSet legend="Registrants">
          <div class="lookup">
@@ -128,14 +128,18 @@ const submitClicked = (() => {
 
 <style lang="scss" scoped>
 .note {
-   color: $uva-grey;
+   color: $uva-grey-A;
+}
+.register {
+   display: flex;
+   flex-direction: column;
+   gap: 15px;
 }
 div.row {
    display: flex;
    flex-flow: row nowrap;
    justify-content: flex-start;
    align-items: center;
-   margin-bottom: 15px;
    gap: 0.5rem;
    .p-select {
       flex-grow: 1;
@@ -150,7 +154,7 @@ div.row {
 .lookup {
    display: flex;
    flex-direction: column;
-   gap: 1rem;
+   gap: 20px;
 
    div.user-lookup {
       display: flex;
@@ -182,7 +186,6 @@ div.row {
    }
 }
 .controls {
-   margin-top: 15px;
    display: flex;
    flex-flow: row nowrap;
    justify-content: flex-end;

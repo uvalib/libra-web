@@ -180,7 +180,7 @@ const viewWorkClicked = ( (id) => {
    .source {
       margin-top: 5px;
       font-size: 0.85em;
-      color: $uva-grey;
+      color: $uva-grey-A;
    }
    .panel-header {
       font-weight: bold;

@@ -1,12 +1,8 @@
 <template>
    <div class="registration">
-      <h1>ETD Deposit Registration</h1>
-      <Card>
-         <template #title>Add deposit registration for one or more users</template>
-         <template #content>
-            <DepositRegistrationPanel :cancel="false" @submit="submitRegistration"/>
-         </template>
-      </Card>
+      <Panel header="ETD Deposit Registration">
+         <DepositRegistrationPanel :cancel="false" @submit="submitRegistration"/>
+      </Panel>
    </div>
 </template>
 
@@ -14,7 +10,7 @@
 import DepositRegistrationPanel from "@/components/DepositRegistrationPanel.vue"
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
-import Card from 'primevue/card'
+import Panel from 'primevue/panel'
 
 const system = useSystemStore()
 const admin = useAdminStore()
@@ -29,7 +25,7 @@ const submitRegistration = ( async ( evt ) => {
 
 <style lang="scss" scoped>
 .registration {
-   margin: 0 auto;
+   margin: 2% auto;
    min-height: 600px;
    text-align: left;
 }
