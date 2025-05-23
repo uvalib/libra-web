@@ -1,9 +1,9 @@
 <template>
    <div class="edit">
-      <h1>
+      <h2>
          <span>LibraETD Work</span>
          <span v-if="adminEdit==false && etdRepo.isDraft" class="draft">DRAFT</span>
-      </h1>
+      </h2>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
          <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
@@ -36,7 +36,7 @@
                      <div class="id-field">
                         <div class="control-group">
                            <InputText type="text" v-model="item.computeID" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID"/>
-                           <Button class="check" icon="pi pi-search" severity="secondary" @click="checkAdvisorID(index)"/>
+                           <Button class="check" icon="pi pi-search" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
                         </div>
                         <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)"/>
                      </div>
@@ -437,7 +437,7 @@ const endDatePicked = ( (newDate) => {
 
 <style lang="scss" scoped>
 @media only screen and (min-width: 768px) {
-   .sections, h1 {
+   .sections, h2 {
       margin-left: 5%;
       margin-right: 5%;
    }
@@ -446,7 +446,7 @@ const endDatePicked = ( (newDate) => {
    }
 }
 @media only screen and (max-width: 768px) {
-   .sections, h1 {
+   .sections, h2 {
       margin-left: 15px;
       margin-right: 15px;
    }
@@ -464,7 +464,7 @@ const endDatePicked = ( (newDate) => {
    text-align: left;
    position: relative;
 
-   h1 {
+   h2 {
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
@@ -551,7 +551,7 @@ const endDatePicked = ( (newDate) => {
       }
       .note {
          font-style: italic;
-         color: $uva-grey;
+         color: $uva-grey-A;
          margin-top: 0;
       }
       .acts {

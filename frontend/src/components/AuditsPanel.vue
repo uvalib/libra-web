@@ -1,5 +1,5 @@
 <template>
-   <Button @click="show" label="Audit Log" severity="secondary" class="view-audit" />
+   <Button @click="show" label="Audit Log" severity="secondary" fluid size="small"/>
    <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
       style="width:90%; max-height:90%" position="top"
       :blockScroll="true" :maximizable="true"
@@ -53,11 +53,6 @@ const show = (() => {
 </script>
 
 <style scoped>
-.view-audit {
-   font-size: 0.9em;
-   padding: 4px 12px;
-}
-
 p.error {
    font-size: 1.4em;
    text-align: center;

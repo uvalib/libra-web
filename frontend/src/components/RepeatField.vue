@@ -5,7 +5,7 @@
          <Chip v-for="(k,idx) in model" removable @remove="removeValue(idx)" :label="k" />
       </div>
       <div class="control-group">
-         <InputText type="text" :name="name" v-model="newValue" @keyup.enter="addValue" fluid />
+         <InputText type="text" :name="name" v-model="newValue" @keyup.enter="addValue" fluid :ariaLabel="`new ${props.name}`"/>
          <Button label="Add" severity="secondary" @click="addValue" :disabled="newValue == ''" />
       </div>
       <div v-if="props.help" class="note">{{ props.help }}</div>
@@ -69,7 +69,7 @@ const addValue = (() => {
 }
 .note {
    font-style: italic;
-   color: $uva-grey;
+   color: $uva-grey-A;
    margin-top: 0;
 }
 </style>

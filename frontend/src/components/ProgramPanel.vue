@@ -6,17 +6,17 @@
             <td class="label">Institution:</td><td>{{ etdRepo.work.author.institution  }}</td>
          </tr>
          <tr>
-            <td class="label">Program:</td>
+            <td class="label" id="admin-program">Program:</td>
             <td v-if="props.admin == false">{{ etdRepo.work.program  }}</td>
             <td v-else>
-               <Select v-model="etdRepo.work.program" :options="programs" editable fluid/>
+               <Select v-model="etdRepo.work.program" :options="programs" editable fluid ariaLabelledby="admin-program"/>
             </td>
          </tr>
          <tr>
-            <td class="label">Degree:</td>
+            <td class="label" id="admin-degree">Degree:</td>
             <td v-if="props.admin == false">{{ etdRepo.work.degree }}</td>
             <td v-else>
-               <Select v-model="etdRepo.work.degree" :options="degrees" fluid/>
+               <Select v-model="etdRepo.work.degree" :options="degrees" fluid ariaLabelledby="admin-degree"/>
             </td>
          </tr>
       </tbody>
@@ -30,7 +30,7 @@
             <td class="label">Date Published:</td><td>{{ $formatDate(etdRepo.publishedAt) }}</td>
          </tr>
          <tr>
-            <td></td><td><AuditsPanel :workID="etdRepo.work.id"/></td>
+            <td colspan="2"><AuditsPanel :workID="etdRepo.work.id"/></td>
          </tr>
       </tbody>
    </table>

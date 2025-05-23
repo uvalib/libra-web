@@ -1,5 +1,4 @@
 .visibility {
-   font-size: 0.85em;
    padding: 0.5rem 1rem;
    color: white;
    text-transform: capitalize;
@@ -8,10 +7,10 @@
    display: inline-block;
 }
 .visibility.open {
-   background-color: $uva-green-A;
+   background-color: $uva-green-B;
 }
 .visibility.uva, .visibility.limited {
-   background-color: $uva-brand-orange;
+   background-color: $uva-brand-orange-A;
 }
 .visibility.embargo {
    background-color: $uva-blue-alt;
@@ -22,7 +21,7 @@
 }
 
 .required {
-   color: $uva-grey;
+   color: $uva-grey-A;
    font-size: 0.9em;
    .star {
       color: $uva-text-color-base;

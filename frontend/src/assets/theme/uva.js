@@ -119,6 +119,13 @@ const UVA = definePreset(Aura, {
                      color: colors.brandBlue100,
                   },
                },
+               danger: {
+                  background: colors.redA,
+                  hoverBackground: colors.red,
+                  hoverBorderColor: colors.red,
+                  borderColor: colors.red,
+                  color: "white",
+               },
                contrast: {
                   background: colors.brandOrangeDark,
                   hoverBackground: colors.brandOrange,
