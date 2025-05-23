@@ -1,7 +1,7 @@
 <template>
    <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Thesis</p>" />
    <div v-else-if="etdRepo.error" class="error">
-      <h1>System Error</h1>
+      <h2>System Error</h2>
       <p>Sorry, a system error has occurred!</p>
       <p>{{ etdRepo.error }}</p>
    </div>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="metadata">
-               <div class="title" role="heading">{{ etdRepo.work.title }}</div>
+               <h3>{{ etdRepo.work.title }}</h3>
                <section>
                   <h2>Author</h2>
                   <div class="content">{{  authorDisplay(etdRepo.work.author) }}</div>
@@ -295,9 +295,11 @@ div.public-work {
          }
       }
 
-      .title {
-         font-size: 25px;
+      h3 {
+         font-size: 1.5em;
          font-weight: normal;
+         padding:0;
+         margin:0;
       }
 
       .metadata {

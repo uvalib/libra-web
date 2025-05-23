@@ -1,6 +1,6 @@
 <template>
    <div class="dashboard">
-      <h1>My Active Theses</h1>
+      <h2>My Active Theses</h2>
       <WaitSpinner v-if="user.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active theses</p>" />
       <template v-else>
          <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
@@ -85,7 +85,7 @@ const previewWorkClicked = ( (id) => {
       margin: 1.5rem 0;
    }
    .none {
-      color: $uva-grey-50;
+      color: $uva-grey-A;
       font-style: italic;
    }
    .tag {
