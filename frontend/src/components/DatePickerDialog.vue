@@ -1,26 +1,36 @@
 <template>
-   <Button @click="show" label="Change" severity="secondary" class="change"/>
+   <Button @click="show" label="Change" severity="secondary" size="small"/>
    <Dialog v-model:visible="isOpen" :modal="true" header="Set End Date" style="width:fit-content" position="top">
       <div class="embargo-date">
-         <div class="help">Use one of the quick helper buttons or pick a custom end date</div>
-         <div class="datepick">
-            <Calendar v-model="endDate" inline :minDate="new Date()" :maxDate="tenYears"/>
-            <div class="helpers">
-               <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
-               <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
-               <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
-               <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
-               <Button v-if="showTenYear" label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
-               <Button v-if="props.admin && props.visibility=='embargo'" label="Forever" severity="secondary" @click="endDate = null"/>
+         <template v-if="props.admin">
+            <div class="help">Use one of the quick helper buttons or pick a custom end date</div>
+            <div class="datepick">
+               <Calendar v-model="endDate" inline :minDate="new Date()" :maxDate="tenYears"/>
+               <div class="helpers">
+                  <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
+                  <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
+                  <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
+                  <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
+                  <Button v-if="showTenYear" label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
+                  <Button v-if="props.admin && props.visibility=='embargo'" label="Forever" severity="secondary" @click="endDate = null"/>
+               </div>
             </div>
+         </template>
+         <div v-else class="helpers">
+            <div>Select the Limited Access end date:</div>
+            <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
+            <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
+            <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
+            <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
+            <Button v-if="showTenYear" label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
          </div>
          <div class="controls">
             <span v-if="endDate" ><b>End date</b>: {{ $formatDate(endDate) }}</span>
             <span v-else>No expiration date</span>
-            <span>
+            <div class="buttons">
                <Button severity="secondary" label="Cancel" @click="isOpen=false"/>
                <Button label="OK" @click="okClicked"/>
-            </span>
+            </div>
          </div>
       </div>
    </Dialog>
@@ -89,11 +99,6 @@ const setEmbargoEndDate = ((count, type) => {
 </script>
 
 <style lang="scss" scoped>
-button.change {
-   margin-bottom: 5px;
-   font-size: 0.85em;
-   padding: 4px 10px;
-}
 .help {
    text-align: left;
    margin-bottom: 15px;
@@ -101,25 +106,28 @@ button.change {
 .datepick {
    display: flex;
    flex-flow: row nowrap;
-   .helpers {
-      display: flex;
-      flex-direction: column;
-      margin-left: 15px;
-      button {
-         font-size: 0.85em;
-         margin-bottom: 5px;
-      }
-   }
+   justify-content: space-between;
+   gap: 10px;
+}
+.helpers {
+   display: flex;
+   flex-direction: column;
+   gap: 5px;
 }
 .controls {
-   margin:15px 0 5px 0;
    display: flex;
-   flex-flow: row nowrap;
-   justify-content: space-between;
+   flex-direction: column;
+   margin-top: 20px;
+   padding-top: 20px;
+   border-top: 1px solid $uva-grey-100;
    align-items: center;
-   button {
-      font-size: 0.9em;
-      margin-left: 10px;
+   gap: 10px;
+   .buttons {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: flex-end;
+      gap: 5px;
+      margin-top: 10px;
    }
 }
 </style>
