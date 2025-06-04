@@ -32,7 +32,9 @@
                @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
                @removeUploadedFile="fileRemoved($event)" :previewWidth="0"
                :multiple="true" :withCredentials="true" :auto="true"
-               :showUploadButton="false" :showCancelButton="false">
+               :showUploadButton="false" :showCancelButton="false"
+               :accept="fileTypesAccepted"
+            >
                <template #empty>
                   <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
                </template>
@@ -49,10 +51,19 @@ import Column from 'primevue/column'
 import { useETDStore } from "@/stores/etd"
 import { useUserStore } from "@/stores/user"
 import { useConfirm } from "primevue/useconfirm"
+import { computed } from 'vue'
 
 const etdRepo = useETDStore()
 const user = useUserStore()
 const confirm = useConfirm()
+
+const fileTypesAccepted = computed( () => {
+   if (!user.admin) {
+      // CSV, GIF, HTM, HTML, JPEG, JPG, MOV, MP3, MP4, PDF, PNG, TIF, TIFF, TXT, XML
+      return "text/csv, application/pdf, image/*, text/html, application/xml, text/plain, video/mp4, video/quicktime, audio/mp3"
+   }
+   return "*"
+})
 
 const uploadRequested = ( (request) => {
    request.xhr.setRequestHeader('Authorization', 'Bearer ' + user.jwt)
