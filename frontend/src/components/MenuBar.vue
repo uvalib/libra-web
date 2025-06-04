@@ -18,7 +18,7 @@
          </router-link>
          <a v-else :href="item.url" :target="item.target" v-bind="props.action">
             <span :class="item.icon" v-if="item.icon" />
-            <img :src="item.image" :alt="item.alt" v-if="item.image" style="width:25px;"/>
+            <img :src="item.image" :alt="item.alt" v-if="item.image" style="width:28px;"/>
             <span>{{ item.label }}</span>
             <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
          </a>
@@ -58,17 +58,23 @@ const libraMenu = computed( () => {
       }
       menu.push(userMenu)
    } else {
-      let orcidMenu = [{label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"}]
-      if ( user.orcid.id != "") {
-         orcidMenu.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+      // let orcidMenu = []
+      // if ( user.orcid.id != "") {
+      //     orcidMenu.push( {label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+      //    orcidMenu.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+      // } else {
+      //    orcidMenu.push( {label: "Register or connect", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+      // }
+
+      let userMenu = { label: `${user.firstName} ${user.lastName}`, items: [] }
+      if ( user.orcid.id == "") {
+          userMenu.items.push( {label: "Register or connect ORCID ID", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+      } else {
+         userMenu.items.push( {label: "Manage ORCID ID", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+         userMenu.items.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
       }
 
-      let userMenu = {
-         label: `${user.firstName} ${user.lastName}`, items: [
-            { label: "ORCID", items: orcidMenu },
-            { label: "Sign out",  command: ()=>signOut()}
-         ]
-      }
+      userMenu.items.push( { label: "Sign out",  command: ()=>signOut()} )
 
       menu.push(userMenu)
    }
