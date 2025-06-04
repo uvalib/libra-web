@@ -2,7 +2,7 @@
    <div class="edit">
       <h2>
          <span>LibraETD Work</span>
-         <span v-if="adminEdit==false && etdRepo.isDraft" class="draft">DRAFT</span>
+         <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
       </h2>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
@@ -147,8 +147,8 @@
       <div class="toolbar">
          <span class="group">
             <template v-if="adminEdit">
-               <Button v-if="etdRepo.publishedAt" label="Unpublish" severity="danger" @click="unpublishClicked" />
-               <Button v-else label="Delete" severity="danger" @click="deleteClicked" />
+               <Button :disabled="!etdRepo.publishedAt" label="Unpublish" severity="danger" @click="unpublishClicked" />
+               <Button :disabled="etdRepo.publishedAt" label="Delete" severity="danger" @click="deleteClicked" />
             </template>
             <Button label="Exit" severity="secondary" @click="exitClicked" />
          </span>
