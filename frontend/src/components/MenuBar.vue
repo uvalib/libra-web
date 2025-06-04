@@ -7,7 +7,10 @@
          }"
       >
       <template #start v-if="user.admin == false && user.registrar == false">
-         <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">Libra Support</a>
+         <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">
+            <i class="pi pi-question-circle"></i>
+            <span>Libra Support</span>
+         </a>
       </template>
       <template #item="{ item, props, hasSubmenu }">
          <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
@@ -18,7 +21,7 @@
          </router-link>
          <a v-else :href="item.url" :target="item.target" v-bind="props.action">
             <span :class="item.icon" v-if="item.icon" />
-            <img :src="item.image" :alt="item.alt" v-if="item.image" style="width:28px;"/>
+            <img :src="item.image" :alt="item.alt" v-if="item.image" style="width:25px;"/>
             <span>{{ item.label }}</span>
             <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
          </a>
@@ -42,11 +45,11 @@ onMounted(()=>{
 const libraMenu = computed( () => {
    let menu = []
    if ( user.admin ) {
-      menu.push({label: "Dashboard", route: "/admin"})
+      menu.push({label: "Dashboard", route: "/admin", icon: "pi pi-home"})
    } else if ( user.registrar ) {
-      menu.push({label: "Dashboard", route: "/register"})
+      menu.push({label: "Dashboard", route: "/register", icon: "pi pi-home"})
    } else {
-      menu.push({label: "Dashboard", route: "/"})
+      menu.push({label: "Dashboard", route: "/", icon: "pi pi-home"})
    }
 
    if ( user.admin || user.registrar) {
@@ -66,15 +69,15 @@ const libraMenu = computed( () => {
       //    orcidMenu.push( {label: "Register or connect", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
       // }
 
-      let userMenu = { label: `${user.firstName} ${user.lastName}`, items: [] }
+      let userMenu = { label: `${user.firstName} ${user.lastName}`, icon: "pi pi-user", items: [] }
       if ( user.orcid.id == "") {
           userMenu.items.push( {label: "Register or connect ORCID ID", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
       } else {
-         userMenu.items.push( {label: "Manage ORCID ID", url: "https://orciddev.lib.virginia.edu", target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+         userMenu.items.push( {label: "Manage ORCID ID", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon: "pi pi-external-link"} )
          userMenu.items.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
       }
 
-      userMenu.items.push( { label: "Sign out",  command: ()=>signOut()} )
+      userMenu.items.push( { label: "Sign out", icon: "pi pi-sign-out", command: ()=>signOut()} )
 
       menu.push(userMenu)
    }
@@ -89,6 +92,12 @@ const signOut = (() => {
 </script>
 
 <style scoped lang="scss">
+a {
+   display: flex;
+   flex-flow: row nowrap;
+   align-items: center;
+   gap: 10px;
+}
 .menu-link {
    color: $uva-text-color-dark;
    border-radius: 0.4rem;
