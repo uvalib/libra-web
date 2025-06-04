@@ -113,7 +113,7 @@
                   <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
                   <span v-else>Persistent link will appear here after submission.</span>
                </section>
-               <section>
+               <section v-if="!etdRepo.isDraft">
                   <h2>Suggested Citation</h2>
                   <span id="citation">{{ etdRepo.suggestedCitation }}</span>
                   <Button v-if="canClipboard" severity="secondary" size="small" label="Copy citation" @click="copyCitation"/>
