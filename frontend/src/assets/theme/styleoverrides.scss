@@ -29,6 +29,7 @@
    .p-menubar.p-component {
       border-bottom: 1px solid $uva-grey-100;
       a.p-menubar-item-link {
+         white-space: nowrap;
          &:hover{
             color:white;
             text-decoration: none;

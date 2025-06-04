@@ -17,7 +17,8 @@
             </a>
          </router-link>
          <a v-else :href="item.url" :target="item.target" v-bind="props.action">
-            <span :class="item.icon" />
+            <span :class="item.icon" v-if="item.icon" />
+            <img :src="item.image" :alt="item.alt" v-if="item.image" style="width:25px;"/>
             <span>{{ item.label }}</span>
             <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
          </a>
@@ -29,16 +30,13 @@
 import Menubar from 'primevue/menubar'
 import { computed, onMounted } from 'vue'
 import { useUserStore } from "@/stores/user"
-import { useOrcidStore } from "@/stores/orcid"
 import { useRouter} from "vue-router"
-import ORCIDLogo from '@/assets/ORCID-iD_icon-vector.svg'
 
 const router = useRouter()
 const user = useUserStore()
-const orcid = useOrcidStore()
 
 onMounted(()=>{
-   orcid.find(user.computeID)
+   user.getORCID()
 })
 
 const libraMenu = computed( () => {
@@ -60,10 +58,11 @@ const libraMenu = computed( () => {
       }
       menu.push(userMenu)
    } else {
-      let orcidMenu = [
-         {label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"},
-         { visible: (orcid.userURI != "") , label: orcid.userURI, img: ORCIDLogo, alt: "ORCID logo", target: "_blank", url: orcid.userURI, icon: "pi pi-external-link"}
-      ]
+      let orcidMenu = [{label: "Manage", url: "https://orciddev.lib.virginia.edu", target: "_blank", icon:"pi pi-external-link"}]
+      if ( user.orcid.id != "") {
+         orcidMenu.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+      }
+
       let userMenu = {
          label: `${user.firstName} ${user.lastName}`, items: [
             { label: "ORCID", items: orcidMenu },

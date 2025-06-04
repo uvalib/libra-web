@@ -31,6 +31,7 @@ export const useUserStore = defineStore('user', {
       private: "",
       admin: false,
       registrar: false,
+      orcid: {id: "", uri: ""},
       working: false,
       theses: []
    }),
@@ -50,6 +51,18 @@ export const useUserStore = defineStore('user', {
          } else {
             console.log("not sugned in, no auth to validate")
          }
+      },
+      getORCID() {
+         if (this.computeID == "") return
+         axios.get(`/api/users/orcid/${this.computeID}`).then(response => {
+            console.log(response.data)
+            this.orcid.id = response.data.orcid
+            this.orcid.uri = response.data.uri
+         }).catch( err => {
+            if (err.response.status != 404) {
+               console.log(err)
+            }
+         })
       },
       signOut() {
          localStorage.removeItem("libra3_jwt")
