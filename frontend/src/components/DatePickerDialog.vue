@@ -3,9 +3,15 @@
    <Dialog v-model:visible="isOpen" :modal="true" header="Set End Date" style="width:fit-content" position="top">
       <div class="embargo-date">
          <template v-if="props.admin">
-            <div class="help">Use one of the quick helper buttons or pick a custom end date</div>
+            <div class="help">Set the end date by clicking a helper button, clicking a date on the calendar or enter it directly.</div>
             <div class="datepick">
-               <Calendar v-model="endDate" inline :minDate="new Date()" :maxDate="tenYears"/>
+               <div class="dates">
+                  <DatePicker v-model="endDate" inline :minDate="new Date()" :maxDate="tenYears"/>
+                  <div class="setter">
+                     <InputMask v-model="rawDate" mask="9999-99-99" placeholder="YYYY-MM-DD" fluid @keydown="dateKeyPressed"/>
+                     <Button label="Set" severity="secondary" @click="dateEntered($event)"/>
+                  </div>
+               </div>
                <div class="helpers">
                   <Button label="6 Months" severity="secondary" @click="setEmbargoEndDate(6,'month')"/>
                   <Button label="1 Year" severity="secondary" @click="setEmbargoEndDate(1,'year')"/>
@@ -39,7 +45,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Dialog from 'primevue/dialog'
-import Calendar from 'primevue/calendar'
+import DatePicker from 'primevue/datepicker'
+import InputMask from 'primevue/inputmask'
+import dayjs from 'dayjs'
 
 const emit = defineEmits( ['picked'])
 const props = defineProps({
@@ -66,6 +74,7 @@ const props = defineProps({
 })
 const isOpen = ref(false)
 const endDate = ref()
+const rawDate = ref("")
 
 const showTenYear = computed( () => {
    if ( props.admin) return true
@@ -80,11 +89,22 @@ const tenYears = computed( () => {
 const show = (() => {
    isOpen.value = true
    endDate.value = new Date(props.endDate)
+   rawDate.value = props.endDate
 })
 
 const okClicked = (() => {
    emit("picked", endDate.value )
    isOpen.value = false
+})
+
+const dateKeyPressed = ((event) => {
+   if (event.keyCode == 13) {
+      dateEntered()
+   }
+})
+
+const dateEntered = (() => {
+   endDate.value = dayjs(rawDate.value).toDate()
 })
 
 const setEmbargoEndDate = ((count, type) => {
@@ -102,12 +122,24 @@ const setEmbargoEndDate = ((count, type) => {
 .help {
    text-align: left;
    margin-bottom: 15px;
+   white-space: break-spaces;
+   max-width: 400px;
 }
 .datepick {
    display: flex;
    flex-flow: row nowrap;
    justify-content: space-between;
    gap: 10px;
+   .dates {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .setter {
+         display: flex;
+         flex-flow: row nowrap;
+         gap: 5px;
+      }
+   }
 }
 .helpers {
    display: flex;
@@ -120,7 +152,7 @@ const setEmbargoEndDate = ((count, type) => {
    margin-top: 20px;
    padding-top: 20px;
    border-top: 1px solid $uva-grey-100;
-   align-items: center;
+   align-items: flex-start;
    gap: 10px;
    .buttons {
       display: flex;
@@ -128,6 +160,7 @@ const setEmbargoEndDate = ((count, type) => {
       justify-content: flex-end;
       gap: 5px;
       margin-top: 10px;
+      width: 100%;
    }
 }
 </style>
