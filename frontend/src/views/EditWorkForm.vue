@@ -8,7 +8,7 @@
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
          <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
          <Panel header="Metadata" toggleable>
-            <ProgramPanel :admin="adminEdit" />
+            <ProgramPanel :admin="user.admin" @changed="programChanged = true"/>
             <div class="fields">
                <div class="field" >
                   <LabeledInput label="Title" name="work.title" :required="true" v-model="etdRepo.work.title"/>
@@ -78,7 +78,7 @@
                />
                <RepeatField label="Sponsoring Agencies" name="agency" @change="listChanged=true" v-model="etdRepo.work.sponsors"/>
                <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
-               <LabeledInput v-if="adminEdit" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
+               <LabeledInput v-if="user.admin" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
                <div class="field" >
                   <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.userLicenses" />
                   <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
@@ -111,7 +111,7 @@
                   <a href="https://uvapolicy.virginia.edu/policy/PROV-014" target="_blank">Provost Policy on Access Levels for Libra ETD deposits</a>.
                </div>
 
-               <div v-if="etdRepo.visibility == 'embargo' && adminEdit == false" class="embargo">
+               <div v-if="etdRepo.visibility == 'embargo' && user.admin == false" class="embargo">
                   <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
                   <div>This work is under embargo.</div>
                   <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
@@ -121,13 +121,13 @@
                   <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
                </div>
                <Message v-if="$form.visibility?.invalid" severity="error" size="small" variant="simple">{{ $form.visibility.error.message }}</Message>
-               <div v-if="etdRepo.visibility == 'uva' || (adminEdit && etdRepo.visibility == 'embargo')" class="visibility-info">
+               <div v-if="etdRepo.visibility == 'uva' || (user.admin && etdRepo.visibility == 'embargo')" class="visibility-info">
                   <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
                   <div v-else>Files unavailable to anyone until:</div>
                   <div class="embargo-date">
                      <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
                      <span v-else>Never</span>
-                     <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="adminEdit"
+                     <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="user.admin"
                         :visibility="etdRepo.visibility" @picked="endDatePicked"
                         :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
                   </div>
@@ -146,7 +146,7 @@
       </Form>
       <div class="toolbar">
          <span class="group">
-            <template v-if="adminEdit">
+            <template v-if="user.admin">
                <Button :disabled="!etdRepo.publishedAt" label="Unpublish" severity="danger" @click="unpublishClicked" />
                <Button :disabled="etdRepo.publishedAt" label="Delete" severity="danger" @click="deleteClicked" />
             </template>
@@ -195,6 +195,7 @@ const admin = useAdminStore()
 const etdForm = ref(null)
 const postSave = ref("edit")
 const listChanged = ref(false)
+const programChanged = ref(false)
 const metadataComplete = ref(false)
 
 onBeforeMount( async () => {
@@ -285,7 +286,7 @@ const previewClicked = (() => {
 
 const exitClicked = (() => {
    let exitRoute = "/"
-   if ( adminEdit.value) {
+   if ( user.admin ) {
       exitRoute = "/admin"
    }
    if ( isDirty(etdForm.value.states) ) {
@@ -330,7 +331,7 @@ const deleteClicked = ( () => {
 })
 
 const isDirty = ((data) => {
-   let dirty = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 || listChanged.value)
+   let dirty = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 || listChanged.value || programChanged.value)
    if (dirty ) return true
 
    Object.keys(data).some((key) => {
@@ -351,6 +352,7 @@ const isDirty = ((data) => {
 const clearEdits = (() => {
    etdForm.value.reset()
    listChanged.value = false
+   programChanged.value = false
 })
 
 const saveChanges = ( async (data) => {
@@ -370,28 +372,13 @@ const saveChanges = ( async (data) => {
          return
       }
    }
-
-   // TODO NOT NEEDED RIGHT NOW. DELETE LATER, assuming Save and exit button can be left out
-   // if ( postSave.value == "exit") {
-   //    if ( adminEdit.value) {
-   //       router.push("/admin")
-   //    } else {
-   //       router.push("/")
-   //    }
-   // } else if ( postSave.value == "preview") {
-   //    router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
-   // }
 })
 
 const visibilityOpts = computed( () => {
-   if (adminEdit.value) {
+   if (user.admin) {
       return system.visibility
    }
    return system.userVisibility
-})
-
-const adminEdit = computed( () => {
-   return route.path.includes("/admin")
 })
 
 const addAdvisor = ( () => {

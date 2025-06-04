@@ -9,14 +9,16 @@
             <td class="label" id="admin-program">Program:</td>
             <td v-if="props.admin == false">{{ etdRepo.work.program  }}</td>
             <td v-else>
-               <Select v-model="etdRepo.work.program" :options="programs" editable fluid ariaLabelledby="admin-program"/>
+               <Select v-model="etdRepo.work.program" :options="programs" editable fluid
+                  ariaLabelledby="admin-program" @update:modelValue="emit('changed')"/>
             </td>
          </tr>
          <tr>
             <td class="label" id="admin-degree">Degree:</td>
             <td v-if="props.admin == false">{{ etdRepo.work.degree }}</td>
             <td v-else>
-               <Select v-model="etdRepo.work.degree" :options="degrees" fluid ariaLabelledby="admin-degree"/>
+               <Select v-model="etdRepo.work.degree" :options="degrees" fluid
+                  ariaLabelledby="admin-degree" @update:modelValue="emit('changed')"/>
             </td>
          </tr>
       </tbody>
@@ -46,6 +48,8 @@ import Select from 'primevue/select'
 
 const system = useSystemStore()
 const etdRepo = useETDStore()
+
+const emit = defineEmits( ['changed'])
 
 const props = defineProps({
    admin: {
