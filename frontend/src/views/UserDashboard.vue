@@ -120,6 +120,12 @@ const previewWorkClicked = ( (id) => {
          align-items: flex-start;
          gap: 25px;
       }
+      .theses {
+         max-width: 70%;
+      }
+      .p-card {
+         max-width: 380px;
+      }
    }
 }
 @media only screen and (max-width: 768px) {
