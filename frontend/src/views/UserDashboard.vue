@@ -64,9 +64,9 @@
                   <template #body="slotProps">
                      <div  class="acts">
                         <Button v-if="slotProps.data.published" class="action" label="Public View" severity="secondary"
-                           size="small" @click="previewWorkClicked(slotProps.data.id)"/>
+                           @click="previewWorkClicked(slotProps.data.id)"/>
                         <Button v-else class="action" label="Edit Thesis" severity="secondary"
-                           size="small" @click="editWorkClicked(slotProps.data.id)"/>
+                           @click="editWorkClicked(slotProps.data.id)"/>
                      </div>
                   </template>
                </Column>

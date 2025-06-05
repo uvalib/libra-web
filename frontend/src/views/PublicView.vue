@@ -169,7 +169,7 @@ const downloadFileClicked = ( (name) => {
 })
 
 const editThesis = (() => {
-   if (user.admin) {
+   if (user.isAdmin) {
       router.push(`/admin/etd/${route.params.id}`)
    } else {
       router.push(`/etd/${route.params.id}`)
@@ -177,11 +177,7 @@ const editThesis = (() => {
 })
 
 const cancelPreview = ( () => {
-   if (user.admin) {
-      router.push("/admin")
-   } else {
-      router.push("/")
-   }
+   router.push(user.homePage)
 })
 
 const submitThesis = ( () => {

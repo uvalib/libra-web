@@ -58,7 +58,7 @@ const user = useUserStore()
 const confirm = useConfirm()
 
 const fileTypesAccepted = computed( () => {
-   if (!user.admin) {
+   if (!user.isAdmin) {
       // CSV, GIF, HTM, HTML, JPEG, JPG, MOV, MP3, MP4, PDF, PNG, TIF, TIFF, TXT, XML
       return "text/csv, application/pdf, image/*, text/html, application/xml, text/plain, video/mp4, video/quicktime, audio/mp3"
    }

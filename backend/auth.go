@@ -17,6 +17,10 @@ type jwtClaims struct {
 	jwt.StandardClaims
 }
 
+func (c *jwtClaims) isAdmin() bool {
+	return c.Role == "admin"
+}
+
 // UserDetails contains a user response from the user-ws
 type UserDetails struct {
 	ComputeID   string   `json:"cid"`
@@ -33,8 +37,7 @@ type UserDetails struct {
 	Affiliation []string `json:"affiliation"`
 	Email       string   `json:"email"`
 	Private     string   `json:"private"`
-	IsAdmin     bool     `json:"admin"`
-	IsRegistrar bool     `json:"registrar"`
+	Role        string   `json:"role"`
 }
 
 type userServiceResp struct {
@@ -91,24 +94,27 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		return
 	}
 
+	// default to standard user role
+	jsonResp.User.Role = "user"
+
 	// if not in dev mode check for membership in libra-admins
 	if svc.Dev.user == "" {
 		// Membership format: cn=group_name1;cn=group_name2;...
 		membershipStr := c.GetHeader("member")
 		if strings.Contains(membershipStr, "libra-admins") {
 			log.Printf("INFO: user %s is an admin", computingID)
-			jsonResp.User.IsAdmin = true
+			jsonResp.User.Role = "admin"
 		} else if strings.Contains(membershipStr, "libra-optional-reg") {
 			log.Printf("INFO: user %s can add deposit registrations", computingID)
-			jsonResp.User.IsRegistrar = true
+			jsonResp.User.Role = "registrar"
 		}
 	} else {
 		if svc.Dev.role == "admin" {
 			log.Printf("INFO: dev user %s is an admin", svc.Dev.user)
-			jsonResp.User.IsAdmin = true
+			jsonResp.User.Role = "admin"
 		} else if svc.Dev.role == "registrar" {
 			log.Printf("INFO: dev user %s is a registrar", svc.Dev.user)
-			jsonResp.User.IsRegistrar = true
+			jsonResp.User.Role = "registrar"
 		}
 	}
 
@@ -183,7 +189,7 @@ func (svc *serviceContext) adminMiddleware(c *gin.Context) {
 		return
 	}
 
-	if claims.IsAdmin == false {
+	if claims.isAdmin() == false {
 		log.Printf("WARNING: admin auth failed for non-admin user %s", claims.ComputeID)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return

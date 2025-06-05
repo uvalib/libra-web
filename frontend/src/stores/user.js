@@ -29,8 +29,7 @@ export const useUserStore = defineStore('user', {
       affiliation: [],
       email: "",
       private: "",
-      admin: false,
-      registrar: false,
+      role: "",
       orcid: {id: "", uri: ""},
       working: false,
       theses: []
@@ -39,6 +38,17 @@ export const useUserStore = defineStore('user', {
       isSignedIn: state => {
          return state.jwt != "" && state.computeID != ""
       },
+      isAdmin: state => {
+         return state.role == "admin"
+      },
+      isRegistrar: state => {
+         return state.role == "registrar"
+      },
+      homePage: state => {
+         if ( state.isAdmin ) return "/admin"
+         if ( state.isRegistrar) return "/register"
+         return "/"
+      }
    },
    actions: {
       async validateAuth() {
@@ -105,8 +115,7 @@ export const useUserStore = defineStore('user', {
          this.affiliation = parsed.affiliation
          this.email = parsed.email
          this.private = parsed.private
-         this.admin = parsed.admin
-         this.registrar = parsed.registrar
+         this.role = parsed.role
 
          // add interceptor to put bearer token in header
          const system = useSystemStore()

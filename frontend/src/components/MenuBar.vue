@@ -6,7 +6,7 @@
             }
          }"
       >
-      <template #start v-if="user.admin == false && user.registrar == false">
+      <template #start v-if="user.isAdmin == false && user.isRegistrar == false">
          <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">
             <i class="pi pi-question-circle"></i>
             <span>Libra Support</span>
@@ -46,15 +46,15 @@ onMounted(()=>{
 
 const libraMenu = computed( () => {
    let menu = []
-   if ( user.admin ) {
+   if ( user.isAdmin ) {
       menu.push({label: "Dashboard", route: "/admin", icon: "pi pi-home"})
-   } else if ( user.registrar ) {
+   } else if ( user.isRegistrar ) {
       menu.push({label: "Dashboard", route: "/register", icon: "pi pi-home"})
    } else {
       menu.push({label: "Dashboard", route: "/", icon: "pi pi-home"})
    }
 
-   if ( user.admin || user.registrar) {
+   if ( user.isAdmin || user.isRegistrar) {
       let userMenu =
       {
          label: `${user.firstName} ${user.lastName}`, items: [

@@ -88,12 +88,7 @@ router.beforeEach( async (to) => {
       userStore.setJWT(jwtStr)
       if ( userStore.isSignedIn  ) {
          console.log(`GRANTED [${jwtStr}]`)
-         if ( userStore.admin) {
-            return "/admin"
-         } else if ( userStore.registrar) {
-            return "/register"
-         }
-         return "/"
+         return userStore.homePage
       }
       return {name: "forbidden"}
    }
@@ -116,13 +111,13 @@ router.beforeEach( async (to) => {
 
       if ( isAdminPage) {
          console.log(`REQUEST ADMIN PAGE WITH JWT`)
-         if ( userStore.admin == false ) {
+         if ( userStore.isAdmin == false ) {
             console.log("REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
             return {name: "forbidden"}
          }
       } else if ( to.name == "register") {
          console.log(`REQUEST REGISTER PAGE WITH JWT`)
-         if ( userStore.registrar == false && userStore.admin == false) {
+         if ( userStore.isRegistrar == false && userStore.isAdmin == false) {
             console.log("REJECT NON-REGISTRAR REQUEST FOR REGISTER PAGE")
             return {name: "forbidden"}
          }

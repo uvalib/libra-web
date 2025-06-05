@@ -140,7 +140,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	claims := getJWTClaims(c)
 	if claims != nil {
 		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == claims.ComputeID || claims.IsAdmin
+		canUpdate = depositor == claims.ComputeID || claims.isAdmin()
 	}
 	if canUpdate == false {
 		log.Printf("INFO: unauthorized attempt to update work %s", workID)
@@ -173,9 +173,9 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 			fields["embargo-release"] = ""
 			delete(fields, "embargo-release-visibility")
 		} else {
-			// For non-admin users, visibility muast be public within 5 years per provost
+			// For non-admin users, visibility must be public within 5 years per provost
 			endDateStr := etdReq.EmbargoReleaseDate.Format(time.RFC3339)
-			if etdReq.Visibility == "uva" && claims.IsAdmin == false {
+			if etdReq.Visibility == "uva" && claims.isAdmin() == false {
 				maxDate := time.Now().AddDate(5, 0, 0) // now + 5 years
 				if etdReq.EmbargoReleaseDate.After(maxDate) {
 					log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", endDateStr)
@@ -404,7 +404,7 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		log.Printf("INFO: work %s accessed by signed in user %s", tgtObj.Id(), jwt.ComputeID)
-		if depositor == jwt.ComputeID || jwt.IsAdmin {
+		if depositor == jwt.ComputeID || jwt.isAdmin() {
 			log.Printf("INFO: user %s is admin or author of work %s and has full access", jwt.ComputeID, tgtObj.Id())
 			resp.files = true
 		}
