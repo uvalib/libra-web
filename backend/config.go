@@ -33,10 +33,15 @@ type devConfig struct {
 	fakeBus bool
 }
 
+type orcidConfig struct {
+	serviceURL string
+	clientURL  string
+}
+
 type configData struct {
 	port            int
 	userService     userServiceCfg
-	orcidService    orcidServiceCfg
+	orcid           orcidConfig
 	auditQueryURL   string
 	jwtKey          string
 	easyStore       easyStoreConfig
@@ -53,7 +58,12 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
 	flag.StringVar(&config.auditQueryURL, "auditqueryurl", "", "Query URL for the audit service")
-	flag.StringVar(&config.orcidService.GetURL, "getorcidurl", "", "GET orcid for user service")
+
+	// ORCID ID:
+	// * getorcidurl is backed request to get a users ORCID ID
+	// * orcidurl is the url the ORCID client used to manage ORCID connection
+	flag.StringVar(&config.orcid.serviceURL, "getorcidurl", "", "GET orcid for user service")
+	flag.StringVar(&config.orcid.clientURL, "orcidurl", "", "GET orcid for user service")
 
 	// dev mode
 	flag.StringVar(&config.dev.user, "devuser", "", "Authorized computing id for dev")
@@ -111,7 +121,8 @@ func getConfiguration() *configData {
 
 	log.Printf("[CONFIG] port          = [%d]", config.port)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
-	log.Printf("[CONFIG] getorcidurl   = [%s]", config.orcidService.GetURL)
+	log.Printf("[CONFIG] getorcidurl   = [%s]", config.orcid.serviceURL)
+	log.Printf("[CONFIG] orcidurl      = [%s]", config.orcid.clientURL)
 	log.Printf("[CONFIG] auditqueryurl = [%s]", config.auditQueryURL)
 	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
 	log.Printf("[CONFIG] namespace     = [%s]", config.namespace)

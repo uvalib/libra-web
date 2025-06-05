@@ -27,14 +27,15 @@ fi
 
 # run application
 cd bin; ./libra-web \
-   -index        ${INDEX_URL} \
-   -jwtkey       ${JWT_KEY} \
-   -userws       ${USER_WS} \
-   -namespace    ${ETD_NAMESPACE} \
-   -busname      ${BUS_NAME} \
-   -eventsrc     ${EVENT_SRC_NAME} \
+   -index         ${INDEX_URL} \
+   -jwtkey        ${JWT_KEY} \
+   -userws        ${USER_WS} \
+   -namespace     ${ETD_NAMESPACE} \
+   -busname       ${BUS_NAME} \
+   -eventsrc      ${EVENT_SRC_NAME} \
    -auditqueryurl ${AUDIT_QUERY_URL} \
    -getorcidurl   ${ORCID_GET_DETAILS_URL} \
+   -orcidurl      ${ORCID_CLIENT_URL} \
    ${ES_CONFIG}
 
 #

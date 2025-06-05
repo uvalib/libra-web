@@ -35,7 +35,7 @@ type serviceContext struct {
 	EasyStore     uvaeasystore.EasyStore
 	Events        eventContext
 	UserService   userServiceCfg
-	OrcidService  orcidServiceCfg
+	ORCID         orcidConfig
 	JWTKey        string
 	Namespace     string
 	UVAWhiteList  []*net.IPNet
@@ -90,24 +90,25 @@ type etdProgram struct {
 }
 
 type configResponse struct {
-	Version    string         `json:"version"`
-	Namespace  libraNamespace `json:"namespace"`
-	Licenses   []license      `json:"licenses"`
-	Languages  []language     `json:"languages"`
-	Visibility []visibility   `json:"visibility"`
-	Programs   []etdProgram   `json:"programs"`
-	Degrees    []etdDegree    `json:"degrees"`
+	Version        string         `json:"version"`
+	Namespace      libraNamespace `json:"namespace"`
+	Licenses       []license      `json:"licenses"`
+	Languages      []language     `json:"languages"`
+	Visibility     []visibility   `json:"visibility"`
+	Programs       []etdProgram   `json:"programs"`
+	Degrees        []etdDegree    `json:"degrees"`
+	ORCIDClientURL string         `json:"orcid"`
 }
 
 // InitializeService sets up the service context for all API handlers
 func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{Version: version,
-		JWTKey:       cfg.jwtKey,
-		UserService:  cfg.userService,
-		OrcidService: cfg.orcidService,
-		Dev:          cfg.dev,
-		Namespace:    cfg.namespace,
-		IndexURL:     cfg.indexURL,
+		JWTKey:      cfg.jwtKey,
+		UserService: cfg.userService,
+		ORCID:       cfg.orcid,
+		Dev:         cfg.dev,
+		Namespace:   cfg.namespace,
+		IndexURL:    cfg.indexURL,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")
@@ -286,7 +287,7 @@ func (svc *serviceContext) getVersion(c *gin.Context) {
 func (svc *serviceContext) getConfig(c *gin.Context) {
 	verInfo := svc.lookupVersion()
 	ver := fmt.Sprintf("v%s-%s", verInfo["version"], verInfo["build"])
-	resp := configResponse{Version: ver, Namespace: libraNamespace{Label: "LibraETD", Namespace: svc.Namespace}}
+	resp := configResponse{Version: ver, Namespace: libraNamespace{Label: "LibraETD", Namespace: svc.Namespace}, ORCIDClientURL: svc.ORCID.clientURL}
 
 	err := loadETDConfig(&resp)
 	if err != nil {
@@ -465,15 +466,14 @@ type OrcidDetails struct {
 
 func (svc *serviceContext) lookupOrcidID(c *gin.Context) {
 	computeID := c.Param("cid")
-	log.Printf("INFO: lookup ORCID for compute id [%s]", computeID)
+	log.Printf("INFO: lookup orcid for compute id [%s]", computeID)
 	err := svc.checkUserServiceJWT()
 	if err != nil {
 		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	url := svc.OrcidService.GetURL
-	// substitute values into url
+	url := svc.ORCID.serviceURL
 	url = strings.Replace(url, "{:id}", computeID, 1)
 	url = strings.Replace(url, "{:auth}", svc.UserService.JWT, 1)
 	payload, userErr := svc.sendGetRequest(url)
@@ -485,12 +485,12 @@ func (svc *serviceContext) lookupOrcidID(c *gin.Context) {
 	resp := OrcidDetailsResponse{}
 	err = json.Unmarshal(payload, &resp)
 	if err != nil {
-		fmt.Printf("ERROR: json unmarshal of OrcidDetailsResponse (%s)\n", err.Error())
+		log.Printf("ERROR: json unmarshal of OrcidDetailsResponse (%s)", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	fmt.Printf("INFO: located ORCID [%v] for cid [%s]\n", resp, computeID)
+	log.Printf("INFO: located ORCID [%+v] for cid [%s]", resp, computeID)
 
 	// if we have details, return them
 	if len(resp.Details) != 0 {
@@ -498,8 +498,8 @@ func (svc *serviceContext) lookupOrcidID(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("ERROR: No ORCID details found. API may have changed.\n")
-	c.String(http.StatusNotFound, "No ORCID details found")
+	log.Printf("INFO: No ORCID details found - %d: %s", resp.Status, resp.Message)
+	c.String(resp.Status, resp.Message)
 
 }
 

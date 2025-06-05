@@ -12,6 +12,7 @@ export const useSystemStore = defineStore('system', {
       namespace: {},
       degrees: [],
       programs: [],
+      orcidURL: "",
       error: "",
       showError: false,
       toast: {
@@ -76,6 +77,7 @@ export const useSystemStore = defineStore('system', {
             this.namespace = response.data.namespace
             this.degrees = response.data.degrees
             this.programs = response.data.programs
+            this.orcidURL = response.data.orcid
             this.working = false
          }).catch( err => {
             this.setError(  err )
