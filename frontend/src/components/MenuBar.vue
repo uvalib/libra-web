@@ -57,8 +57,8 @@ const libraMenu = computed( () => {
    if ( user.isAdmin || user.isRegistrar) {
       let userMenu =
       {
-         label: `${user.firstName} ${user.lastName}`, items: [
-            {label: "Sign out",  command: ()=>signOut()}
+         label: `${user.firstName} ${user.lastName}`, icon: "pi pi-user", items: [
+            {label: "Sign out", icon: "pi pi-sign-out",  command: ()=>signOut()}
          ]
       }
       menu.push(userMenu)

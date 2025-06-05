@@ -231,35 +231,6 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 	c.String(http.StatusOK, "published")
 }
 
-func (svc *serviceContext) unpublishWork(c *gin.Context) {
-	workID := c.Param("id")
-
-	log.Printf("INFO: get work %s %s for unpublish", svc.Namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
-	if err != nil {
-		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	fields := tgtObj.Fields()
-	if fields["draft"] == "true" {
-		log.Printf("INFO: %s is not published", workID)
-		c.String(http.StatusConflict, fmt.Sprintf("%s is not published", workID))
-		return
-	}
-	fields["draft"] = "true"
-	delete(fields, "publish-date")
-	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
-	if err != nil {
-		log.Printf("ERROR:unpublish %s failed: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, fmt.Sprintf("unpublish failed: %s", err.Error()))
-		return
-	}
-	svc.publishEvent(uvalibrabus.EventWorkUnpublish, svc.Namespace, tgtObj.Id())
-	c.String(http.StatusOK, "unpublished")
-}
-
 func (svc *serviceContext) updateWorkFiles(workID string, origFiles []uvaeasystore.EasyStoreBlob, addFiles, delFiles []string) ([]uvaeasystore.EasyStoreBlob, error) {
 	//  generate a list of files; start a new list and only add those
 	// from the original work that are not on the deleted list
@@ -331,26 +302,6 @@ func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObje
 		}
 	}
 	return visibility
-}
-
-func (svc *serviceContext) deleteWork(c *gin.Context) {
-	workID := c.Param("id")
-	log.Printf("INFO: get %s work %s for deletion", svc.Namespace, workID)
-	delObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent)
-	if err != nil {
-		log.Printf("ERROR: unablle to get  %s work %s: %s", svc.Namespace, workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	log.Printf("INFO: delete %s work %s", svc.Namespace, workID)
-	_, err = svc.EasyStore.Delete(delObj, uvaeasystore.AllComponents)
-	if err != nil {
-		log.Printf("ERROR: unablle to delete  %s work %s: %s", svc.Namespace, workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.String(http.StatusOK, "deleted")
 }
 
 func (svc *serviceContext) downloadFile(c *gin.Context) {

@@ -64,42 +64,6 @@ func (svc *serviceContext) getDepositToken(c *gin.Context) {
 	c.String(http.StatusOK, guid.String())
 }
 
-func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
-	var regReq registrationRequest
-	err := c.ShouldBindJSON(&regReq)
-	if err != nil {
-		log.Printf("ERROR: bad payload for depost registration request: %s", err.Error())
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// note: this endpoint is protected by admin middleware which ensures claims are present and admin
-	claims := getJWTClaims(c)
-	log.Printf("INFO: %s requests deposit registrations %+v", claims.ComputeID, regReq)
-	for _, student := range regReq.Students {
-		author := librametadata.ContributorData{ComputeID: student.ComputeID,
-			FirstName: student.FirstName, LastName: student.LastName, Institution: "University of Virginia"}
-		etdReg := librametadata.ETDWork{Program: regReq.Program, Degree: regReq.Degree, Author: author}
-		obj := uvaeasystore.NewEasyStoreObject(svc.Namespace, "")
-		fields := uvaeasystore.DefaultEasyStoreFields()
-		fields["create-date"] = time.Now().Format(time.RFC3339)
-		fields["draft"] = "true"
-		fields["default-visibility"] = ""
-		fields["depositor"] = student.ComputeID
-		fields["source"] = "optional"
-		obj.SetMetadata(etdReg)
-		obj.SetFields(fields)
-
-		_, err := svc.EasyStore.Create(obj)
-		if err != nil {
-			log.Printf("ERROR: admin create registration failed: %s", err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
-	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
-}
-
 func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.EasyStoreBlob, error) {
 	log.Printf("INFO: get files [%v] associated with submission from location %s", fileList, uploadDir)
 	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -56,72 +55,6 @@ type indexResp struct {
 			SourceID          string `json:"source-id"`
 		} `json:"fields"`
 	} `json:"hits"`
-}
-
-func (svc *serviceContext) adminSearch(c *gin.Context) {
-	qStr := c.Query("q")
-	if qStr == "" {
-		qStr = "*"
-	}
-
-	offset, pageErr := strconv.ParseInt(c.Query("offset"), 10, 0)
-	if pageErr != nil {
-		log.Printf("ERROR: invalid offset parameter %s: %s", c.Query("offset"), pageErr.Error())
-		return
-	}
-	limit, pageErr := strconv.ParseInt(c.Query("limit"), 10, 0)
-	if pageErr != nil {
-		log.Printf("ERROR: invalid  limit parameter %s: %s", c.Query("offset"), pageErr.Error())
-		return
-	}
-
-	log.Printf("INFO: admin search for works with [%s]", qStr)
-	payload := map[string]any{"q": qStr, "offset": offset, "limit": limit}
-	if c.Query("sort") != "" {
-		sort := c.Query("sort")
-		if sort == "created" {
-			sort = "fields.create-date"
-		} else if sort == "title" {
-			sort = "metadata.title"
-		}
-		payload["sort"] = []string{fmt.Sprintf("%s:%s", sort, c.Query("order"))}
-	}
-
-	//Filter Example: "filter": ["fields.draft=true","fields.source=sis"]}
-	filters := make([]string, 0)
-	if c.Query("source") != "" {
-		filters = append(filters, fmt.Sprintf("fields.source=%s", c.Query("source")))
-	}
-	if c.Query("draft") != "" {
-		filters = append(filters, fmt.Sprintf("fields.draft=%s", c.Query("draft")))
-	}
-	if len(filters) > 0 {
-		payload["filter"] = filters
-	}
-	log.Printf("PAYLOAD %v", payload)
-	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
-	rawResp, respErr := svc.sendPostRequest(url, payload)
-	if respErr != nil {
-		log.Printf("ERROR: search for [%s] failed: %s", qStr, respErr.Message)
-		c.String(respErr.StatusCode, respErr.Message)
-		return
-	}
-
-	// log.Printf("INDEX RESP: %s", rawResp)
-
-	var jsonResp indexResp
-	err := json.Unmarshal(rawResp, &jsonResp)
-	if err != nil {
-		log.Printf("ERROR: unable to parse response: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	resp := parseIndexSearchHits(jsonResp)
-
-	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp.Hits), jsonResp.ProcessingTime)
-
-	c.JSON(http.StatusOK, resp)
 }
 
 func parseIndexSearchHits(rawResp indexResp) searchResp {

@@ -3,6 +3,12 @@
    <ConfirmDialog position="top" />
 
    <header id="libra-header">
+      <div class="impersonate" v-if="admin.isImpersonating">
+         <span>
+            You ({{admin.originalAdminID }}) are impersonating user: {{ user.displayName }} ({{ user.email }})
+         </span>
+         <Button icon="pi pi-sign-out" label="Back to Admin" @click="admin.endImpersonate()"/>
+      </div>
       <div class="main-header">
          <div class="library-link">
             <a href="https://library.virginia.edu" aria-label="go to the uva library homepage">
@@ -46,6 +52,7 @@ import MenuBar from "@/components/MenuBar.vue"
 import { RouterView } from 'vue-router'
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
+import { useAdminStore } from "@/stores/admin"
 import Dialog from 'primevue/dialog'
 import Toast from 'primevue/toast'
 import ScrollTop from 'primevue/scrolltop'
@@ -54,6 +61,7 @@ import { useToast } from "primevue/usetoast"
 const toast = useToast()
 const systemStore = useSystemStore()
 const user = useUserStore()
+const admin = useAdminStore()
 const configuring = ref(true)
 
 watch(() => systemStore.toast.show, (newShow) => {
@@ -145,6 +153,16 @@ header {
    text-align: left;
    position: relative;
    box-sizing: border-box;
+   .impersonate {
+      background: $uva-blue-alt-300;
+      padding: 10px;
+      color: $uva-text-color-dark;
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      align-items: center;
+
+   }
    .main-header {
       display: flex;
       flex-direction: row;

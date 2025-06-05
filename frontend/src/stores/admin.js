@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useSystemStore } from './system'
 import { useETDStore } from './etd'
+import { useUserStore } from './user'
+import VueCookies from 'vue-cookies'
 
 export const useAdminStore = defineStore('admin', {
    state: () => ({
@@ -15,7 +17,21 @@ export const useAdminStore = defineStore('admin', {
       sortOrder: "",
       statusFilter: "any",
       sourceFilter: "any",
+      impersonate: {
+         adminJWT: "",
+         userID: "",
+         adminID: "",
+         active: false
+      }
    }),
+   getters: {
+      isImpersonating: state => {
+         return state.impersonate.active
+      },
+      originalAdminID: state => {
+         return state.impersonate.adminID
+      }
+   },
    actions: {
       resetSearch() {
          console.log("POPOPOP")
@@ -49,6 +65,36 @@ export const useAdminStore = defineStore('admin', {
             system.setError(  err )
             this.working = false
          })
+      },
+
+      becomeUser(tgtID) {
+         let user = useUserStore()
+         if ( user.isAdmin == false ) return
+
+        this.impersonate.adminJWT = user.jwt
+        this.impersonate.adminID = user.computeID
+        this.impersonate.userID = tgtID
+        this.impersonate.active = true
+
+         axios.post(`/api/admin/impersonate/${tgtID}`).then(() => {
+            const jwtStr = VueCookies.get("libra3_impersonate_jwt")
+            console.log("Got impersonate JWT: "+jwtStr)
+            user.setJWT(jwtStr)
+            this.router.push("/")
+         }).catch( err => {
+            this.endImpersonate()
+            const system = useSystemStore()
+            system.setError(  err )
+         })
+      },
+      endImpersonate() {
+         let user = useUserStore()
+         user.setJWT(this.impersonate.adminJWT, true)
+         this.impersonate.adminJWT = ""
+         this.impersonate.adminID = ""
+         this.impersonate.userID = ""
+         this.impersonate.active = false
+          this.router.push( user.homePage )
       },
 
       unpublish(id) {

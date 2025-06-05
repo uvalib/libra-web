@@ -73,8 +73,9 @@
             <Column header="Actions" style="width:110px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button class="action" label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
-                     <Button v-if="slotProps.data.published" class="action" label="Public View" severity="info"
+                     <Button label="Become User" severity="secondary" size="small" @click="becomeUser(slotProps.data.author.computeID)"/>
+                     <Button label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
+                     <Button v-if="slotProps.data.published" label="Public View" severity="info"
                         size="small" @click="viewWorkClicked(slotProps.data.id)"/>
                   </div>
                </template>
@@ -149,6 +150,10 @@ const editWorkClicked = ( (id) => {
 const viewWorkClicked = ( (id) => {
    let url = `/public/etd/${id}`
    router.push(url)
+})
+
+const becomeUser = ((computeID) => {
+   admin.becomeUser( computeID )
 })
 </script>
 

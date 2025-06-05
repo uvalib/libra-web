@@ -59,10 +59,11 @@ func main() {
 
 		admin := api.Group("/admin", svc.adminMiddleware)
 		{
+			admin.POST("/impersonate/:computeID", svc.adminImpersonateUser)
 			admin.POST("/register", svc.adminDepositRegistrations)
 			admin.GET("/search", svc.adminSearch)
-			admin.DELETE("/works/:id", svc.deleteWork)
-			admin.DELETE("/works/:id/publish", svc.unpublishWork)
+			admin.DELETE("/works/:id", svc.adminDeleteWork)
+			admin.DELETE("/works/:id/publish", svc.adminUnpublishWork)
 		}
 	}
 
