@@ -23,18 +23,25 @@ const router = createRouter({
       {
          path: '/admin',
          name: 'admin',
-         component: AdminDashboard
+         component: AdminDashboard,
+         meta: { requiresAdmin: true }
       },
       {
          path: '/register',
          name: 'register',
-         component: RegistrationForm
+         component: RegistrationForm,
+         meta: { requiresRegistrar: true }
       },
       {
          path: '/etd/:id',
-         alias: '/admin/etd/:id',
          name: 'edtworkform',
-         component: EditWorkForm
+         component: EditWorkForm,
+      },
+       {
+         path: '/admin/etd/:id',
+         name: 'adminworkform',
+         component: EditWorkForm,
+         meta: { requiresAdmin: true }
       },
       {
          path: '/public/etd/:id',
@@ -79,7 +86,6 @@ router.beforeEach( async (to) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
    const noAuthRoutes = ["not_found", "forbidden", "expired", "etdpublic", "signedout"]
-   const isAdminPage = (to.name == "admin" || to.path.includes("/admin"))
 
    // the /signedin endpoint called after authorization. it has no page itself; it just
    // processes the authorization response and redirects to the next page (or forbidden)
@@ -109,13 +115,13 @@ router.beforeEach( async (to) => {
          return false   // cancel the original navigation
       }
 
-      if ( isAdminPage) {
+      if ( to.meta.requiresAdmin ) {
          console.log(`REQUEST ADMIN PAGE WITH JWT`)
          if ( userStore.isAdmin == false ) {
             console.log("REJECT NON-ADMIN REQUEST FOR ADMIN PAGES")
             return {name: "forbidden"}
          }
-      } else if ( to.name == "register") {
+      } else if ( to.meta.requiresRegistrar ) {
          console.log(`REQUEST REGISTER PAGE WITH JWT`)
          if ( userStore.isRegistrar == false && userStore.isAdmin == false) {
             console.log("REJECT NON-REGISTRAR REQUEST FOR REGISTER PAGE")
