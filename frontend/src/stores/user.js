@@ -55,8 +55,7 @@ export const useUserStore = defineStore('user', {
          if ( this.isSignedIn ) {
             await axios.get(`/authcheck`).catch( err => {
                console.log("JWT VALIDATE FAILED: "+err)
-               localStorage.removeItem("libra3_jwt")
-               this.$reset()
+               this.signOut()
             })
          } else {
             console.log("not sugned in, no auth to validate")
@@ -64,7 +63,9 @@ export const useUserStore = defineStore('user', {
       },
       getORCID() {
          if (this.computeID == "") return
-         axios.get(`/api/users/orcid/${this.computeID}`).then(response => {
+
+         const orcidURL = `/api/users/orcid/${this.computeID}`
+         axios.get(orcidURL).then(response => {
             console.log(response.data)
             this.orcid.id = response.data.orcid
             this.orcid.uri = response.data.uri
@@ -76,6 +77,7 @@ export const useUserStore = defineStore('user', {
       },
       signOut() {
          localStorage.removeItem("libra3_jwt")
+         localStorage.removeItem("libra3_impersonate")
          this.$reset()
       },
       getTheses() {
@@ -116,6 +118,7 @@ export const useUserStore = defineStore('user', {
          this.email = parsed.email
          this.private = parsed.private
          this.role = parsed.role
+         console.log(`jwt is for user ${this.displayName} (${this.computeID}) with role ${this.role}`)
 
          // add interceptor to put bearer token in header
          const system = useSystemStore()
@@ -130,14 +133,13 @@ export const useUserStore = defineStore('user', {
          axios.interceptors.response.use(
             res => res,
             err => {
-               console.log("failed response for "+err.config.url)
+               console.log(`request ${err.config.url} failed with status ${err.response.status}`)
                console.log(err)
                if (err.config.url.match(/\/authenticate/)) {
                   this.router.push("/forbidden")
                } else {
                   if (err.response && err.response.status == 401) {
-                     localStorage.removeItem("libra3_jwt")
-                     this.$reset
+                     this.signOut()
                      system.working = false
                      this.router.push("/expired")
                      return new Promise(() => { })

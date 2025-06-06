@@ -73,10 +73,13 @@
             <Column header="Actions" style="width:110px">
                <template #body="slotProps">
                   <div  class="acts">
-                     <Button label="Become User" severity="secondary" size="small" @click="becomeUser(slotProps.data.author.computeID)"/>
+                     <Button v-if="slotProps.data.author.computeID" label="Become User" severity="secondary"
+                        size="small" @click="becomeUser(slotProps.data.author.computeID)"
+                     />
                      <Button label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
                      <Button v-if="slotProps.data.published" label="Public View" severity="info"
-                        size="small" @click="viewWorkClicked(slotProps.data.id)"/>
+                        size="small" @click="viewWorkClicked(slotProps.data.id)"
+                     />
                   </div>
                </template>
             </Column>

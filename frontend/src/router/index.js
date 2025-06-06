@@ -10,6 +10,7 @@ import ForbiddenView from '../views/ForbiddenView.vue'
 import NotFound from '../views/NotFound.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
+import { useAdminStore } from '@/stores/admin'
 
 const router = createRouter({
    history: createWebHistory(import.meta.env.BASE_URL),
@@ -103,6 +104,19 @@ router.beforeEach( async (to) => {
    // depending upon the page requested, this token may or may not be used.
    const jwtStr = localStorage.getItem('libra3_jwt')
    userStore.setJWT(jwtStr)
+
+   // see if there is existing impersonate stored locally (in case browser was refreshed)
+   const impersonateStr = localStorage.getItem("libra3_impersonate")
+   const impersonateData = JSON.parse(impersonateStr)
+   if (impersonateData) {
+      console.log("cached impersonate data found")
+      if (impersonateData.userID == userStore.computeID) {
+         useAdminStore().impersonate = impersonateData
+      } else {
+         console.log("impersonate data fis mismatched; removing it")
+         localStorage.removeItem("libra3_impersonate")
+      }
+   }
 
    // public view requires no auth, but will use it if present
    if ( noAuthRoutes.includes(to.name)) {

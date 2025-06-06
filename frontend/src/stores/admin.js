@@ -78,23 +78,25 @@ export const useAdminStore = defineStore('admin', {
 
          axios.post(`/api/admin/impersonate/${tgtID}`).then(() => {
             const jwtStr = VueCookies.get("libra3_impersonate_jwt")
-            console.log("Got impersonate JWT: "+jwtStr)
             user.setJWT(jwtStr)
+            const strData = JSON.stringify(this.impersonate)
+            localStorage.setItem("libra3_impersonate", strData)
             this.router.push("/")
          }).catch( err => {
-            this.endImpersonate()
             const system = useSystemStore()
-            system.setError(  err )
+            system.setError(  `Unable to impersonate user '${tgtID}'` )
+             this.endImpersonate()
          })
       },
       endImpersonate() {
          let user = useUserStore()
-         user.setJWT(this.impersonate.adminJWT, true)
+         user.setJWT(this.impersonate.adminJWT)
          this.impersonate.adminJWT = ""
          this.impersonate.adminID = ""
          this.impersonate.userID = ""
          this.impersonate.active = false
-          this.router.push( user.homePage )
+         localStorage.removeItem("libra3_impersonate")
+         this.router.push( user.homePage )
       },
 
       unpublish(id) {
