@@ -32,7 +32,9 @@ export const useUserStore = defineStore('user', {
       role: "",
       orcid: {id: "", uri: ""},
       working: false,
-      theses: []
+      theses: [],
+      requestInterceptor: null,
+      responseInterceptor: null,
    }),
    getters: {
       isSignedIn: state => {
@@ -121,8 +123,12 @@ export const useUserStore = defineStore('user', {
          console.log(`jwt is for user ${this.displayName} (${this.computeID}) with role ${this.role}`)
 
          // add interceptor to put bearer token in header
+         if ( this.requestInterceptor ) {
+            console.log("remove existing request intercptor")
+            axios.interceptors.request.eject( this.requestInterceptor)
+         }
          const system = useSystemStore()
-         axios.interceptors.request.use(config => {
+         this.requestInterceptor = axios.interceptors.request.use(config => {
             config.headers['Authorization'] = 'Bearer ' + jwt
             return config
          }, error => {
@@ -130,7 +136,11 @@ export const useUserStore = defineStore('user', {
          })
 
          // Catch 401 errors and redirect to an expired auth page
-         axios.interceptors.response.use(
+         if ( this.responseInterceptor ) {
+            console.log("remove existing response intercptor")
+            axios.interceptors.response.eject(this.responseInterceptor )
+         }
+        this.responseInterceptor = axios.interceptors.response.use(
             res => res,
             err => {
                console.log(`request ${err.config.url} failed with status ${err.response.status}`)

@@ -26,6 +26,9 @@
             <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
          </a>
       </template>
+       <template #end v-if="user.isAdmin">
+         <span class='admin'><i class="pi pi-star"></i>Administrator</span>
+       </template>
    </Menubar>
 </template>
 
@@ -91,6 +94,14 @@ a {
    flex-flow: row nowrap;
    align-items: center;
    gap: 10px;
+}
+.admin {
+   padding: 0.5rem 0.75rem;
+   background: $uva-grey-A;
+   color: white;
+   display: flex;
+   flex-flow: row nowrap;
+   gap: 8px;
 }
 .menu-link {
    color: $uva-text-color-dark;

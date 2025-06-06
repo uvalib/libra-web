@@ -105,46 +105,48 @@ const UVA = definePreset(Aura, {
          },
          colorScheme: {
             light: {
-               success: {
-                  background: colors.greenDark,
-                  hoverBackground: colors.green,
-               },
-               secondary: {
-                  background: colors.grey200,
-                  hoverBackground: colors.grey100,
-                  hoverBorderColor: colors.grey,
-                  borderColor: colors.grey100,
-                  color: colors.textDark,
-                  focusRing: {
-                     color: colors.brandBlue100,
+               root: {
+                  success: {
+                     background: colors.greenDark,
+                     hoverBackground: colors.green,
                   },
-               },
-               danger: {
-                  background: colors.redA,
-                  hoverBackground: colors.red,
-                  hoverBorderColor: colors.red,
-                  borderColor: colors.red,
-                  color: "white",
-               },
-               contrast: {
-                  background: colors.brandOrangeDark,
-                  hoverBackground: colors.brandOrange,
-                  activeBackground: colors.brandOrange,
-                  focusRing: {
-                     color: 'white',
-                     shadow: 'none'
-                  }
-               },
-               info: {
-                  background: colors.blueAlt300,
-                  activeBackground: colors.blueAlt300,
-                  activeColor: '#000000',
-                  hoverBackground: '#91d8f2',
-                  hoverBorderColor: '#007BAC',
-                  borderColor: '#007BAC',
-                  color: '#000000',
-                  hoverColor: '#000000',
-                  borderWidth: '2px'
+                  secondary: {
+                     background: colors.grey200,
+                     hoverBackground: colors.grey100,
+                     hoverBorderColor: colors.grey,
+                     borderColor: colors.grey100,
+                     color: colors.textDark,
+                     focusRing: {
+                        color: colors.brandBlue100,
+                     },
+                  },
+                  danger: {
+                     background: colors.redA,
+                     hoverBackground: colors.red,
+                     hoverBorderColor: colors.red,
+                     borderColor: colors.red,
+                     color: "white",
+                  },
+                  contrast: {
+                     background: colors.brandOrangeDark,
+                     hoverBackground: colors.brandOrange,
+                     activeBackground: colors.brandOrange,
+                     focusRing: {
+                        color: 'white',
+                        shadow: 'none'
+                     }
+                  },
+                  info: {
+                     background: colors.blueAlt300,
+                     activeBackground: colors.blueAlt300,
+                     activeColor: '#000000',
+                     hoverBackground: '#91d8f2',
+                     hoverBorderColor: '#007BAC',
+                     borderColor: '#007BAC',
+                     color: '#000000',
+                     hoverColor: '#000000',
+                     borderWidth: '2px'
+                  },
                },
                text: {
                   primary: {
@@ -169,14 +171,14 @@ const UVA = definePreset(Aura, {
       },
       card: {
          root: {
-            background: '{content.background}',
-            borderRadius: '0.5rem',
+            background: 'white',
+            borderRadius: '0.3rem',
             color: colors.textBase,
-            shadow: '0 2px 1px -1px #0003, 0 1px 1px #00000024, 0 1px 3px #0000001f',
+            shadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
          },
          title: {
             fontSize: '1.15rem',
-            fontWeight: '600'
+            fontWeight: 'bold'
          }
       },
       datatable: {
