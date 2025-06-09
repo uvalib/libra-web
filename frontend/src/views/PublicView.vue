@@ -108,6 +108,10 @@
                   <a v-if="etdRepo.work.licenseURL" :href="etdRepo.work.licenseURL" target="_blank">{{ etdRepo.work.license }}</a>
                   <div v-else>{{ etdRepo.work.license }}</div>
                </section>
+               <section v-if="!etdRepo.isDraft">
+                  <h2>Issued Date:</h2>
+                  <div>{{ $formatDate(etdRepo.publishedAt) }}</div>
+               </section>
                <section>
                   <h2>Persistent Link</h2>
                   <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
