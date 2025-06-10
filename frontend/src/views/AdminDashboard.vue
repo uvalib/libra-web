@@ -37,10 +37,11 @@
                <div v-if="admin.query" class="none">No matching works found for {{ admin.query }}</div>
                <div v-else class="none">Search for works</div>
             </template>
-            <Column field="namespace" header="Source">
+            <Column field="source" header="Source">
                <template #body="slotProps">
-                  <div>{{ system.namespace.label }}</div>
-                  <div v-if="slotProps.data.source" class="source">( {{ slotProps.data.source }} )</div>
+                  <div v-if="slotProps.data.source=='sis'" style="text-transform: uppercase;">{{ slotProps.data.source }}</div>
+                  <div v-else-if="slotProps.data.source=='libra-oa'" style="white-space: nowrap;">Libra-OA</div>
+                  <div v-else style="text-transform: capitalize;">{{ slotProps.data.source }}</div>
                </template>
             </Column>
             <Column field="id" header="ID" class="nowrap"/>
@@ -183,12 +184,6 @@ const becomeUser = ((computeID) => {
       .p-select {
          margin-left: 5px;
       }
-   }
-
-   .source {
-      margin-top: 5px;
-      font-size: 0.85em;
-      color: $uva-grey-A;
    }
    .panel-header {
       font-weight: bold;
