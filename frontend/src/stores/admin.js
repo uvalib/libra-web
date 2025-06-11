@@ -13,6 +13,7 @@ export const useAdminStore = defineStore('admin', {
       offset: 0,
       limit: 20,
       query: "",
+      searchCompleted: false,
       sortField: "",
       sortOrder: "",
       statusFilter: "any",
@@ -34,7 +35,6 @@ export const useAdminStore = defineStore('admin', {
    },
    actions: {
       resetSearch() {
-         console.log("POPOPOP")
          this.$reset()
       },
       async addRegistrations( program, degree, students ) {
@@ -60,10 +60,12 @@ export const useAdminStore = defineStore('admin', {
             this.hits = response.data.hits
             this.total = response.data.total
             this.working = false
+            this.searchCompleted = true
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
             this.working = false
+            this.searchCompleted = false
          })
       },
 

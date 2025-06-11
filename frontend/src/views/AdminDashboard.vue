@@ -34,7 +34,7 @@
                :loading="admin.working" removableSort @sort="onSort($event)"  :sortField="admin.sortField"
          >
             <template #empty>
-               <div v-if="admin.query" class="none">No matching works found for {{ admin.query }}</div>
+               <div v-if="admin.searchCompleted" class="none">No matching works found for {{ admin.query }}</div>
                <div v-else class="none">Search for works</div>
             </template>
             <Column field="source" header="Source">
@@ -141,6 +141,7 @@ const searchKeyPressed = ((event) => {
    admin.sortField = ""
    admin.sortOrder = ""
    admin.offset = 0
+   admin.searchCompleted = false
    if (event.keyCode == 13) {
       admin.search()
    }

@@ -26,3 +26,4 @@ package/scripts/build.ksh
 package/scripts/shell.ksh
 local_db.sh
 to_stage.sh
+old_run_script.txt
