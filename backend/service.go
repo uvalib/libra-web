@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -152,71 +153,66 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	log.Printf("INFO: configure easystore")
-	config := uvaeasystore.ProxyConfigImpl{
-		ServiceEndpoint: cfg.easyStore.proxy,
-		Log:             log.Default(),
+	if cfg.easyStore.mode == "sqlite" {
+		config := uvaeasystore.DatastoreSqliteConfig{
+			DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
+			// Log:        log.Default(),
+			BusName:    cfg.busName,
+			SourceName: cfg.eventSourceName,
+		}
+		es, err := uvaeasystore.NewEasyStore(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = es
+	} else if cfg.easyStore.mode == "postgres" {
+		config := uvaeasystore.DatastorePostgresConfig{
+			DbHost:     cfg.easyStore.dbHost,
+			DbPort:     cfg.easyStore.dbPort,
+			DbName:     cfg.easyStore.dbName,
+			DbUser:     cfg.easyStore.dbUser,
+			DbPassword: cfg.easyStore.dbPass,
+			DbTimeout:  cfg.easyStore.dbTimeout,
+			BusName:    cfg.busName,
+			SourceName: cfg.eventSourceName,
+			Log:        log.Default(),
+		}
+		es, err := uvaeasystore.NewEasyStore(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = es
+	} else if cfg.easyStore.mode == "s3" {
+		config := uvaeasystore.DatastoreS3Config{
+			Bucket:     cfg.easyStore.s3Bucket,
+			DbHost:     cfg.easyStore.dbHost,
+			DbPort:     cfg.easyStore.dbPort,
+			DbName:     cfg.easyStore.dbName,
+			DbUser:     cfg.easyStore.dbUser,
+			DbPassword: cfg.easyStore.dbPass,
+			DbTimeout:  cfg.easyStore.dbTimeout,
+			BusName:    cfg.busName,
+			SourceName: cfg.eventSourceName,
+			Log:        log.Default(),
+		}
+		es, err := uvaeasystore.NewEasyStore(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = es
+	} else if cfg.easyStore.mode == "proxy" {
+		config := uvaeasystore.ProxyConfigImpl{
+			ServiceEndpoint: cfg.easyStore.proxy,
+			Log:             log.Default(),
+		}
+		es, err := uvaeasystore.NewEasyStoreProxy(config)
+		if err != nil {
+			log.Fatalf("create easystore failed: %s", err.Error())
+		}
+		ctx.EasyStore = es
+	} else {
+		log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
 	}
-	es, err := uvaeasystore.NewEasyStoreProxy(config)
-	if err != nil {
-		log.Fatalf("create easystore failed: %s", err.Error())
-	}
-	ctx.EasyStore = es
-	// // NOTE: easystore will disable the event bus if the bus name is bank. Do this for devBus mode
-	// busName := cfg.busName
-	// if cfg.dev.fakeBus {
-	// 	log.Printf("INFO: bus is in dev mode; set blank name for easystore config")
-	// 	busName = ""
-	// }
-	// if cfg.easyStore.mode == "sqlite" {
-	// 	config := uvaeasystore.DatastoreSqliteConfig{
-	// 		DataSource: path.Join(cfg.easyStore.dbDir, cfg.easyStore.dbFile),
-	// 		// Log:        log.Default(),
-	// 		BusName:    busName,
-	// 		SourceName: cfg.eventSourceName,
-	// 	}
-	// 	es, err := uvaeasystore.NewEasyStore(config)
-	// 	if err != nil {
-	// 		log.Fatalf("create easystore failed: %s", err.Error())
-	// 	}
-	// 	ctx.EasyStore = es
-	// } else if cfg.easyStore.mode == "postgres" {
-	// 	config := uvaeasystore.DatastorePostgresConfig{
-	// 		DbHost:     cfg.easyStore.dbHost,
-	// 		DbPort:     cfg.easyStore.dbPort,
-	// 		DbName:     cfg.easyStore.dbName,
-	// 		DbUser:     cfg.easyStore.dbUser,
-	// 		DbPassword: cfg.easyStore.dbPass,
-	// 		DbTimeout:  cfg.easyStore.dbTimeout,
-	// 		BusName:    busName,
-	// 		SourceName: cfg.eventSourceName,
-	// 		Log:        log.Default(),
-	// 	}
-	// 	es, err := uvaeasystore.NewEasyStore(config)
-	// 	if err != nil {
-	// 		log.Fatalf("create easystore failed: %s", err.Error())
-	// 	}
-	// 	ctx.EasyStore = es
-	// } else if cfg.easyStore.mode == "s3" {
-	// 	config := uvaeasystore.DatastoreS3Config{
-	// 		Bucket:     cfg.easyStore.s3Bucket,
-	// 		DbHost:     cfg.easyStore.dbHost,
-	// 		DbPort:     cfg.easyStore.dbPort,
-	// 		DbName:     cfg.easyStore.dbName,
-	// 		DbUser:     cfg.easyStore.dbUser,
-	// 		DbPassword: cfg.easyStore.dbPass,
-	// 		DbTimeout:  cfg.easyStore.dbTimeout,
-	// 		BusName:    busName,
-	// 		SourceName: cfg.eventSourceName,
-	// 		Log:        log.Default(),
-	// 	}
-	// 	es, err := uvaeasystore.NewEasyStore(config)
-	// 	if err != nil {
-	// 		log.Fatalf("create easystore failed: %s", err.Error())
-	// 	}
-	// 	ctx.EasyStore = es
-	// } else {
-	// 	log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
-	// }
 	log.Printf("INFO: easystore configured")
 
 	ctx.Events.DevMode = cfg.dev.fakeBus
