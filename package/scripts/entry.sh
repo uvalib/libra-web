@@ -25,6 +25,12 @@ if [ "${ESMODE}" == "s3" ]; then
    echo "Easystore S3 config: [${ES_CONFIG}]"
 fi
 
+# S3
+if [ "${ESMODE}" == "proxy" ]; then
+   ES_CONFIG="--esmode proxy --esproxy ${ES_PROXY_URL}"
+   echo "Easystore S3 config: [${ES_CONFIG}]"
+fi
+
 # run application
 cd bin; ./libra-web \
    -index         ${INDEX_URL} \
