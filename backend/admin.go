@@ -154,10 +154,20 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 		fields["default-visibility"] = ""
 		fields["depositor"] = student.ComputeID
 		fields["source"] = "optional"
-		obj.SetMetadata(etdReg)
 		obj.SetFields(fields)
 
-		_, err := svc.EasyStore.Create(obj)
+		// An ETDWork does not serialize the same way as an EasyStoreMetadata object
+		// does when being managed by json.Marshal/json.Unmarshal so we wrap it in an object that
+		// behaves appropriately
+		pl, err := etdReg.Payload()
+		if err != nil {
+			log.Printf("ERROR: serializing ETDWork: %s", err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		obj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReg.MimeType(), pl))
+
+		_, err = svc.EasyStore.Create(obj)
 		if err != nil {
 			log.Printf("ERROR: admin create registration failed: %s", err.Error())
 			c.String(http.StatusInternalServerError, err.Error())

@@ -150,7 +150,17 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 
 	// update the metadata with newly submitted info
 	svc.auditWorkUpdate(claims.ComputeID, etdReq, tgtObj)
-	tgtObj.SetMetadata(etdReq.Work)
+
+	// An ETDWork does not serialize the same way as an EasyStoreMetadata object
+	// does when being managed by json.Marshal/json.Unmarshal so we wrap it in an object that
+	// behaves appropriately
+	pl, err := etdReq.Work.Payload()
+	if err != nil {
+		log.Printf("ERROR: serializing ETDWork: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	tgtObj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReq.Work.MimeType(), pl))
 
 	// update files if necessary
 	if len(etdReq.AddFiles) != 0 || len(etdReq.DelFiles) != 0 {
