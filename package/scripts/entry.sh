@@ -28,7 +28,7 @@ fi
 # S3
 if [ "${ESMODE}" == "proxy" ]; then
    ES_CONFIG="--esmode proxy --esproxy ${ES_PROXY_URL}"
-   echo "Easystore S3 config: [${ES_CONFIG}]"
+   echo "Easystore proxy config: [${ES_CONFIG}]"
 fi
 
 # run application
