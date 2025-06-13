@@ -124,6 +124,8 @@ github.com/ugorji/go/codec v1.2.14 h1:yOQvXCBc3Ij46LRkRoh4Yd5qK6LVOgi0bYOXfb7ifj
 github.com/ugorji/go/codec v1.2.14/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20250606123550-bccc69720357 h1:Z0LFu+ZfIJgvJ1Ab7ZYJpXQ1Bh/u40MzOCkHINaURqk=
 github.com/uvalib/easystore/uvaeasystore v0.0.0-20250606123550-bccc69720357/go.mod h1:7M0hEkOeLqG9KVrJyXiLgBPDf7/xzX3uxHtzQ8ltTGg=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20250613130057-65bfc305dedd h1:gT5bS7PKFCKBXnpv/VfPeRNZOmCvYymkbY7i5Dh2sI4=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20250613130057-65bfc305dedd/go.mod h1:+qz3raM1bMUFIqJ1FkbhcuIHZWzi3d11ACnDX5AZAQk=
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1 h1:eSDmfVQk1tehn1bgnCwvMxS8kmIXNE1jlXeYlXM8ZI4=
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f h1:foXanRAYw3jJxk0iTBWhHBBcWOwhAACzwsjlNr/CBBg=
