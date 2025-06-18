@@ -153,6 +153,7 @@ func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
 		fields["draft"] = "true"
 		fields["default-visibility"] = ""
 		fields["depositor"] = student.ComputeID
+		fields["registrar"] = claims.ComputeID
 		fields["source"] = "optional"
 		obj.SetFields(fields)
 

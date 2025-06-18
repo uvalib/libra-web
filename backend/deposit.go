@@ -28,6 +28,7 @@ import (
 // "invitation-sent": timestamp that indicates when an "invitation to deposit" email was sent.
 // "publish-date": timestamp when an OA work goes from private to public or when a user clicks Publish on an ETD work.
 // "resource-type": type of work, libraOpen only.
+// "registrar": the person creating the optional deposit registration
 // "sis-sent": timestamp, indicates notification sent to SIS. LibraETD only.
 // "source-id": source of the thesis, a unique SIS or Optional identifier. LibraETD only.
 // "source": source of the thesis, "sis" or "optional".
