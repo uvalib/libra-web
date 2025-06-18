@@ -7,14 +7,14 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/gin"
 )
 
 // GetSitemap is a handler function that serves the sitemap.xml file.
 func (svc *serviceContext) GetSitemap(c *gin.Context) {
 
-	baseURL := location.Get(c).String()
+	// TODO: make this URL based on environment
+	baseURL := "https://libra-web-dev.internal.lib.virginia.edu"
 	log.Printf("INFO: sitemap requested for %s", baseURL)
 	sitemap, err := generateSitemap(svc, baseURL)
 	if err != nil {

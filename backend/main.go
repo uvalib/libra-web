@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
-	"github.com/gin-contrib/location"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
@@ -26,11 +25,6 @@ func main() {
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
-
-	// configure to automatically detect scheme and host
-	// - use http when default scheme cannot be determined
-	// - use localhost:8080 when default host cannot be determined
-	router.Use(location.Default())
 
 	// Set routes and start serve
 	router.GET("/authenticate", svc.authenticate)
