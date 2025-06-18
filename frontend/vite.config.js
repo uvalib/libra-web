@@ -44,6 +44,10 @@ export default defineConfig({
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
+         '/sitemap.xml': {
+            target: process.env.LIBRA_SRV,
+            changeOrigin: true
+         },
       }
    },
    css: {
