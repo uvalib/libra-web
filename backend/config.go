@@ -97,7 +97,7 @@ func getConfiguration() *configData {
 
 	flag.Parse()
 
-	if config.easyStore.mode != "proxy" && config.easyStore.mode != "postgres" {
+	if config.easyStore.mode != "proxy" {
 		log.Fatal("Parameter esmode only supports proxy")
 	}
 	if config.jwtKey == "" {
