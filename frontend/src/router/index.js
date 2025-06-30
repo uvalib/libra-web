@@ -11,6 +11,7 @@ import NotFound from '../views/NotFound.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
 import { useAdminStore } from '@/stores/admin'
+import { useToast } from "primevue/usetoast"
 
 const router = createRouter({
    history: createWebHistory(import.meta.env.BASE_URL),
@@ -87,6 +88,9 @@ router.beforeEach( async (to) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
    const noAuthRoutes = ["not_found", "forbidden", "expired", "etdpublic", "signedout"]
+
+   // close any lobgering toast messages
+   useToast().removeAllGroups()
 
    // the /signedin endpoint called after authorization. it has no page itself; it just
    // processes the authorization response and redirects to the next page (or forbidden)

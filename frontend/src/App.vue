@@ -69,7 +69,7 @@ watch(() => systemStore.toast.show, (newShow) => {
       if ( systemStore.toast.error) {
          toast.add({severity:'error', summary:  systemStore.toast.summary, detail:  systemStore.toast.message})
       } else {
-         toast.add({severity:'success', summary:  systemStore.toast.summary, detail:  systemStore.toast.message})
+         toast.add({severity:'success', summary:  systemStore.toast.summary, detail:  systemStore.toast.message, life: 5000})
       }
       systemStore.clearToastMessage()
    }
