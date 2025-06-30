@@ -133,9 +133,10 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] busname       = [%s]", config.busName)
 	log.Printf("[CONFIG] index         = [%s]", config.indexURL)
 
-	if config.easyStore.mode == "proxy" {
+	switch config.easyStore.mode {
+	case "proxy":
 		log.Printf("[CONFIG] esproxy       = [%s]", config.easyStore.proxy)
-	} else if config.easyStore.mode == "postgres" {
+	case "postgres":
 		log.Printf("[CONFIG] esdbhost      = [%s]", config.easyStore.dbHost)
 		log.Printf("[CONFIG] esdbport      = [%d]", config.easyStore.dbPort)
 		log.Printf("[CONFIG] esdb          = [%s]", config.easyStore.dbName)

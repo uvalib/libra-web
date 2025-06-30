@@ -109,10 +109,11 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 			jsonResp.User.Role = "registrar"
 		}
 	} else {
-		if svc.Dev.role == "admin" {
+		switch svc.Dev.role {
+		case "admin":
 			log.Printf("INFO: dev user %s is an admin", svc.Dev.user)
 			jsonResp.User.Role = "admin"
-		} else if svc.Dev.role == "registrar" {
+		case "registrar":
 			log.Printf("INFO: dev user %s is a registrar", svc.Dev.user)
 			jsonResp.User.Role = "registrar"
 		}

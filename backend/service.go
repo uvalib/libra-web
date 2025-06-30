@@ -148,7 +148,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 
 	err = ctx.checkUserServiceJWT()
 	if err != nil {
-		log.Fatal(fmt.Sprintf("unable to generate user service jwt: %s", err.Error()))
+		log.Fatalf("unable to generate user service jwt: %s", err.Error())
 	}
 
 	log.Printf("INFO: configure easystore")

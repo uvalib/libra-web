@@ -36,9 +36,10 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	payload := map[string]any{"q": qStr, "offset": offset, "limit": limit}
 	if c.Query("sort") != "" {
 		sort := c.Query("sort")
-		if sort == "created" {
+		switch sort {
+		case "created":
 			sort = "fields.create-date"
-		} else if sort == "title" {
+		case "title":
 			sort = "metadata.title"
 		}
 		payload["sort"] = []string{fmt.Sprintf("%s:%s", sort, c.Query("order"))}

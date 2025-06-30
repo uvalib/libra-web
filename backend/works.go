@@ -374,14 +374,15 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 			log.Printf("INFO: work %s is a draft cannot be accessed", tgtObj.Id())
 			resp.metadata = false
 		} else {
-			if visibility == "open" {
+			switch visibility {
+			case "open":
 				log.Printf("INFO: work %s is public and is fully visibile", tgtObj.Id())
 				resp.files = true
-			} else if visibility == "embargo" {
+			case "embargo":
 				// embargo work files are only visible to admin / author. that us handled above
 				log.Printf("INFO: work %s is embargoed and only metadata is visible", tgtObj.Id())
 				resp.files = false
-			} else {
+			default:
 				resp.files = svc.isFromUVA(c)
 				log.Printf("INFO: work %s is limited to uva users; user uva status %t", tgtObj.Id(), resp.files)
 			}
