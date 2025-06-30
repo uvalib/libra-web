@@ -118,27 +118,30 @@
                   <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
                   <div>This work is under embargo.</div>
                   <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
-               </div>
-               <div v-else v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
-                  <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
-                  <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
-               </div>
-               <Message v-if="$form.visibility?.invalid" severity="error" size="small" variant="simple">{{ $form.visibility.error.message }}</Message>
-               <div v-if="etdRepo.visibility == 'uva' || (user.isAdmin && etdRepo.visibility == 'embargo')" class="visibility-info">
-                  <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
-                  <div v-else>Files unavailable to anyone until:</div>
-                  <div class="embargo-date">
-                     <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
-                     <span v-else>Never</span>
-                     <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="user.isAdmin"
-                        :visibility="etdRepo.visibility" @picked="endDatePicked"
-                        :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
-                  </div>
                   <div>After that, files will be be available worldwide.</div>
                </div>
-               <div v-else class="visibility-info">
-                  All files will be available worldwide.
-               </div>
+               <template v-else>
+                  <div v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
+                     <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
+                     <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+                  </div>
+                  <div v-if="etdRepo.visibility == 'uva' || (user.isAdmin && etdRepo.visibility == 'embargo')" class="visibility-info">
+                     <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
+                     <div v-else>Files unavailable to anyone until:</div>
+                     <div class="embargo-date">
+                        <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
+                        <span v-else>Never</span>
+                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="user.isAdmin"
+                           :visibility="etdRepo.visibility" @picked="endDatePicked"
+                           :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
+                     </div>
+                     <div>After that, files will be be available worldwide.</div>
+                  </div>
+                  <div v-else class="visibility-info">
+                     All files will be available worldwide.
+                  </div>
+               </template>
+               <Message v-if="$form.visibility?.invalid" severity="error" size="small" variant="simple">{{ $form.visibility.error.message }}</Message>
             </div>
 
             <template #icons>
