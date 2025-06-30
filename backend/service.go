@@ -30,6 +30,7 @@ type eventContext struct {
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version       string
+	EtdURL        string
 	HTTPClient    *http.Client
 	EasyStore     uvaeasystore.EasyStore
 	Events        eventContext
@@ -108,6 +109,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		Dev:         cfg.dev,
 		Namespace:   cfg.namespace,
 		IndexURL:    cfg.indexURL,
+		EtdURL:      cfg.edtURL,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")

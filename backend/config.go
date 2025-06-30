@@ -42,6 +42,7 @@ type orcidConfig struct {
 
 type configData struct {
 	port            int
+	edtURL          string
 	userService     userServiceCfg
 	orcid           orcidConfig
 	auditQueryURL   string
@@ -57,6 +58,7 @@ type configData struct {
 func getConfiguration() *configData {
 	var config configData
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
+	flag.StringVar(&config.edtURL, "etdurl", "https://libra-web-dev.internal.lib.virginia.edu", "URL for the LibraETD service")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
 	flag.StringVar(&config.auditQueryURL, "auditqueryurl", "", "Query URL for the audit service")
@@ -123,6 +125,7 @@ func getConfiguration() *configData {
 	}
 
 	log.Printf("[CONFIG] port          = [%d]", config.port)
+	log.Printf("[CONFIG] edturl        = [%s]", config.edtURL)
 	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
 	log.Printf("[CONFIG] getorcidurl   = [%s]", config.orcid.serviceURL)
 	log.Printf("[CONFIG] orcidurl      = [%s]", config.orcid.clientURL)

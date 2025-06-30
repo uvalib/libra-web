@@ -33,6 +33,7 @@ fi
 
 # run application
 cd bin; ./libra-web \
+   -etdurl        ${ETD_URL} \
    -index         ${INDEX_URL} \
    -jwtkey        ${JWT_KEY} \
    -userws        ${USER_WS} \

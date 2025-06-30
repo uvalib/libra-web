@@ -12,11 +12,8 @@ import (
 
 // GetSitemap is a handler function that serves the sitemap.xml file.
 func (svc *serviceContext) GetSitemap(c *gin.Context) {
-
-	// TODO: make this URL based on environment
-	baseURL := "https://libra-web-dev.internal.lib.virginia.edu"
-	log.Printf("INFO: sitemap requested for %s", baseURL)
-	sitemap, err := generateSitemap(svc, baseURL)
+	log.Printf("INFO: sitemap requested for %s", svc.EtdURL)
+	sitemap, err := generateSitemap(svc, svc.EtdURL)
 	if err != nil {
 		log.Printf("ERROR: %s", err.Error())
 		c.AbortWithStatus(http.StatusInternalServerError)
