@@ -11,7 +11,9 @@
             <ProgramPanel :admin="user.isAdmin" @changed="programChanged = true"/>
             <div class="fields">
                <div class="field" >
-                  <LabeledInput label="Title" name="work.title" :required="true" v-model="etdRepo.work.title"/>
+                  <LabeledInput label="Title" name="work.title" :required="true"
+                     v-model="etdRepo.work.title" :readonly="etdRepo.source == 'sis' && user.isAdmin == false"
+                  />
                   <Message v-if="$form.work?.title?.invalid" severity="error" size="small" variant="simple">{{ $form.work.title.error.message }}</Message>
                </div>
                <Fieldset legend="Author">
