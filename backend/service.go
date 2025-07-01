@@ -154,19 +154,15 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	log.Printf("INFO: configure easystore")
-	if cfg.easyStore.mode == "proxy" {
-		config := uvaeasystore.ProxyConfigImpl{
-			ServiceEndpoint: cfg.easyStore.proxy,
-			Log:             log.Default(),
-		}
-		es, err := uvaeasystore.NewEasyStoreProxy(config)
-		if err != nil {
-			log.Fatalf("create easystore failed: %s", err.Error())
-		}
-		ctx.EasyStore = es
-	} else {
-		log.Fatalf("easystore mode [%s] is not supported", cfg.easyStore.mode)
+	config := uvaeasystore.ProxyConfigImpl{
+		ServiceEndpoint: cfg.easyStoreProxy,
+		Log:             log.Default(),
 	}
+	es, err := uvaeasystore.NewEasyStoreProxy(config)
+	if err != nil {
+		log.Fatalf("create easystore failed: %s", err.Error())
+	}
+	ctx.EasyStore = es
 	log.Printf("INFO: easystore configured")
 
 	ctx.Events.DevMode = cfg.dev.fakeBus

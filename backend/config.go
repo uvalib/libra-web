@@ -14,21 +14,6 @@ type orcidServiceCfg struct {
 	GetURL string
 }
 
-// TODO remove all but proxy
-type easyStoreConfig struct {
-	mode      string // sqlite, postgres, s3, proxy
-	proxy     string
-	dbDir     string
-	dbFile    string
-	dbHost    string
-	dbPort    int
-	dbName    string
-	dbUser    string
-	dbPass    string
-	dbTimeout int
-	s3Bucket  string
-}
-
 type devConfig struct {
 	user    string
 	role    string
@@ -47,7 +32,7 @@ type configData struct {
 	orcid           orcidConfig
 	auditQueryURL   string
 	jwtKey          string
-	easyStore       easyStoreConfig
+	easyStoreProxy  string
 	namespace       string
 	busName         string
 	eventSourceName string
@@ -75,17 +60,7 @@ func getConfiguration() *configData {
 	flag.BoolVar(&config.dev.fakeBus, "devbus", false, "bus dev mode (no events sent out)")
 
 	// easystore cfg
-	flag.StringVar(&config.easyStore.mode, "esmode", "none", "EasyStore mode (sqlite, postres, s3, proxy)") // NOTE: only proxy is supported now
-	flag.StringVar(&config.easyStore.proxy, "esproxy", "", "EasyStore proxy")
-	flag.StringVar(&config.easyStore.dbDir, "esdbdir", "/tmp", "EasyStore sqlite base directory")
-	flag.StringVar(&config.easyStore.dbFile, "esdbfile", "sqlite.db", "EasyStore sqlite file")
-	flag.StringVar(&config.easyStore.dbHost, "esdbhost", "", "EasyStore psql host")
-	flag.IntVar(&config.easyStore.dbPort, "esdbport", 0, "EasyStore psql port")
-	flag.StringVar(&config.easyStore.dbName, "esdb", "", "EasyStore psql database name")
-	flag.StringVar(&config.easyStore.dbUser, "esdbuser", "", "EasyStore psql user")
-	flag.StringVar(&config.easyStore.dbPass, "esdbpass", "", "EasyStore psql password")
-	flag.IntVar(&config.easyStore.dbTimeout, "esdbtimeout", 30, "EasyStore psql password")
-	flag.StringVar(&config.easyStore.s3Bucket, "esbucket", "", "EasyStore S3 bucket name for file storage")
+	flag.StringVar(&config.easyStoreProxy, "esproxy", "", "EasyStore proxy")
 
 	// namespace
 	flag.StringVar(&config.namespace, "namespace", "libraetd", "Namespace for work processing")
@@ -99,9 +74,6 @@ func getConfiguration() *configData {
 
 	flag.Parse()
 
-	if config.easyStore.mode != "proxy" {
-		log.Fatal("Parameter esmode only supports proxy")
-	}
 	if config.jwtKey == "" {
 		log.Fatal("Parameter jwtkey is required")
 	}
@@ -117,8 +89,8 @@ func getConfiguration() *configData {
 	if config.eventSourceName == "" {
 		log.Fatal("Parameter eventsrc is required")
 	}
-	if config.easyStore.mode == "s3" && config.easyStore.s3Bucket == "" {
-		log.Fatal("Parameter esbucket is required for easystore s3 mode")
+	if config.easyStoreProxy == "" {
+		log.Fatal("Parameter esproxy is required")
 	}
 	if config.indexURL == "" {
 		log.Fatal("Parameter index is required")
@@ -130,22 +102,12 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] getorcidurl   = [%s]", config.orcid.serviceURL)
 	log.Printf("[CONFIG] orcidurl      = [%s]", config.orcid.clientURL)
 	log.Printf("[CONFIG] auditqueryurl = [%s]", config.auditQueryURL)
-	log.Printf("[CONFIG] esmode        = [%s]", config.easyStore.mode)
 	log.Printf("[CONFIG] namespace     = [%s]", config.namespace)
 	log.Printf("[CONFIG] eventsrc      = [%s]", config.eventSourceName)
 	log.Printf("[CONFIG] busname       = [%s]", config.busName)
 	log.Printf("[CONFIG] index         = [%s]", config.indexURL)
+	log.Printf("[CONFIG] esproxy       = [%s]", config.easyStoreProxy)
 
-	switch config.easyStore.mode {
-	case "proxy":
-		log.Printf("[CONFIG] esproxy       = [%s]", config.easyStore.proxy)
-	case "postgres":
-		log.Printf("[CONFIG] esdbhost      = [%s]", config.easyStore.dbHost)
-		log.Printf("[CONFIG] esdbport      = [%d]", config.easyStore.dbPort)
-		log.Printf("[CONFIG] esdb          = [%s]", config.easyStore.dbName)
-		log.Printf("[CONFIG] esdbuser      = [%s]", config.easyStore.dbUser)
-		log.Printf("[CONFIG] esdbtimeout   = [%d]", config.easyStore.dbTimeout)
-	}
 	if config.dev.user != "" {
 		log.Printf("[CONFIG] devuser       = [%s]", config.dev.user)
 		log.Printf("[CONFIG] devrole       = [%s]", config.dev.role)
