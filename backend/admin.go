@@ -132,18 +132,18 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 	c.String(http.StatusOK, "impersonated")
 }
 
-func (svc *serviceContext) adminDepositRegistrations(c *gin.Context) {
+func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
 	var regReq registrationRequest
 	err := c.ShouldBindJSON(&regReq)
 	if err != nil {
-		log.Printf("ERROR: bad payload for depost registration request: %s", err.Error())
+		log.Printf("ERROR: bad payload for optional registration request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// note: this endpoint is protected by admin middleware which ensures claims are present and admin
 	claims := getJWTClaims(c)
-	log.Printf("INFO: %s requests deposit registrations %+v", claims.ComputeID, regReq)
+	log.Printf("INFO: %s requests optional registrations %+v", claims.ComputeID, regReq)
 	for _, student := range regReq.Students {
 		author := librametadata.ContributorData{ComputeID: student.ComputeID,
 			FirstName: student.FirstName, LastName: student.LastName, Institution: "University of Virginia"}

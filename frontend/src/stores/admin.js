@@ -38,7 +38,7 @@ export const useAdminStore = defineStore('admin', {
          this.$reset()
       },
       async addRegistrations( program, degree, students ) {
-         return axios.post(`/api/admin/register`, {program: program, degree: degree, students: students}).catch( err => {
+         return axios.post(`/api/register`, {program: program, degree: degree, students: students}).catch( err => {
             const system = useSystemStore()
             system.setError(  err )
          })

@@ -11,7 +11,7 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20250521004450-2b1292699c15
 	github.com/gin-gonic/gin v1.10.1
 	github.com/rs/xid v1.6.0
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20250626193938-c14820447359
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20250630205629-2e3f95ef5455
 	github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f
 )

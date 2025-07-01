@@ -21,6 +21,10 @@ func (c *jwtClaims) isAdmin() bool {
 	return c.Role == "admin"
 }
 
+func (c *jwtClaims) isRegistrar() bool {
+	return c.Role == "registrar"
+}
+
 // UserDetails contains a user response from the user-ws
 type UserDetails struct {
 	ComputeID   string   `json:"cid"`
@@ -175,6 +179,26 @@ func (svc *serviceContext) userMiddleware(c *gin.Context) {
 		c.Set("claims", auth.jwt)
 	}
 
+	c.Next()
+}
+
+func (svc *serviceContext) registrarMiddleware(c *gin.Context) {
+	log.Printf("INFO: authorize registrar access to %s", c.Request.URL.Path)
+	claims := getJWTClaims(c)
+	if claims == nil {
+		log.Printf("WARNING: registrar auth failed; no claims present")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	log.Printf("INFO: user %s has role %s", claims.ComputeID, claims.Role)
+	if claims.isAdmin() == false && claims.isRegistrar() == false {
+		log.Printf("WARNING: registrar auth failed for non-admin, non-registrar user %s", claims.ComputeID)
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	log.Printf("INFO: registrar authorization successful")
 	c.Next()
 }
 
