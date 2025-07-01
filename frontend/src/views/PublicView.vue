@@ -112,7 +112,7 @@
                   <h2>Issued Date:</h2>
                   <div>{{ $formatDate(etdRepo.publishedAt) }}</div>
                </section>
-               <section>
+               <section v-if="!etdRepo.isDraft">
                   <h2>Persistent Link</h2>
                   <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
                   <span v-else>Persistent link will appear here after submission.</span>
