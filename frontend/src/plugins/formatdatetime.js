@@ -6,7 +6,7 @@ export default {
          if (dateStr) {
             let d = dayjs(dateStr)
             if ( dateStr.includes("T00:00:00Z") ) {
-               return d.format("YYYY-MM-DD")
+               return dateStr.split("T")[0]
             } else {
                return d.format("YYYY-MM-DD hh:mm A")
             }
