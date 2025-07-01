@@ -33,6 +33,9 @@
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
                :loading="admin.working" removableSort @sort="onSort($event)"  :sortField="admin.sortField"
          >
+            <template #header v-if="admin.total == 1000">
+               <div class="cap-note"><i class="pi pi-exclamation-triangle"></i>Results are capped at 1000 hits. Please narrow your search.</div>
+            </template>
             <template #empty>
                <div v-if="admin.searchCompleted" class="none">No matching works found for {{ admin.query }}</div>
                <div v-else class="none">Search for works</div>
@@ -168,6 +171,17 @@ const becomeUser = ((computeID) => {
    margin: 2% auto;
    min-height: 600px;
    text-align: left;
+   .cap-note {
+      text-align: center;
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      i {
+         font-size: 1.25rem
+      }
+   }
 
    .p-datatable {
       margin-top: 20px;
