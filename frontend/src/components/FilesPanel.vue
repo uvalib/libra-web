@@ -16,9 +16,15 @@
             </Column>
             <Column  header="Actions" >
                <template #body="slotProps">
-                  <div class="acts">
+                  <div class="acts" v-if="rename != slotProps.data.name">
                      <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
                      <Button class="action" icon="pi pi-cloud-download" label="Download" severity="secondary" size="small" @click="downloadFileClicked(slotProps.data.name)"/>
+                     <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="rename=slotProps.data.name"/>
+                  </div>
+                  <div class="rename" v-else>
+                     <InputText v-model="newName" placeholder="New Name"/>
+                     <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>
+                     <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="rename=false" :disabled="newName.length < 4"/>
                   </div>
                </template>
             </Column>
@@ -54,17 +60,20 @@
 import FileUpload from 'primevue/fileupload'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import InputText from 'primevue/inputtext'
 import { useETDStore } from "@/stores/etd"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
 import { useConfirm } from "primevue/useconfirm"
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import axios from 'axios'
 
 const etdRepo = useETDStore()
 const user = useUserStore()
 const system = useSystemStore()
 const confirm = useConfirm()
+const rename = ref("")
+const newName = ref("")
 
 const fileTypesAccepted = computed( () => {
    if (!user.isAdmin) {
@@ -147,6 +156,14 @@ ul.pending {
       display: flex;
       flex-flow: row wrap;
       gap: 10px;
+   }
+   .rename {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 5px;
+      input {
+         flex-grow: 1;
+      }
    }
 }
 </style>

@@ -314,6 +314,23 @@ func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObje
 	return visibility
 }
 
+func (svc *serviceContext) renameFile(c *gin.Context) {
+	workID := c.Param("id")
+	var renameReq struct {
+		OriginalName string `json:"orignalName"`
+		NewName      string `json:"newName"`
+	}
+	err := c.ShouldBindJSON(&renameReq)
+	if err != nil {
+		log.Printf("ERROR: bad payload in rename request: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	log.Printf("INFO: request to rename file %s from work %s to %s", renameReq.OriginalName, workID, renameReq.NewName)
+
+	c.String(http.StatusNotImplemented, "NOT IMPLEMENTED")
+}
+
 func (svc *serviceContext) downloadFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
@@ -338,18 +355,8 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 		return
 	}
 
-	bodyBytes, err := dlFile.Payload()
-	if err != nil {
-		log.Printf("ERROR: unable to get opayload for file %s: %s", tgtFile, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	log.Printf("INFO: set %s with mime type %s to client", tgtFile, dlFile.MimeType())
-	c.Header("Content-Description", "File Transfer")
-	c.Header("Content-Disposition", "attachment; filename="+tgtFile)
-	c.Header("Content-Type", dlFile.MimeType())
-	c.Data(http.StatusOK, dlFile.MimeType(), bodyBytes)
+	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
+	c.String(http.StatusOK, dlFile.Url())
 }
 
 func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.EasyStoreObject) workAccess {

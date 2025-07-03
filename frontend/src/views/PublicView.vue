@@ -25,7 +25,11 @@
             <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
                <div class="name">{{ file.name }}</div>
                <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
-               <Button icon="pi pi-cloud-download" label="Download" severity="secondary" size="small" @click="downloadFileClicked(file.name)"/>
+               <Button v-if="file.url.length==0" label="Request Download" severity="secondary" size="small" @click="downloadFileClicked(file.name)" />
+               <template v-else>
+                  <Button as="a" icon="pi pi-cloud-download" label="Download" :href="file.url" target="_blank" rel="noopener" />
+                  <span class="note">This link is only valid until {{ file.expire }}</span>
+               </template>
             </div>
          </div>
 
@@ -236,6 +240,12 @@ div.error {
    padding: 25px;
    min-height: 300px;
    text-align: center;
+}
+
+.note {
+   text-align: center;
+   font-style: italic;
+   font-style: 0.9em;
 }
 
 div.work-bkg {

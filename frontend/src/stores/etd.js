@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useSystemStore } from './system'
+import dayjs from 'dayjs'
 
 export const useETDStore = defineStore('etd', {
    state: () => ({
@@ -110,6 +111,7 @@ export const useETDStore = defineStore('etd', {
          if (this.work.advisors.length == 0) {
             this.work.advisors.push({firstName: "", lastName:"", department: "", institution: ""})
          }
+         this.work.files.forEach( f => f.url = "")
 
          // lookup licence ID based on URL
          this.licenseID = "0"
@@ -152,18 +154,19 @@ export const useETDStore = defineStore('etd', {
       },
 
       async downloadFile( name ) {
-         return axios.get(`/api/works/${this.work.id}/files/${name}`,{responseType: "blob"}).then((response) => {
-            let ct = response.headers["content-type"]
-            const fileURL = window.URL.createObjectURL(new Blob([response.data], {type: ct}))
-            const fileLink = document.createElement('a')
-
-            fileLink.href = fileURL;
-            fileLink.setAttribute('download', response.headers["content-disposition"].split("filename=")[1])
-            document.body.appendChild(fileLink);
-
-            fileLink.click();
-            window.URL.revokeObjectURL(fileURL);
-
+         return axios.get(`/api/works/${this.work.id}/files/${name}`).then((response) => {
+            this.work.files.forEach( f => {
+               if (f.name == name ) {
+                  f.url = response.data
+                  let now = dayjs()
+                  let exp = now.add(1, 'hour')
+                  f.expire = exp.format("YYYY-MM-DD hh:mm A")
+                  setTimeout( ()=>{
+                     f.url=""
+                     delete f.expire
+                  }, 60*60*1000)
+               }
+            })
          }).catch((error) => {
             const system = useSystemStore()
             system.setError( error)

@@ -51,6 +51,7 @@ func main() {
 
 		// After initial submission, the work is referenced by the permanent ID
 		api.GET("/works/:id", svc.getWork)
+		api.PUT("/works/:id/files/rename", svc.renameFile)
 		api.GET("/works/:id/files/:name", svc.downloadFile)
 		api.PUT("/works/:id", svc.updateWork)
 		api.POST("/works/:id/publish", svc.publishWork)
