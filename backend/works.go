@@ -328,7 +328,24 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 	}
 	log.Printf("INFO: request to rename file %s from work %s to %s", renameReq.OriginalName, workID, renameReq.NewName)
 
-	c.String(http.StatusNotImplemented, "NOT IMPLEMENTED")
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: unable to get %s work %s for file rename: %s", svc.Namespace, workID, err.Error())
+		if strings.Contains(err.Error(), "not exist") {
+			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
+		} else {
+			c.String(http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	_, rnErr := svc.EasyStore.Rename(tgtObj, uvaeasystore.Files, renameReq.OriginalName, renameReq.NewName)
+	if rnErr != nil {
+		log.Printf("ERROR: rename %s to %s failed: %s", renameReq.OriginalName, renameReq.NewName, rnErr.Error())
+		c.String(http.StatusInternalServerError, rnErr.Error())
+	}
+
+	c.String(http.StatusOK, renameReq.NewName)
 }
 
 func (svc *serviceContext) downloadFile(c *gin.Context) {

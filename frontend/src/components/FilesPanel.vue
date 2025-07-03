@@ -20,12 +20,15 @@
                      <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
                      <Button v-if="slotProps.data.url.length==0" class="action" label="Request Download" severity="secondary" size="small" @click="downloadFileClicked(slotProps.data.name)"/>
                      <Button v-else as="a" icon="pi pi-cloud-download" label="Download" :href="slotProps.data.url" target="_blank" rel="noopener" />
-                     <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="rename=slotProps.data.name"/>
+                     <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
                   </div>
                   <div class="rename" v-else>
-                     <InputText v-model="newName" placeholder="New Name"/>
+                     <span>
+                        <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" />
+                        <span>.{{ newNameExt }}</span>
+                     </span>
                      <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>
-                     <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="rename=false" :disabled="newName.length < 4"/>
+                     <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="doRename()" :disabled="newName.length < 3"/>
                   </div>
                </template>
             </Column>
@@ -75,6 +78,7 @@ const system = useSystemStore()
 const confirm = useConfirm()
 const rename = ref("")
 const newName = ref("")
+const newNameExt = ref("")
 
 const fileTypesAccepted = computed( () => {
    if (!user.isAdmin) {
@@ -103,6 +107,20 @@ const startUpload = ( (event) => {
    }).catch((error) => {
       system.toastError("Upload failed", error)
    })
+})
+
+const renameClicked = ( (name) => {
+   rename.value = name
+   newName.value = ""
+   newNameExt.value = name.split(".").pop()
+})
+
+const doRename = ( () => {
+   let fulNewlName = newName.value+"."+newNameExt.value
+   etdRepo.renameFile(rename.value, fulNewlName)
+   newName.value = ""
+   newNameExt.value = ""
+   rename.value = ""
 })
 
 const deleteFileClicked = ( (name) => {
@@ -161,9 +179,10 @@ ul.pending {
    .rename {
       display: flex;
       flex-flow: row wrap;
-      gap: 5px;
+      gap: 10px;
       input {
          flex-grow: 1;
+         margin-right: 5px;
       }
    }
 }
