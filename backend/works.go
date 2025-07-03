@@ -166,7 +166,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	if len(etdReq.AddFiles) != 0 || len(etdReq.DelFiles) != 0 {
 		esFiles, err := svc.updateWorkFiles(tgtObj.Id(), tgtObj.Files(), etdReq.AddFiles, etdReq.DelFiles)
 		if err != nil {
-			log.Printf("ERROR: %s", err.Error())
+			log.Printf("ERROR: unable to update work files with new add [%v] and delete [%v] %s", etdReq.AddFiles, etdReq.DelFiles, err.Error())
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}

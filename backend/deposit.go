@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/xid"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 )
@@ -59,12 +58,6 @@ type registrationRequest struct {
 	} `json:"students"`
 }
 
-func (svc *serviceContext) getDepositToken(c *gin.Context) {
-	log.Printf("INFO: request a deposit token")
-	guid := xid.New()
-	c.String(http.StatusOK, guid.String())
-}
-
 func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.EasyStoreBlob, error) {
 	log.Printf("INFO: get files [%v] associated with submission from location %s", fileList, uploadDir)
 	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
@@ -76,6 +69,7 @@ func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.Easy
 			return nil, fileErr
 		}
 		mimeType := http.DetectContentType(fileBytes)
+		log.Printf("INFO: create easystore file blob for %s with size %d and mime type %s", fn, len(fileBytes), mimeType)
 		esBlob := uvaeasystore.NewEasyStoreBlob(fn, mimeType, fileBytes)
 		esFiles = append(esFiles, esBlob)
 	}
@@ -83,21 +77,21 @@ func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.Easy
 }
 
 func (svc *serviceContext) cancelSubmission(c *gin.Context) {
-	token := c.Param("token")
-	log.Printf("INFO: cancel submission %s", token)
-	uploadDir := path.Join("/tmp", token)
+	workID := c.Param("work")
+	log.Printf("INFO: cancel submited files for work %s", workID)
+	uploadDir := path.Join("/tmp", workID)
 	if pathExists(uploadDir) {
 		err := os.RemoveAll(uploadDir)
 		if err != nil {
 			log.Printf("ERROR: unable to remove submission upload direcroty %s: %s", uploadDir, err.Error())
 		}
 	}
-	log.Printf("INFO: submission canceled and temporary files cleaned up")
+	log.Printf("INFO: temporary submission file %s have been cleaned up", uploadDir)
 	c.String(http.StatusOK, "cancled")
 }
 
 func (svc *serviceContext) removeSubmissionFile(c *gin.Context) {
-	tgtFile := fmt.Sprintf("/tmp/%s/%s", c.Param("token"), c.Param("filename"))
+	tgtFile := fmt.Sprintf("/tmp/%s/%s", c.Param("work"), c.Param("filename"))
 	log.Printf("INFO: remove pending submission file %s", tgtFile)
 	err := os.Remove(tgtFile)
 	if err != nil {
@@ -110,7 +104,7 @@ func (svc *serviceContext) removeSubmissionFile(c *gin.Context) {
 
 func (svc *serviceContext) uploadSubmissionFiles(c *gin.Context) {
 	log.Printf("INFO: file upload request received")
-	token := c.Param("token")
+	workID := c.Param("work")
 	files, err := c.MultipartForm()
 	if err != nil {
 		log.Printf("ERROR: unable to get upload images: %s", err.Error())
@@ -118,7 +112,7 @@ func (svc *serviceContext) uploadSubmissionFiles(c *gin.Context) {
 		return
 	}
 
-	uploadDir := path.Join("/tmp", token)
+	uploadDir := path.Join("/tmp", workID)
 	for _, sf := range files.File["file"] {
 		destFile := path.Join(uploadDir, sf.Filename)
 		log.Printf("INFO: receive submission to %s", destFile)

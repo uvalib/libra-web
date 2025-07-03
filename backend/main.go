@@ -39,13 +39,10 @@ func main() {
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
 
-		// NOTE: when a deposit is requested, a temporary work token is generated
-		// this token is used as a subdirectory to stage uploaded files. Upon submissions,
-		// the files from the token directory are added to the work and the token is converted to a libra ID
-		api.GET("/token", svc.getDepositToken)
-		api.POST("/upload/:token", svc.uploadSubmissionFiles)
-		api.DELETE("/:token/:filename", svc.removeSubmissionFile)
-		api.POST("/cancel/:token", svc.cancelSubmission)
+		// manage uploaded files before they are attached to a work
+		api.POST("/upload/:work", svc.uploadSubmissionFiles)
+		api.DELETE("/:work/:filename", svc.removeSubmissionFile)
+		api.POST("/cancel/:work", svc.cancelSubmission)
 
 		api.GET("/audits/:id", svc.getAudits)
 

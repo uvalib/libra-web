@@ -352,9 +352,11 @@ const isDirty = ((data) => {
 })
 
 const clearEdits = (() => {
+   etdRepo.cancelEdit()
    etdForm.value.reset()
    listChanged.value = false
    programChanged.value = false
+
 })
 
 const saveChanges = ( async (data) => {

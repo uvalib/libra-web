@@ -11,8 +11,8 @@
                currentPageReportTemplate="{first} - {last} of {totalRecords}"
             >
             <Column field="name" header="Name" />
-            <Column field="createdAt" header="Date Uploaded" >
-               <template #body="slotProps">{{ $formatDate(slotProps.data.createdAt)}}</template>
+            <Column field="createdAt" header="Uploaded" >
+               <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
             </Column>
             <Column  header="Actions" >
                <template #body="slotProps">

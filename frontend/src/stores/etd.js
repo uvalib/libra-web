@@ -128,6 +128,8 @@ export const useETDStore = defineStore('etd', {
          if ( this.pendingFileAdd.length > 0) {
             axios.post(`/api/cancel/${this.work.id}`)
          }
+         this.pendingFileAdd = []
+         this.pendingFileDel = []
       },
 
       addFile( file ) {
