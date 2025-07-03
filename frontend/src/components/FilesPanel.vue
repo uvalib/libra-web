@@ -27,19 +27,25 @@
 
       <div class="section">
          <label class="libra-form-label">
-            Upload Files
-            <FileUpload name="file" :url="`/api/upload/${etdRepo.work.id}`"
-               @upload="fileUploaded($event)" @before-send="uploadRequested($event)"
-               @removeUploadedFile="fileRemoved($event)" :previewWidth="0"
-               :multiple="true" :withCredentials="true" :auto="true"
+            <FileUpload name="file" chooseLabel="Select a file to upload"
+               :customUpload="true" mode="basic"
+               @uploader="startUpload($event)"
+               :withCredentials="true" :auto="true"
                :showUploadButton="false" :showCancelButton="false"
                :accept="fileTypesAccepted"
-            >
-               <template #empty>
-                  <p>Click Choose or drag and drop files to upload. Uploaded files will be attached to the work upon submission.</p>
-               </template>
-            </FileUpload>
+            />
          </label>
+      </div>
+
+      <div class="section" v-if="etdRepo.pendingFileAdd.length > 0">
+         <div>Pending Uploads</div>
+         <ul class="pending">
+            <li v-for="fn in etdRepo.pendingFileAdd" class="pending-file">
+               <span class="filename">{{ fn }}</span>
+               <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small"  @click="etdRepo.removeFile( fn )"/>
+            </li>
+         </ul>
+         <div>These files will be added to your thesis when it is saved.</div>
       </div>
    </div>
 </template>
@@ -50,11 +56,14 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { useETDStore } from "@/stores/etd"
 import { useUserStore } from "@/stores/user"
+import { useSystemStore } from "@/stores/system"
 import { useConfirm } from "primevue/useconfirm"
 import { computed } from 'vue'
+import axios from 'axios'
 
 const etdRepo = useETDStore()
 const user = useUserStore()
+const system = useSystemStore()
 const confirm = useConfirm()
 
 const fileTypesAccepted = computed( () => {
@@ -65,17 +74,24 @@ const fileTypesAccepted = computed( () => {
    return null
 })
 
-const uploadRequested = ( (request) => {
-   request.xhr.setRequestHeader('Authorization', 'Bearer ' + user.jwt)
-   return request
-})
-
-const fileRemoved = ( event => {
-   etdRepo.removeFile( event.file.name )
-})
-const fileUploaded = ( (event) => {
-   event.files.forEach( f => {
-      etdRepo.addFile( f.name )
+const startUpload = ( (event) => {
+   const file = event.files[0]
+   let formData = new FormData()
+   const cnt = etdRepo.work.files.length + etdRepo.pendingFileAdd.length + 1
+   const today = new Date()
+   const year = today.getFullYear()
+   const degree = etdRepo.work.degree.split(" (")[0]
+   const ext = file.name.split('.').pop()
+   const newFileName = `${cnt}_${user.lastName}_${user.firstName}_${year}_${degree}.${ext}`
+   formData.append('file', file, newFileName)
+   axios.post(`/api/upload/${etdRepo.work.id}`, formData, {
+      headers: {
+         'Content-Type': 'multipart/form-data',
+      }
+   }).then(() => {
+      etdRepo.addFile( newFileName )
+   }).catch((error) => {
+      system.toastError("Upload failed", error)
    })
 })
 
@@ -97,26 +113,20 @@ const downloadFileClicked = ( (name) => {
 </script>
 
 <style lang="scss" scoped>
-:deep(.p-fileupload-header) {
-   border-bottom: 1px solid $uva-grey-200;
-   margin-bottom: 15px;
-}
-:deep(.p-fileupload-content) {
-   .p-fileupload-file-list {
-      gap: 15px;
-      .p-fileupload-file {
-         padding: 0 0 10px 0;
-         gap: 30px;
-         img.p-fileupload-file-thumbnail {
-            display: none;
-         }
-         .p-badge-success.p-fileupload-file-badge {
-            background: $uva-green-A;
-            border-radius: 0;
-         }
+ul.pending {
+   list-style: none;
+   margin: 0 0 15px 0;
+   padding: 0 0 0 5px;
+   li {
+      margin: 10px 0;
+   }
+   .pending-file {
+      .filename {
+         margin-right: 10px;
       }
    }
 }
+
 .p-fileupload {
    margin-top: 5px;
 }

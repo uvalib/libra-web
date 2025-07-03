@@ -138,7 +138,7 @@ export const useETDStore = defineStore('etd', {
             // this file has not been attached to a work in easystore; just remove
             // if from the pending add list and delete the version that was uploaded to temp storage
             this.pendingFileAdd.splice(pendingIdx, 1)
-            axios.delete(`/api/${this.depositToken}/${file}`)
+            axios.delete(`/api/${this.work.id}/${file}`)
          } else {
             console.log("delete previously added file "+file)
             // This file has already been submitted. remove it from the files
