@@ -29,18 +29,18 @@
                   </div>
                </Fieldset>
 
-               <Fieldset>
+               <Fieldset class="advisors">
                   <template #legend>
                      <span>Advisors</span><span class="required"><span class="star">*</span>(required)</span>
                   </template>
                   <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
-                     <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for this advisor.</div>
+                     <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
                      <div class="id-field">
                         <div class="control-group">
                            <InputText type="text" v-model="item.computeID" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID"/>
                            <Button class="check" icon="pi pi-search" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
                         </div>
-                        <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)"/>
+                        <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)" rounded/>
                      </div>
                      <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
                      <div class="two-col">
@@ -441,6 +441,16 @@ const endDatePicked = ( (newDate) => {
       margin-left: 15px;
       margin-right: 15px;
    }
+   .id-field {
+      .control-group {
+         input, button {
+            flex-grow: 1;
+         }
+      }
+      .p-button-rounded {
+         width: 60px;
+      }
+   }
 }
 
 .unsaved {
@@ -483,13 +493,19 @@ const endDatePicked = ( (newDate) => {
       flex-direction: column;
       gap: 25px;
 
-      .advisor {
-         border: 1px solid $uva-grey-100;
-         padding: 10px;
-         display: flex;
-         flex-direction: column;
-         gap: 10px;
-         border-radius: 0.3rem;
+      .advisors {
+         .advisor {
+            border-bottom: 1px solid $uva-grey-100;
+            padding: 10px 0 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            .note {
+               padding: 0px 0 10px;
+               border-bottom: 1px solid $uva-grey-100;
+               margin-bottom: 10px;
+            }
+         }
       }
 
       .license {
@@ -533,12 +549,14 @@ const endDatePicked = ( (newDate) => {
             display: flex;
             flex-flow: row nowrap;
             justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            .control-group {
+               display: flex;
+               flex-flow: row wrap;
+               gap: 5px;
+            }
          }
-      }
-      .control-group {
-         display: flex;
-         flex-flow: row nowrap;
-         gap: 5px;
       }
       .note {
          font-style: italic;
