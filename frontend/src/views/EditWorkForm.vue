@@ -201,6 +201,7 @@ const admin = useAdminStore()
 const etdForm = ref(null)
 const postSave = ref("edit")
 const listChanged = ref(false)
+const advisorsChanged = ref(false)
 const programChanged = ref(false)
 const metadataComplete = ref(false)
 
@@ -251,7 +252,7 @@ const resolver = ({ values }) => {
       errors.work.author.lastName = [{ message: 'Author last name is required' }]
    }
 
-   values.work.advisors.forEach( (a,idx) => {
+   etdRepo.work.advisors.forEach( (a,idx) => {
       errors.work.advisors.push ({ firstName: [], lastName: []})
       if ( a.firstName == "") {
          metadataComplete.value = false
@@ -262,6 +263,7 @@ const resolver = ({ values }) => {
          errors.work.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
       }
    })
+   console.log("DONE VALIDATE ADVISORS")
 
    if ( values.work.abstract == "" ) {
       metadataComplete.value = false
@@ -278,7 +280,7 @@ const resolver = ({ values }) => {
       errors.visibility = [{ message: 'Visibility is required' }]
    }
 
-   return { values,errors }
+   return { values, errors }
 }
 
 const saveClicked = ((postSaveAct) => {
@@ -333,7 +335,10 @@ const deleteClicked = ( () => {
 })
 
 const isDirty = ((data) => {
-   let dirty = ( etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 || listChanged.value || programChanged.value)
+   let dirty = (
+      etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 ||
+      listChanged.value || programChanged.value || advisorsChanged.value
+   )
    if (dirty ) return true
 
    Object.keys(data).some((key) => {
@@ -356,6 +361,7 @@ const clearEdits = (() => {
    etdForm.value.reset()
    listChanged.value = false
    programChanged.value = false
+   advisorsChanged.value = false
 
 })
 
@@ -387,10 +393,13 @@ const visibilityOpts = computed( () => {
 
 const addAdvisor = ( () => {
    etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   advisorsChanged.value = true
+   etdForm.value.validate()
 })
 
 const removeAdvisor = ((idx)=> {
    etdRepo.work.advisors.splice(idx,1)
+   advisorsChanged.value = true
    etdForm.value.validate()
 })
 
