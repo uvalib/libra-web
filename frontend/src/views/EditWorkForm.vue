@@ -203,6 +203,7 @@ const postSave = ref("edit")
 const listChanged = ref(false)
 const advisorsChanged = ref(false)
 const programChanged = ref(false)
+const embargoChanged = ref(false)
 const metadataComplete = ref(false)
 
 onBeforeMount( async () => {
@@ -263,7 +264,6 @@ const resolver = ({ values }) => {
          errors.work.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
       }
    })
-   console.log("DONE VALIDATE ADVISORS")
 
    if ( values.work.abstract == "" ) {
       metadataComplete.value = false
@@ -337,7 +337,7 @@ const deleteClicked = ( () => {
 const isDirty = ((data) => {
    let dirty = (
       etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 ||
-      listChanged.value || programChanged.value || advisorsChanged.value
+      listChanged.value || programChanged.value || advisorsChanged.value || embargoChanged.value
    )
    if (dirty ) return true
 
@@ -362,6 +362,7 @@ const clearEdits = (() => {
    listChanged.value = false
    programChanged.value = false
    advisorsChanged.value = false
+   embargoChanged.value = false
 
 })
 
@@ -432,6 +433,7 @@ const visibilityUpdated = (() => {
 
 const endDatePicked = ( (newDate) => {
    etdRepo.embargoReleaseDate = newDate
+   embargoChanged.value = true
 })
 </script>
 

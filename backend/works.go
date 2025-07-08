@@ -18,8 +18,8 @@ import (
 )
 
 type embargoData struct {
-	ReleaseDate       *time.Time `json:"releaseDate"`
-	ReleaseVisibility string     `json:"releaseVisibility"`
+	ReleaseDate       string `json:"releaseDate"`
+	ReleaseVisibility string `json:"releaseVisibility"`
 }
 
 type coreWorkDetails struct {
@@ -32,45 +32,8 @@ type coreWorkDetails struct {
 	Files          []librametadata.FileData `json:"files"`
 	Depositor      string                   `json:"depositor"`
 	CreatedAt      time.Time                `json:"createdAt"`
-	ModifiedAt     *time.Time               `json:"modifiedAt,omitempty"`
-	PublishedAt    *time.Time               `json:"publishedAt,omitempty"`
-}
-
-func (detail *coreWorkDetails) parseDates(esObj uvaeasystore.EasyStoreObject) {
-	detail.CreatedAt = esObj.Created()
-	if detail.IsDraft == false {
-		pubDateStr, published := esObj.Fields()["publish-date"]
-		if published {
-			pubDate, err := time.Parse(time.RFC3339, pubDateStr)
-			if err != nil {
-				log.Printf("ERROR: unable to parse publish-date [%s]: %s", pubDateStr, err.Error())
-				pubDate = time.Now()
-			}
-			detail.PublishedAt = &pubDate
-		}
-	}
-	modDateStr, modified := esObj.Fields()["modify-date"]
-	if modified {
-		modDate, err := time.Parse(time.RFC3339, modDateStr)
-		if err != nil {
-			log.Printf("ERROR: unable to parse modify-date [%s]: %s", modDateStr, err.Error())
-			modDate = time.Now()
-		}
-		detail.ModifiedAt = &modDate
-	}
-
-	embargoDateStr, exist := esObj.Fields()["embargo-release"]
-	if exist {
-		var releaseDate *time.Time
-		parsed, err := time.Parse(time.RFC3339, embargoDateStr)
-		if err != nil {
-			log.Printf("ERROR: unable to parse work %s release date [%s]: %s", esObj.Id(), embargoDateStr, err.Error())
-		} else {
-			releaseDate = &parsed
-		}
-		embInfo := embargoData{ReleaseDate: releaseDate, ReleaseVisibility: esObj.Fields()["embargo-release-visibility"]}
-		detail.Embargo = &embInfo
-	}
+	ModifiedAt     string                   `json:"modifiedAt,omitempty"`
+	PublishedAt    string                   `json:"publishedAt,omitempty"`
 }
 
 type workDetails struct {
@@ -175,25 +138,30 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 
 	// update fields
 	fields := tgtObj.Fields()
-	fields["modify-date"] = time.Now().Format(time.RFC3339)
+	fields["modify-date"] = time.Now().UTC().Format(svc.TimeFormat)
 	fields["default-visibility"] = etdReq.Visibility
 	if etdReq.Visibility == "uva" || etdReq.Visibility == "embargo" {
-		if etdReq.EmbargoReleaseDate == nil {
+		if etdReq.EmbargoReleaseDate == "" {
 			log.Printf("INFO: work %s set for a forever embargo", tgtObj.Id())
 			fields["embargo-release"] = ""
 			delete(fields, "embargo-release-visibility")
 		} else {
 			// For non-admin users, visibility must be public within 5 years per provost
-			endDateStr := etdReq.EmbargoReleaseDate.Format(time.RFC3339)
+			endDate, dateErr := time.Parse(svc.TimeFormat, etdReq.EmbargoReleaseDate)
+			if dateErr != nil {
+				log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", etdReq.EmbargoReleaseDate)
+				c.String(http.StatusBadRequest, fmt.Sprintf("invalid end date: %s", etdReq.EmbargoReleaseDate))
+				return
+			}
 			if etdReq.Visibility == "uva" && claims.isAdmin() == false {
 				maxDate := time.Now().AddDate(5, 0, 0) // now + 5 years
-				if etdReq.EmbargoReleaseDate.After(maxDate) {
-					log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", endDateStr)
+				if endDate.After(maxDate) {
+					log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", etdReq.EmbargoReleaseDate)
 					c.String(http.StatusBadRequest, "limited visibilty end date must be less than five years from today")
 					return
 				}
 			}
-			fields["embargo-release"] = endDateStr
+			fields["embargo-release"] = endDate.UTC().Format(svc.TimeFormat)
 			fields["embargo-release-visibility"] = etdReq.EmbargoReleaseVisibility
 		}
 	} else {
@@ -230,7 +198,7 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 		return
 	}
 	fields["draft"] = "false"
-	fields["publish-date"] = time.Now().Format(time.RFC3339)
+	fields["publish-date"] = time.Now().UTC().Format(svc.TimeFormat)
 	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: publish %s failed: %s", workID, err.Error())
@@ -288,30 +256,27 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 	return fromUVA
 }
 
-func (svc *serviceContext) calculateVisibility(tgtObj uvaeasystore.EasyStoreObject) string {
-	fields := tgtObj.Fields()
-	visibility := fields["default-visibility"]
+func (svc *serviceContext) calculateVisibility(defaultVisibility string, releaseDateStr string, releaseVisibility string) string {
 	// ETD can have an embaro period when files can only be accessed by admin/author
 	// ETD works can have uva visibility for a limited time
 	// In either case, the date is held in embargo-release and the visibility in embargo-release-visibility
-	if visibility == "embargo" || visibility == "uva" {
-		releaseDateStr := fields["embargo-release"]
+	if defaultVisibility == "embargo" || defaultVisibility == "uva" {
 		if releaseDateStr == "" {
 			// no release date means forever embargoed; just return the default visibility (embargo or uva)
-			return visibility
+			return defaultVisibility
 		}
 
-		releaseDate, err := time.Parse(time.RFC3339, releaseDateStr)
+		releaseDate, err := time.Parse(svc.TimeFormat, releaseDateStr)
 		if err != nil {
 			log.Printf("ERROR: unable to parse embargo release date [%s]: %s", releaseDateStr, err.Error())
-			return visibility
+			return defaultVisibility
 		}
 
 		if time.Now().After(releaseDate) {
-			return fields["embargo-release-visibility"]
+			return releaseVisibility
 		}
 	}
-	return visibility
+	return defaultVisibility
 }
 
 func (svc *serviceContext) renameFile(c *gin.Context) {
@@ -381,7 +346,7 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 	//    METADATA: visible to all - except draft content is author/admin only
 	//    FILES: open = visible to all; uva = only visible to uva for a limited timeframe; embargo: only author and admin until date
 	fields := tgtObj.Fields()
-	visibility := svc.calculateVisibility(tgtObj)
+	visibility := svc.calculateVisibility(fields["default-visibility"], fields["embargo-release"], fields["embargo-release"])
 	depositor := fields["depositor"]
 	isDraft, _ := strconv.ParseBool(fields["draft"])
 	log.Printf("INFO: check if work %s with visibility %s can be accessed", tgtObj.Id(), visibility)
@@ -425,11 +390,13 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 		return nil, fmt.Errorf("unable to parse payload: %s", err.Error())
 	}
 
-	visibility := svc.calculateVisibility(tgtObj)
-	isDraft, _ := strconv.ParseBool(tgtObj.Fields()["draft"])
+	fields := tgtObj.Fields()
+	visibility := svc.calculateVisibility(fields["default-visibility"], fields["embargo-release"], fields["embargo-release-visibility"])
+	isDraft, _ := strconv.ParseBool(fields["draft"])
 	resp := workDetails{
 		coreWorkDetails: &coreWorkDetails{
 			ID:             tgtObj.Id(),
+			CreatedAt:      tgtObj.Created(),
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
@@ -439,7 +406,21 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 		},
 		ETDWork: etdWork,
 	}
-	resp.coreWorkDetails.parseDates(tgtObj)
+
+	if resp.IsDraft == false {
+		resp.PublishedAt = tgtObj.Fields()["publish-date"]
+	}
+	modDateStr, modified := tgtObj.Fields()["modify-date"]
+	if modified {
+		resp.ModifiedAt = modDateStr
+	}
+
+	embargoDateStr, exist := tgtObj.Fields()["embargo-release"]
+	if exist {
+		embInfo := embargoData{ReleaseDate: embargoDateStr, ReleaseVisibility: tgtObj.Fields()["embargo-release-visibility"]}
+		resp.Embargo = &embInfo
+	}
+
 	resp.Source = tgtObj.Fields()["source"]
 	resp.SourceID = tgtObj.Fields()["source-id"]
 

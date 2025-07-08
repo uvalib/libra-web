@@ -6,9 +6,9 @@
             <div class="help">Set the end date by clicking a helper button, clicking a date on the calendar or enter it directly.</div>
             <div class="datepick">
                <div class="dates">
-                  <DatePicker v-model="endDate" inline :minDate="new Date()" :maxDate="tenYears"/>
+                  <DatePicker v-model="pickedEndDate" inline :minDate="new Date()" :maxDate="tenYears" @update:modelValue="datePicked"/>
                   <div class="setter">
-                     <InputMask v-model="rawDate" mask="9999-99-99" placeholder="YYYY-MM-DD" fluid @keydown="dateKeyPressed"/>
+                     <InputMask v-model="enteredDate" mask="9999-99-99" placeholder="YYYY-MM-DD" slotChar="YYYY-MM-DD" fluid @keydown="dateKeyPressed"/>
                      <Button label="Set" severity="secondary" @click="dateEntered($event)"/>
                   </div>
                </div>
@@ -18,7 +18,7 @@
                   <Button label="2 Years" severity="secondary" @click="setEmbargoEndDate(2,'year')"/>
                   <Button label="5 Years" severity="secondary" @click="setEmbargoEndDate(5,'year')"/>
                   <Button v-if="showTenYear" label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
-                  <Button v-if="props.admin && props.visibility=='embargo'" label="Forever" severity="secondary" @click="endDate = null"/>
+                  <Button v-if="props.admin && props.visibility=='embargo'" label="Forever" severity="secondary" @click="pickedEndDate = null"/>
                </div>
             </div>
          </template>
@@ -31,7 +31,7 @@
             <Button v-if="showTenYear" label="10 Years" severity="secondary" @click="setEmbargoEndDate(10,'year')"/>
          </div>
          <div class="controls">
-            <span v-if="endDate" ><b>End date</b>: {{ $formatDate(endDate) }}</span>
+            <span v-if="pickedEndDate" ><b>End date</b>: {{ pickedDateStr }}</span>
             <span v-else>No expiration date</span>
             <div class="buttons">
                <Button severity="secondary" label="Cancel" @click="isOpen=false"/>
@@ -73,8 +73,12 @@ const props = defineProps({
    },
 })
 const isOpen = ref(false)
-const endDate = ref()
-const rawDate = ref("")
+const pickedEndDate = ref()
+const enteredDate = ref("")
+
+const pickedDateStr = computed(() => {
+   return dayjs(pickedEndDate.value).format("YYYY-MM-DD")
+})
 
 const showTenYear = computed( () => {
    if ( props.admin) return true
@@ -86,14 +90,23 @@ const tenYears = computed( () => {
    return d
 })
 
+const datePicked = (() => {
+   enteredDate.value = pickedDateStr.value
+})
+
 const show = (() => {
    isOpen.value = true
-   endDate.value = new Date(props.endDate)
-   rawDate.value = props.endDate
+   let dateStr = props.endDate
+   if ( dateStr.includes("T00:00:00Z") ) {
+      dateStr = dateStr.split("T")[0]
+   }
+   pickedEndDate.value = dayjs(dateStr).toDate()
+   enteredDate.value = dateStr
 })
 
 const okClicked = (() => {
-   emit("picked", endDate.value )
+   let dateStr = dayjs(pickedEndDate.value).format("YYYY-MM-DDTHH:mm:ss[Z]")
+   emit("picked", dateStr)
    isOpen.value = false
 })
 
@@ -104,15 +117,15 @@ const dateKeyPressed = ((event) => {
 })
 
 const dateEntered = (() => {
-   endDate.value = dayjs(rawDate.value).toDate()
+   pickedEndDate.value = dayjs(enteredDate.value).toDate()
 })
 
 const setEmbargoEndDate = ((count, type) => {
-   endDate.value = new Date()
+   pickedEndDate.value = new Date()
    if (type=="month") {
-      endDate.value.setMonth( endDate.value.getMonth() + count)
+      pickedEndDate.value.setMonth( pickedEndDate.value.getMonth() + count)
    } else {
-      endDate.value.setFullYear( endDate.value.getFullYear() + count)
+      pickedEndDate.value.setFullYear( pickedEndDate.value.getFullYear() + count)
    }
 })
 

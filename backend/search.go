@@ -44,30 +44,32 @@ type indexResp struct {
 			Author  librametadata.ContributorData `json:"author"`
 		} `json:"metadata"`
 		Fields struct {
-			CreateDate        string `json:"create-date"`
-			DefaultVisibility string `json:"default-visibility"`
-			Depositor         string `json:"depositor"`
-			Doi               string `json:"doi"`
-			Draft             string `json:"draft"`
-			PublishDate       string `json:"publish-date"`
-			ModifyDate        string `json:"modify-date"`
-			Source            string `json:"source"`
-			SourceID          string `json:"source-id"`
+			CreateDate               string `json:"create-date"`
+			EmbargoRelaeseDate       string `json:"embargo-release"`
+			EmbargoRelaeseVisibility string `json:"embargo-release-visibility"`
+			DefaultVisibility        string `json:"default-visibility"`
+			Depositor                string `json:"depositor"`
+			Doi                      string `json:"doi"`
+			Draft                    string `json:"draft"`
+			PublishDate              string `json:"publish-date"`
+			ModifyDate               string `json:"modify-date"`
+			Source                   string `json:"source"`
+			SourceID                 string `json:"source-id"`
 		} `json:"fields"`
 	} `json:"hits"`
 }
 
-func parseIndexSearchHits(rawResp indexResp) searchResp {
+func (svc *serviceContext) parseIndexSearchHits(rawResp indexResp) searchResp {
 	resp := searchResp{Total: rawResp.Total, Offset: rawResp.Offset, Limit: rawResp.Limit, Hits: make([]searchHit, 0)}
 	for _, h := range rawResp.Hits {
-		// TODO:
-		// visibility := svc.calculateVisibility(obj)
+
+		visibility := svc.calculateVisibility(h.Fields.DefaultVisibility, h.Fields.EmbargoRelaeseDate, h.Fields.EmbargoRelaeseVisibility)
 		hit := searchHit{
 			ID:         h.ID,
 			Title:      h.Metadata.Title,
 			Author:     h.Metadata.Author,
 			Source:     h.Fields.Source,
-			Visibility: h.Fields.DefaultVisibility,
+			Visibility: visibility,
 		}
 
 		hit.CreatedAt = parseDate(h.Fields.CreateDate)
@@ -111,6 +113,6 @@ func (svc *serviceContext) userSearch(c *gin.Context) {
 		return
 	}
 
-	resp := parseIndexSearchHits(jsonResp)
+	resp := svc.parseIndexSearchHits(jsonResp)
 	c.JSON(http.StatusOK, resp)
 }

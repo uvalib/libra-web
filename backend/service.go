@@ -31,6 +31,7 @@ type eventContext struct {
 type serviceContext struct {
 	Version       string
 	EtdURL        string
+	TimeFormat    string
 	HTTPClient    *http.Client
 	EasyStore     uvaeasystore.EasyStore
 	Events        eventContext
@@ -103,6 +104,7 @@ type configResponse struct {
 // InitializeService sets up the service context for all API handlers
 func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{Version: version,
+		TimeFormat:  "2006-01-02T15:04:05Z",
 		JWTKey:      cfg.jwtKey,
 		UserService: cfg.userService,
 		ORCID:       cfg.orcid,

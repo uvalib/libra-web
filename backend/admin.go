@@ -75,7 +75,7 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
-	resp := parseIndexSearchHits(jsonResp)
+	resp := svc.parseIndexSearchHits(jsonResp)
 
 	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp.Hits), jsonResp.ProcessingTime)
 
@@ -150,7 +150,7 @@ func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
 		etdReg := librametadata.ETDWork{Program: regReq.Program, Degree: regReq.Degree, Author: author}
 		obj := uvaeasystore.NewEasyStoreObject(svc.Namespace, "")
 		fields := uvaeasystore.DefaultEasyStoreFields()
-		fields["create-date"] = time.Now().Format(time.RFC3339)
+		fields["create-date"] = time.Now().UTC().Format(svc.TimeFormat)
 		fields["draft"] = "true"
 		fields["default-visibility"] = ""
 		fields["depositor"] = student.ComputeID
@@ -177,6 +177,36 @@ func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
 		}
 	}
 	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
+}
+
+func (svc *serviceContext) adminUpdatePublishedDate(c *gin.Context) {
+	workID := c.Param("id")
+	var dateReq struct {
+		NewDate string `json:"newDate"`
+	}
+	err := c.ShouldBindJSON(&dateReq)
+	if err != nil {
+		log.Printf("ERROR: bad payload in published date update request: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	log.Printf("INFO: get work %s %s to update published date to %s", svc.Namespace, workID, dateReq.NewDate)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
+	if err != nil {
+		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	fields := tgtObj.Fields()
+	fields["publish-date"] = dateReq.NewDate
+	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	if err != nil {
+		log.Printf("ERROR: update date published for work %s failed: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, fmt.Sprintf("publish date update failed: %s", err.Error()))
+		return
+	}
+	c.String(http.StatusOK, fields["publish-date"])
 }
 
 func (svc *serviceContext) adminUnpublishWork(c *gin.Context) {

@@ -206,11 +206,25 @@ export const useETDStore = defineStore('etd', {
          })
       },
 
+      async updatePublishedDate( newDateStr ) {
+         this.saving = true
+         let d = dayjs(newDateStr)
+         let payload = { newDate: d.format("YYYY-MM-DDTHH:mm:ss[Z]")}
+         return axios.put(`/api/admin/works/${this.work.id}/published`, payload).then((response)=> {
+            this.publishedAt = response.data
+            this.saving = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.saving = false
+         })
+      },
+
       async publish(  ) {
          this.working = true
          return axios.post(`/api/works/${this.work.id}/publish`).then(()=> {
             this.isDraft = false
-            this.publishedAt = new Date()
+            this.publishedAt = dayjs().format("YYYY-MM-DDTHH:mm:ss[Z]")
             this.working = false
          }).catch( err => {
             const system = useSystemStore()

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
@@ -35,11 +34,11 @@ import (
 // "visibility": work visibility, either "open", "uva" or "restricted".
 
 type updateSettings struct {
-	Visibility               string     `json:"visibility"`
-	EmbargoReleaseDate       *time.Time `json:"embargoReleaseDate,omitempty"`
-	EmbargoReleaseVisibility string     `json:"embargoReleaseVisibility,omitempty"`
-	AddFiles                 []string   `json:"addFiles"`
-	DelFiles                 []string   `json:"delFiles"`
+	Visibility               string   `json:"visibility"`
+	EmbargoReleaseDate       string   `json:"embargoReleaseDate,omitempty"`
+	EmbargoReleaseVisibility string   `json:"embargoReleaseVisibility,omitempty"`
+	AddFiles                 []string `json:"addFiles"`
+	DelFiles                 []string `json:"delFiles"`
 }
 
 type etdUpdateRequest struct {
