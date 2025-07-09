@@ -4,27 +4,31 @@
       style="width:90%; max-height:90%" position="top"
       :blockScroll="true" :maximizable="true"
    >
-      <WaitSpinner v-if="auditStore.working" :overlay="false" message="Loading Audit History..." />
-      <template v-if="auditStore.error">
-         <p class="error">
-            The audit log for this work is currently unavailable
-            <span>{{ auditStore.error }}</span>
-         </p>
-      </template>
+      <div class="loading" v-if="auditStore.working">
+         <WaitSpinner :overlay="false" message="Loading Audit History..." />
+      </div>
+      <div class="audit-panel" v-else>
+         <template v-if="auditStore.error">
+            <p class="error">
+               The audit log for this work is currently unavailable
+               <span>{{ auditStore.error }}</span>
+            </p>
+         </template>
 
-      <DataTable v-else :value="auditStore.audits" tableStyle="min-width: 20rem" stripedRows showGridlines
-         :lazy="false" :paginator="true" :rows="10" :rowsPerPageOptions="[10, 20, 30]"
-         paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-         currentPageReportTemplate="{first} - {last} of {totalRecords}" scrollable scrollHeight="600px"
-      >
-         <Column header="At" class="nowrap">
-            <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>
-         </Column>
-         <Column field="who" header="Who"></Column>
-         <Column field="fieldName" header="Field"></Column>
-         <Column field="before" header="Before"></Column>
-         <Column field="after" header="After"></Column>
-      </DataTable>
+         <DataTable v-else :value="auditStore.audits" stripedRows showGridlines
+            paginator :rows="50" paginatorPosition="both" :alwaysShowPaginator="false"
+            paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+            currentPageReportTemplate="{first} - {last} of {totalRecords}"
+         >
+            <Column header="At" class="nowrap">
+               <template #body="{ data }">{{ $formatDateTime(data.eventTime) }}</template>
+            </Column>
+            <Column field="who" header="Who"/>
+            <Column field="fieldName" header="Field"/>
+            <Column field="before" header="Before"></Column>
+            <Column field="after" header="After"></Column>
+         </DataTable>
+      </div>
    </Dialog>
 </template>
 
@@ -53,6 +57,10 @@ const show = (() => {
 </script>
 
 <style scoped>
+.loading {
+   text-align: center;
+   padding: 30px;
+}
 p.error {
    font-size: 1.4em;
    text-align: center;

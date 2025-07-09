@@ -84,6 +84,7 @@
                      <Button v-if="slotProps.data.published" label="Public View" severity="info"
                         size="small" @click="viewWorkClicked(slotProps.data.id)"
                      />
+                     <AuditsPanel :workID="slotProps.data.id"/>
                   </div>
                </template>
             </Column>
@@ -105,6 +106,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
+import AuditsPanel from '@/components/AuditsPanel.vue'
 
 const router = useRouter()
 const admin = useAdminStore()

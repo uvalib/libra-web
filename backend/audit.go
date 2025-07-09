@@ -22,43 +22,39 @@ type auditContext struct {
 
 func (svc *serviceContext) getAudits(c *gin.Context) {
 	workID := c.Param("id")
-
-	// Get Easystore obj
 	tgtObj, eserr := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if eserr != nil {
-		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, eserr.Error())
 		if strings.Contains(eserr.Error(), "not exist") {
+			log.Printf("INFO: work %s was not found", workID)
 			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
 		} else {
+			log.Printf("ERROR: unable to get %s work %s for audit request: %s", svc.Namespace, workID, eserr.Error())
 			c.String(http.StatusInternalServerError, eserr.Error())
 		}
 		return
 	}
 
-	//log.Printf("INFO: check access to work %s", workID)
 	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
-		log.Printf("INFO: access to work %s is forbidden", tgtObj)
+		log.Printf("INFO: access to work %s audit log is forbidden", tgtObj)
 		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
 		return
 	}
 
-	// get audit records
 	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.AuditQueryURL, svc.Namespace, workID))
 	if err != nil {
 		c.String(err.StatusCode, err.Message)
 		return
 	}
 
-	fmt.Printf("Audit response: %s\n", resp)
 	auditEvents, auditErr := librametadata.AuditsFromBytes(resp)
 	if auditErr != nil {
+		log.Printf("ERROR: unable to parse audit results: %s", auditErr.Error())
 		c.String(http.StatusInternalServerError, auditErr.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, auditEvents)
-
 }
 
 func (svc *serviceContext) auditWorkUpdate(computeID string, etdUpdate etdUpdateRequest, origObj uvaeasystore.EasyStoreObject) {

@@ -3,27 +3,24 @@ import axios from 'axios'
 
 export const useAuditStore = defineStore('audit', {
    state: () => ({
-    working: false,
-    workID: "",
-    error: "",
-    audits: [],
+      working: false,
+      error: null,
+      audits: [],
    }),
 
    actions: {
-     async getAudits(id) {
-       this.$reset
-       this.working = true
-       return axios.get(`/api/audits/${id}`).then(response => {
-         this.setAudits(response.data)
-         this.working = false
-       }).catch( err => {
-
-         this.error = err
-         this.working = false
-       })
-     },
-     setAudits(data) {
-       this.audits = data
-     }
+      getAudits(id) {
+         this.error = null
+         this.working = true
+         axios.get(`/api/audits/${id}`).then(response => {
+            this.audits = response.data
+            this.working = false
+         }).catch(err => {
+            console.log("GET AUDITS FAILED:")
+            console.log(err)
+            this.error = err
+            this.working = false
+         })
+      },
    },
 })

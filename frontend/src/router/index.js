@@ -35,6 +35,9 @@ const router = createRouter({
          meta: { requiresRegistrar: true }
       },
       {
+         path: '/signedin',
+      },
+      {
          path: '/etd/:id',
          name: 'edtworkform',
          component: EditWorkForm,
