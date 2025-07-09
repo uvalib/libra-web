@@ -1,13 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import AdminDashboard from '../views/AdminDashboard.vue'
-import PublicView from '../views/PublicView.vue'
-import EditWorkForm from '../views/EditWorkForm.vue'
-import UserDashboard from '../views/UserDashboard.vue'
-import RegistrationForm from '../views/RegistrationForm.vue'
-import SignedOut from '../views/SignedOut.vue'
-import Expired from '../views/Expired.vue'
-import ForbiddenView from '../views/ForbiddenView.vue'
-import NotFound from '../views/NotFound.vue'
 import VueCookies from 'vue-cookies'
 import { useUserStore } from '@/stores/user'
 import { useAdminStore } from '@/stores/admin'
@@ -20,58 +11,55 @@ const router = createRouter({
          path: '/',
          alias: '/dashboard',
          name: 'dashboard',
-         component: UserDashboard
+         component: () => import('../views/UserDashboard.vue'),
       },
       {
          path: '/admin',
          name: 'admin',
-         component: AdminDashboard,
+         component: () => import('../views/AdminDashboard.vue'),
          meta: { requiresAdmin: true }
       },
       {
          path: '/register',
          name: 'register',
-         component: RegistrationForm,
+         component: () => import('../views/RegistrationForm.vue'),
          meta: { requiresRegistrar: true }
-      },
-      {
-         path: '/signedin',
       },
       {
          path: '/etd/:id',
          name: 'edtworkform',
-         component: EditWorkForm,
+         component: () => import('../views/EditWorkForm.vue'),
       },
        {
          path: '/admin/etd/:id',
          name: 'adminworkform',
-         component: EditWorkForm,
+         component: () => import('../views/EditWorkForm.vue'),
          meta: { requiresAdmin: true }
       },
       {
          path: '/public/etd/:id',
          name: 'etdpublic',
-         component: PublicView
+         component: () => import('../views/PublicView.vue'),
       },
       {
          path: '/signedout',
          name: "signedout",
-         component: SignedOut
+         component: () => import('../views/SignedOut.vue'),
       },
       {
          path: '/expired',
          name: "expired",
-         component: Expired
+         component: () => import('../views/RegistrationForm.vue'),
       },
       {
          path: '/forbidden',
          name: "forbidden",
-         component: ForbiddenView
+         component: () => import('../views/ForbiddenView.vue'),
       },
       {
          path: '/:pathMatch(.*)*',
          name: "not_found",
-         component: NotFound
+         component: () => import('../views/NotFound.vue'),
       }
    ],
    scrollBehavior(_to, _from, _savedPosition) {

@@ -93,7 +93,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	var jsonResp userServiceResp
 	err = json.Unmarshal(resp, &jsonResp)
 	if err != nil {
-		log.Printf("ERROR: unable to parse user serice responce: %s", err.Error())
+		log.Printf("ERROR: unable to parse user serice response: %s", err.Error())
 		c.Redirect(http.StatusFound, "/forbidden")
 		return
 	}

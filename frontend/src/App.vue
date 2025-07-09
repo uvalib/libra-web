@@ -29,7 +29,7 @@
 
    <main  >
       <RouterView  v-if="configuring == false"/>
-      <h1 v-else style="min-height:">Authenticating...</h1>
+      <div v-else class="authenticating">Authenticating...</div>
    </main>
 
    <LibraryFooter />
@@ -191,5 +191,11 @@ header {
          font-size: 0.9em;
       }
    }
+}
+.authenticating {
+   min-height:600px;
+   margin-top:5%;
+   font-size: 1.5rem;
+   font-weight: bold;
 }
 </style>
