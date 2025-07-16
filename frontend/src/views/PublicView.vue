@@ -165,7 +165,6 @@ onBeforeMount( async () => {
 })
 useSeoMeta({
    citation_title: etdRepo.work.title,
-   citation_description: ()=> etdRepo.work.abstract ? etdRepo.work.abstract.slice(0, 160) : 'Electronic Thesis or Dissertation',
    citation_author: ()=> etdRepo.work.author ? `${etdRepo.work.author.lastName}, ${etdRepo.work.author.firstName}` : null,
    citation_publication_date: ()=> etdRepo.publishedAt ? dayjs(etdRepo.publishedAt).utc().format("YYYY-MM-DD") : null,
    citation_dissertation_institution: ()=> etdRepo.work.author.institution,
