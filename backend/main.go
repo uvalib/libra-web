@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
@@ -74,15 +73,16 @@ func main() {
 	// by node/vite and it proxies all requests to the API to the routes above
 	router.Use(static.Serve("/", static.LocalFile("./public", true)))
 
-	// the auth handler redirects to these routes, so they need to be served from
-	// the same index file as the whole site to handle the redirect
-	router.Use(static.Serve("/signedin", static.LocalFile("./public", true)))
-	router.Use(static.Serve("/forbidden", static.LocalFile("./public", true)))
+	// // the auth handler redirects to these routes, so they need to be served from
+	// // the same index file as the whole site to handle the redirect
+	// router.Use(static.Serve("/signedin", static.LocalFile("./public", true)))
+	// router.Use(static.Serve("/forbidden", static.LocalFile("./public", true)))
 
-	// add a catchall route that returns 404
+	// add a catchall route that returns index page
 	router.NoRoute(func(c *gin.Context) {
-		log.Printf("ERROR: invalid request: %s", c.Request.URL.String())
-		c.String(http.StatusNotFound, "The resource you requested cannot be found")
+		// log.Printf("WARNING: invalid request: %s", c.Request.URL.String())
+		c.File("./public/index.html")
+		// c.String(http.StatusNotFound, "The resource you requested cannot be found")
 	})
 
 	portStr := fmt.Sprintf(":%d", cfg.port)
