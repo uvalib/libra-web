@@ -49,7 +49,7 @@ const router = createRouter({
       {
          path: '/expired',
          name: "expired",
-         component: () => import('../views/RegistrationForm.vue'),
+         component: () => import('../views/Expired.vue'),
       },
       {
          path: '/forbidden',
