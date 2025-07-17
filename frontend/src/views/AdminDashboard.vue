@@ -168,9 +168,39 @@ const becomeUser = ((computeID) => {
 </script>
 
 <style lang="scss" scoped>
+@media only screen and (min-width: 768px) {
+   .admin {
+      width: 95%;
+      margin: 2% auto;
+      .panel-header {
+         flex-flow: row nowrap;
+         justify-content: space-between;
+         align-items: center;
+      }
+      .search {
+         gap: 1rem;
+      }
+   }
+}
+@media only screen and (max-width: 768px) {
+   .admin {
+      width: 100%;
+      margin:  0 auto;
+      .panel-header {
+         flex-flow: row wrap;
+         gap: 10px;
+         justify-content: flex-start;
+         align-items: center;
+         :deep(button.p-button) {
+            width: 100% !important;
+         }
+      }
+      .search {
+         gap: 10px;
+      }
+   }
+}
 .admin {
-   width: 95%;
-   margin: 2% auto;
    min-height: 600px;
    text-align: left;
    .cap-note {
@@ -194,7 +224,6 @@ const becomeUser = ((computeID) => {
       flex-flow: row wrap;
       justify-content: flex-start;
       align-items: center;
-      gap: 1rem;
       .query {
          flex-grow: 1;
       }
@@ -205,9 +234,6 @@ const becomeUser = ((computeID) => {
    .panel-header {
       font-weight: bold;
       display: flex;
-      flex-flow: row nowrap;
-      justify-content: space-between;
-      align-items: center;
       width: 100%;
    }
 

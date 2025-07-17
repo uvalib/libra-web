@@ -1,12 +1,14 @@
 <template>
    <div class="edit">
-      <h2>
-         <span>LibraETD Work</span>
-         <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
-      </h2>
+      <div class="work-head">
+         <h2>
+            <span>LibraETD Work</span>
+            <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
+         </h2>
+         <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
+      </div>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
-         <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
          <Panel header="Metadata" toggleable>
             <ProgramPanel :admin="user.isAdmin" @changed="programChanged = true"/>
             <div class="fields">
@@ -439,18 +441,26 @@ const endDatePicked = ( (newDate) => {
 
 <style lang="scss" scoped>
 @media only screen and (min-width: 768px) {
+   .help {
+      margin: 0 5% 20px 5%;
+   }
    .sections, h2 {
       margin-left: 5%;
       margin-right: 5%;
+      gap: 25px;
    }
    .visibility-panel {
       min-width: 375px;
    }
 }
 @media only screen and (max-width: 768px) {
-   .sections, h2 {
-      margin-left: 15px;
-      margin-right: 15px;
+    h2, .help {
+      margin: 15px;
+   }
+   .sections {
+      margin-left: 2px;
+      margin-right: 2px;
+      gap: 15px;
    }
    .id-field {
       .control-group {
@@ -502,7 +512,6 @@ const endDatePicked = ( (newDate) => {
    .sections {
       display: flex;
       flex-direction: column;
-      gap: 25px;
 
       .advisors {
          .advisor {
