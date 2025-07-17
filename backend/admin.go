@@ -169,7 +169,7 @@ func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
 		}
 		obj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReg.MimeType(), pl))
 
-		_, err = svc.EasyStore.Create(obj)
+		_, err = svc.EasyStore.ObjectCreate(obj)
 		if err != nil {
 			log.Printf("ERROR: admin create registration failed: %s", err.Error())
 			c.String(http.StatusInternalServerError, err.Error())
@@ -200,7 +200,7 @@ func (svc *serviceContext) adminUpdatePublishedDate(c *gin.Context) {
 
 	fields := tgtObj.Fields()
 	fields["publish-date"] = dateReq.NewDate
-	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: update date published for work %s failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, fmt.Sprintf("publish date update failed: %s", err.Error()))
@@ -228,7 +228,7 @@ func (svc *serviceContext) adminUnpublishWork(c *gin.Context) {
 	}
 	fields["draft"] = "true"
 	delete(fields, "publish-date")
-	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR:unpublish %s failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, fmt.Sprintf("unpublish failed: %s", err.Error()))
@@ -249,7 +249,7 @@ func (svc *serviceContext) adminDeleteWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: delete %s work %s", svc.Namespace, workID)
-	_, err = svc.EasyStore.Delete(delObj, uvaeasystore.AllComponents)
+	_, err = svc.EasyStore.ObjectDelete(delObj, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unablle to delete  %s work %s: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())

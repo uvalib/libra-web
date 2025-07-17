@@ -170,7 +170,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 	tgtObj.SetFields(fields)
 
-	updatedObj, err := svc.EasyStore.Update(tgtObj, uvaeasystore.AllComponents)
+	updatedObj, err := svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.AllComponents)
 	resp, err := svc.parseWork(updatedObj, true)
 	if err != nil {
 		log.Printf("ERROR: unable to parse updated work %s: %s", workID, err.Error())
@@ -199,7 +199,7 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 	}
 	fields["draft"] = "false"
 	fields["publish-date"] = time.Now().UTC().Format(svc.TimeFormat)
-	_, err = svc.EasyStore.Update(tgtObj, uvaeasystore.Fields)
+	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: publish %s failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, fmt.Sprintf("publish failed: %s", err.Error()))
@@ -304,7 +304,7 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 		return
 	}
 
-	_, rnErr := svc.EasyStore.Rename(tgtObj, uvaeasystore.Files, renameReq.OriginalName, renameReq.NewName)
+	rnErr := svc.EasyStore.FileRename(svc.Namespace, tgtObj.Id(), renameReq.OriginalName, renameReq.NewName)
 	if rnErr != nil {
 		log.Printf("ERROR: rename %s to %s failed: %s", renameReq.OriginalName, renameReq.NewName, rnErr.Error())
 		c.String(http.StatusInternalServerError, rnErr.Error())
