@@ -92,7 +92,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: load existing work %s", workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.Fields|uvaeasystore.Metadata)
 	if err != nil {
 		log.Printf("ERROR: get work %s for update failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -159,7 +159,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 	tgtObj.SetFields(fields)
 
-	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.AllComponents)
+	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields|uvaeasystore.Metadata)
 	if err != nil {
 		log.Printf("ERROR: unable to update work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
