@@ -97,7 +97,6 @@
 import { useRouter } from 'vue-router'
 import { onBeforeMount, computed } from 'vue'
 import { useAdminStore } from "@/stores/admin"
-import { useSystemStore } from "@/stores/system"
 import Panel from 'primevue/panel'
 import DepositRegistrationDialog from "@/components/DepositRegistrationDialog.vue"
 import DataTable from 'primevue/datatable'
@@ -110,7 +109,6 @@ import AuditsPanel from '@/components/AuditsPanel.vue'
 
 const router = useRouter()
 const admin = useAdminStore()
-const system = useSystemStore()
 
 const publishOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "Draft", value: "draft"}, {label: "Published", value: "published"} ]

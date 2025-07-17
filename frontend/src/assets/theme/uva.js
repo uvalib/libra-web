@@ -107,8 +107,9 @@ const UVA = definePreset(Aura, {
             light: {
                root: {
                   success: {
-                     background: colors.greenDark,
-                     hoverBackground: colors.green,
+                     background: colors.greenDarker,
+                     borderColor: colors.greenDark,
+                     hoverBackground: colors.greenDark,
                   },
                   secondary: {
                      background: colors.grey200,

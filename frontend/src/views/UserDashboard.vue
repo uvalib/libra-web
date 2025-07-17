@@ -12,7 +12,7 @@
                <div class="orcid">
                   <template  v-if="user.orcid.id.length == 0">
                      <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" variant="outlined">
-                        <img class="orcid-img" src="@/assets/orcid_id.svg"/>
+                        <img class="orcid-img" src="@/assets/orcid_id.svg" alt="orcid id logo"/>
                         <span>Register or connect your ORCID ID</span>
                      </Button>
                   </template>
