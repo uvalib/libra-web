@@ -191,7 +191,7 @@ func (svc *serviceContext) adminUpdatePublishedDate(c *gin.Context) {
 		return
 	}
 	log.Printf("INFO: get work %s %s to update published date to %s", svc.Namespace, workID, dateReq.NewDate)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -213,7 +213,7 @@ func (svc *serviceContext) adminUnpublishWork(c *gin.Context) {
 	workID := c.Param("id")
 
 	log.Printf("INFO: get work %s %s for unpublish", svc.Namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -241,7 +241,7 @@ func (svc *serviceContext) adminUnpublishWork(c *gin.Context) {
 func (svc *serviceContext) adminDeleteWork(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: get %s work %s for deletion", svc.Namespace, workID)
-	delObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent)
+	delObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent)
 	if err != nil {
 		log.Printf("ERROR: unablle to get  %s work %s: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())

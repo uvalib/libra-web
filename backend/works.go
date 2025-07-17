@@ -51,7 +51,7 @@ type workAccess struct {
 func (svc *serviceContext) getWork(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: get %s work %s", svc.Namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, err.Error())
 		if strings.Contains(err.Error(), "not exist") {
@@ -92,7 +92,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: load existing work %s", workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.Fields|uvaeasystore.Metadata)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Fields|uvaeasystore.Metadata)
 	if err != nil {
 		log.Printf("ERROR: get work %s for update failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -178,7 +178,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 
 	// reload work to get latest files and vtag
 	log.Printf("INFO: get %s work %s", svc.Namespace, workID)
-	updatedObj, err := svc.EasyStore.GetByKey(tgtObj.Namespace(), tgtObj.Id(), uvaeasystore.AllComponents)
+	updatedObj, err := svc.EasyStore.ObjectGetByKey(tgtObj.Namespace(), tgtObj.Id(), uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unable to get updated work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -220,7 +220,7 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 	workID := c.Param("id")
 
 	log.Printf("INFO: publish %s work %s", svc.Namespace, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -296,7 +296,7 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 	}
 	log.Printf("INFO: request to rename file %s from work %s to %s", renameReq.OriginalName, workID, renameReq.NewName)
 
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unable to get %s work %s for file rename: %s", svc.Namespace, workID, err.Error())
 		if strings.Contains(err.Error(), "not exist") {
@@ -320,7 +320,7 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
 	log.Printf("INFO: request to download file %s from work %s", tgtFile, workID)
-	tgtObj, err := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.Files)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
 		log.Printf("ERROR: get %s work %s for download failed: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())

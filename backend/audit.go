@@ -22,7 +22,7 @@ type auditContext struct {
 
 func (svc *serviceContext) getAudits(c *gin.Context) {
 	workID := c.Param("id")
-	tgtObj, eserr := svc.EasyStore.GetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, eserr := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if eserr != nil {
 		if strings.Contains(eserr.Error(), "not exist") {
 			log.Printf("INFO: work %s was not found", workID)
