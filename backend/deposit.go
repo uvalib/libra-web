@@ -8,7 +8,6 @@ import (
 	"path"
 
 	"github.com/gin-gonic/gin"
-	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
@@ -55,24 +54,6 @@ type registrationRequest struct {
 		FirstName string `json:"firstName"`
 		LastName  string `json:"lastName"`
 	} `json:"students"`
-}
-
-func getSubmittedFiles(uploadDir string, fileList []string) ([]uvaeasystore.EasyStoreBlob, error) {
-	log.Printf("INFO: get files [%v] associated with submission from location %s", fileList, uploadDir)
-	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
-	for _, fn := range fileList {
-		fullPath := path.Join(uploadDir, fn)
-		log.Printf("INFO: add %s", fullPath)
-		fileBytes, fileErr := os.ReadFile(fullPath)
-		if fileErr != nil {
-			return nil, fileErr
-		}
-		mimeType := http.DetectContentType(fileBytes)
-		log.Printf("INFO: create easystore file blob for %s with size %d and mime type %s", fn, len(fileBytes), mimeType)
-		esBlob := uvaeasystore.NewEasyStoreBlob(fn, mimeType, fileBytes)
-		esFiles = append(esFiles, esBlob)
-	}
-	return esFiles, nil
 }
 
 func (svc *serviceContext) cancelSubmission(c *gin.Context) {

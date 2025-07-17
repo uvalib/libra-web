@@ -125,17 +125,6 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 	tgtObj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReq.Work.MimeType(), pl))
 
-	// update files if necessary
-	if len(etdReq.AddFiles) != 0 || len(etdReq.DelFiles) != 0 {
-		esFiles, err := svc.updateWorkFiles(tgtObj.Id(), tgtObj.Files(), etdReq.AddFiles, etdReq.DelFiles)
-		if err != nil {
-			log.Printf("ERROR: unable to update work files with new add [%v] and delete [%v] %s", etdReq.AddFiles, etdReq.DelFiles, err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-		tgtObj.SetFiles(esFiles)
-	}
-
 	// update fields
 	fields := tgtObj.Fields()
 	fields["modify-date"] = time.Now().UTC().Format(svc.TimeFormat)
@@ -170,14 +159,61 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 	tgtObj.SetFields(fields)
 
-	updatedObj, err := svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.AllComponents)
-	resp, err := svc.parseWork(updatedObj, true)
+	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.AllComponents)
 	if err != nil {
-		log.Printf("ERROR: unable to parse updated work %s: %s", workID, err.Error())
+		log.Printf("ERROR: unable to update work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	// update files if necessary
+	if len(etdReq.AddFiles) != 0 || len(etdReq.DelFiles) != 0 {
+		err := svc.updateWorkFiles(tgtObj, etdReq.AddFiles, etdReq.DelFiles)
+		if err != nil {
+			log.Printf("ERROR: unable to update work files with new add [%v] and delete [%v] %s", etdReq.AddFiles, etdReq.DelFiles, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	// reload work to get latest files and vtag
+	log.Printf("INFO: get %s work %s", svc.Namespace, workID)
+	updatedObj, err := svc.EasyStore.GetByKey(tgtObj.Namespace(), tgtObj.Id(), uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: unable to get updated work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	resp, _ := svc.parseWork(updatedObj, true)
 	c.JSON(http.StatusOK, resp)
+}
+
+func (svc *serviceContext) updateWorkFiles(esObj uvaeasystore.EasyStoreObject, addFiles, delFiles []string) error {
+	for _, delFile := range delFiles {
+		log.Printf("INFO: delete %s from work %s", delFile, esObj.Id())
+		err := svc.EasyStore.FileDelete(esObj.Namespace(), esObj.Id(), delFile)
+		if err != nil {
+			return fmt.Errorf("unable to delete %s: %s", delFile, err.Error())
+		}
+	}
+
+	uploadDir := path.Join("/tmp", esObj.Id())
+	for _, addFile := range addFiles {
+		fullPath := path.Join(uploadDir, addFile)
+		log.Printf("INFO: add %s to work %s", fullPath, esObj.Id())
+		fileBytes, fileErr := os.ReadFile(fullPath)
+		if fileErr != nil {
+			return fmt.Errorf("unable to read %s: %s", fullPath, fileErr.Error())
+		}
+		mimeType := http.DetectContentType(fileBytes)
+		log.Printf("INFO: create easystore file blob for %s with size %d and mime type %s", addFile, len(fileBytes), mimeType)
+		esBlob := uvaeasystore.NewEasyStoreBlob(addFile, mimeType, fileBytes)
+		err := svc.EasyStore.FileCreate(esObj.Namespace(), esObj.Id(), esBlob)
+		if err != nil {
+			return fmt.Errorf("unable to add %s: %s", addFile, err.Error())
+		}
+	}
+	return nil
 }
 
 func (svc *serviceContext) publishWork(c *gin.Context) {
@@ -207,39 +243,6 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 	}
 	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespace, tgtObj.Id())
 	c.String(http.StatusOK, "published")
-}
-
-func (svc *serviceContext) updateWorkFiles(workID string, origFiles []uvaeasystore.EasyStoreBlob, addFiles, delFiles []string) ([]uvaeasystore.EasyStoreBlob, error) {
-	//  generate a list of files; start a new list and only add those
-	// from the original work that are not on the deleted list
-	esFiles := make([]uvaeasystore.EasyStoreBlob, 0)
-	for _, currBlob := range origFiles {
-		add := true
-		for _, delFn := range delFiles {
-			if delFn == currBlob.Name() {
-				add = false
-				break
-			}
-		}
-		if add {
-			esFiles = append(esFiles, currBlob)
-		}
-	}
-
-	// newly uploaded files are in a tmp dir named by the ID of the OA work
-	if len(addFiles) > 0 {
-		log.Printf("INFO: adding %v to work %s", addFiles, workID)
-		uploadDir := path.Join("/tmp", workID)
-		addedFiles, err := getSubmittedFiles(uploadDir, addFiles)
-		if err != nil {
-			log.Printf("ERROR: unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
-			return nil, fmt.Errorf("unable to get newly uploaded files from %s: %s", uploadDir, err.Error())
-		}
-		esFiles = append(esFiles, addedFiles...)
-		log.Printf("INFO: cleanup upload directory %s", uploadDir)
-		os.RemoveAll(uploadDir)
-	}
-	return esFiles, nil
 }
 
 func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
