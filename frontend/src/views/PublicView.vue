@@ -27,7 +27,7 @@
                <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
                <Button v-if="file.url.length==0" label="Request Download" severity="secondary" size="small" @click="downloadFileClicked(file.name)" />
                <template v-else>
-                  <Button as="a" icon="pi pi-cloud-download" label="Download" :href="file.url" target="_blank" rel="noopener" />
+                  <Button as="a" icon="pi pi-cloud-download" label="Download" :href="file.url" rel="noopener" />
                   <span class="note">This link is only valid until {{ file.expire }}</span>
                </template>
             </div>
@@ -44,7 +44,7 @@
                   <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
                   <label for="agree-cb">
                      I have read and agree to the
-                     <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank">Libra Deposit License</a>,
+                     <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank" aria-describedby="new-window">Libra Deposit License</a>,
                      including discussing my deposit access options with my faculty advisor.
                   </label>
                </div>
@@ -96,7 +96,7 @@
                <section v-if="etdRepo.hasRelatedURLs">
                   <h2>Related Links</h2>
                   <ul>
-                     <li v-for="url in etdRepo.work.relatedURLs"><a :href="url" target="_blank">{{ url }}</a></li>
+                     <li v-for="url in etdRepo.work.relatedURLs"><a :href="url" target="_blank" aria-describedby="new-window">{{ url }}</a></li>
                   </ul>
                </section>
                <section v-if="etdRepo.work.notes">
@@ -109,7 +109,7 @@
                </section>
                <section>
                   <h2>Rights</h2>
-                  <a v-if="etdRepo.work.licenseURL" :href="etdRepo.work.licenseURL" target="_blank">{{ etdRepo.work.license }}</a>
+                  <a v-if="etdRepo.work.licenseURL" :href="etdRepo.work.licenseURL" target="_blank" aria-describedby="new-window">{{ etdRepo.work.license }}</a>
                   <div v-else>{{ etdRepo.work.license }}</div>
                </section>
                <section v-if="!etdRepo.isDraft">
@@ -118,7 +118,7 @@
                </section>
                <section v-if="!etdRepo.isDraft">
                   <h2>Persistent Link</h2>
-                  <a v-if="etdRepo.persistentLink" target="_blank" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
+                  <a v-if="etdRepo.persistentLink" target="_blank" aria-describedby="new-window" :href="etdRepo.persistentLink">{{ etdRepo.persistentLink }}</a>
                   <span v-else>Persistent link will appear here after submission.</span>
                </section>
                <section v-if="!etdRepo.isDraft">

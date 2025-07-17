@@ -7,8 +7,8 @@
          }"
       >
       <template #start v-if="user.isAdmin == false && user.isRegistrar == false">
-         <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank">
-            <i class="pi pi-question-circle"></i>
+         <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank" aria-describedby="new-window">
+            <i class="pi pi-question-circle" aria-hidden="true"></i>
             <span>Libra Support</span>
          </a>
       </template>

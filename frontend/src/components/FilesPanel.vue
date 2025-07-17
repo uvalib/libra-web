@@ -19,7 +19,7 @@
                   <div class="acts" v-if="rename != slotProps.data.name">
                      <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
                      <Button v-if="slotProps.data.url.length==0" class="action" label="Request Download" severity="secondary" size="small" @click="downloadFileClicked(slotProps.data.name)"/>
-                     <Button v-else as="a" icon="pi pi-cloud-download" label="Download" :href="slotProps.data.url" target="_blank" rel="noopener" />
+                     <Button v-else as="a" icon="pi pi-cloud-download" label="Download" :href="slotProps.data.url" rel="noopener" />
                      <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
                   </div>
                   <div class="rename" v-else>

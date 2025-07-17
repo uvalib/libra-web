@@ -5,7 +5,7 @@
             <span>LibraETD Work</span>
             <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
          </h2>
-         <div class="help">View <a target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
+         <div class="help">View <a target="_blank" aria-describedby="new-window" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
       </div>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
@@ -90,7 +90,7 @@
                   <div class="note">
                      Libra lets you choose an open license when you post your work, and will prominently display the
                      license you choose as part of the record for your work. See
-                     <a href="https://creativecommons.org/share-your-work" target="_blank">Choose a Creative Commons License</a>
+                     <a href="https://creativecommons.org/share-your-work" target="_blank" aria-describedby="new-window">Choose a Creative Commons License</a>
                      for option details.
                   </div>
                </div>
@@ -113,7 +113,7 @@
             <div class="license">
                <div class="note">
                   For more information, see the
-                  <a href="https://uvapolicy.virginia.edu/policy/PROV-014" target="_blank">Provost Policy on Access Levels for Libra ETD deposits</a>.
+                  <a href="https://uvapolicy.virginia.edu/policy/PROV-014" target="_blank" aria-describedby="new-window">Provost Policy on Access Levels for Libra ETD deposits</a>.
                </div>
 
                <div v-if="etdRepo.visibility == 'embargo' && user.isAdmin == false" class="embargo">

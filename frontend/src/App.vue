@@ -30,6 +30,7 @@
    <main  >
       <RouterView  v-if="configuring == false"/>
       <div v-else class="authenticating">Authenticating...</div>
+      <span id="new-window" class="screen-reader-text">(opens in a new window)</span>
    </main>
 
    <LibraryFooter />
@@ -99,6 +100,13 @@ body {
    -moz-osx-font-smoothing: grayscale;
    color: $uva-grey-A;
    background: $uva-blue-alt-B;
+   .screen-reader-text {
+      clip: rect(1px, 1px, 1px, 1px);
+      position: absolute !important;
+      height: 1px;
+      width: 1px;
+      overflow: hidden;
+   }
 }
 
 #app {

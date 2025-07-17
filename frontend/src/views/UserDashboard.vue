@@ -7,26 +7,26 @@
             <template #title>{{ user.displayName }}</template>
             <template #content>
                <div class="email">
-                  <a class="ext-link" :href="`mailto:${user.email}`"><i class="pi pi-envelope"></i>{{ user.email }}</a>
+                  <a class="ext-link" :href="`mailto:${user.email}`" target="_blank" aria-describedby="new-window"><i class="pi pi-envelope" aria-hidden="true"></i>{{ user.email }}</a>
                </div>
                <div class="orcid">
                   <template  v-if="user.orcid.id.length == 0">
-                     <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" variant="outlined">
-                        <img class="orcid-img" src="@/assets/orcid_id.svg" alt="orcid id logo"/>
+                     <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" aria-describedby="new-window" variant="outlined">
+                        <img class="orcid-img" src="@/assets/orcid_id.svg" alt="orcid id logo" aria-hidden="true"/>
                         <span>Register or connect your ORCID ID</span>
                      </Button>
                   </template>
                   <template v-else>
-                     <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" variant="outlined">
-                        <img class="orcid-img" src="@/assets/orcid_id.svg"/>
+                     <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" aria-describedby="new-window" variant="outlined">
+                        <img class="orcid-img" src="@/assets/orcid_id.svg" aria-hidden="true"/>
                         <span>Manage your ORCID ID</span>
                      </Button>
-                     <Button as="a" severity="secondary" :href="user.orcid.uri" target="_blank" variant="outlined">
-                        <img class="orcid-img" src="@/assets/orcid_id.svg"/>
+                     <Button as="a" severity="secondary" :href="user.orcid.uri" target="_blank" aria-describedby="new-window" variant="outlined">
+                        <img class="orcid-img" src="@/assets/orcid_id.svg" aria-hidden="true"/>
                         <span>{{ user.orcid.id }}</span>
                      </Button>
                   </template>
-                  <a class="ext-link" href="https://orcid.org/faq-page" target="_blank">Learn more about ORCID<i class="pi pi-external-link"></i></a>
+                  <a class="ext-link" href="https://orcid.org/faq-page" target="_blank" aria-describedby="new-window" >Learn more about ORCID<i class="pi pi-external-link" aria-hidden="true"></i></a>
                </div>
             </template>
          </Card>
@@ -73,7 +73,8 @@
             </DataTable>
             <div class="help">
                View
-               <a class="ext-link" target="_blank" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist<i class="pi pi-external-link"></i></a>
+               <a class="ext-link" target="_blank" aria-describedby="new-window"
+                  href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist<i class="pi pi-external-link" aria-hidden="true"></i></a>
                for help.
             </div>
          </div>
