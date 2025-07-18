@@ -24,7 +24,7 @@
                   </div>
                   <div class="rename" v-else>
                      <span>
-                        <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" />
+                        <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" v-keyfilter="/([0-9])|([a-z])|([A-Z])|_|-/"/>
                         <span>.{{ newNameExt }}</span>
                      </span>
                      <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>

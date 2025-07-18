@@ -28,6 +28,7 @@ import ToastService from 'primevue/toastservice'
 import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
 import 'primeicons/primeicons.css'
+import KeyFilter from 'primevue/keyfilter'
 
 app.use(PrimeVue, {
    theme: {
@@ -44,6 +45,7 @@ app.use(ToastService)
 
 app.component("Button", Button)
 app.component("ConfirmDialog", ConfirmDialog)
+app.directive('keyfilter', KeyFilter)
 
 // Per some suggestions on vue / pinia git hub issue reports, create and add pinia support LAST
 // and use the chained form of the setup. This to avid problems where the vuew dev tools fail to
