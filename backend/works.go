@@ -311,6 +311,7 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 	if rnErr != nil {
 		log.Printf("ERROR: rename %s to %s failed: %s", renameReq.OriginalName, renameReq.NewName, rnErr.Error())
 		c.String(http.StatusInternalServerError, rnErr.Error())
+		return
 	}
 
 	c.String(http.StatusOK, renameReq.NewName)

@@ -23,7 +23,7 @@
                      <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
                   </div>
                   <div class="rename" v-else>
-                     <span>
+                     <span class="rename-entry">
                         <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" v-keyfilter="/([0-9])|([a-z])|([A-Z])|_|-/"/>
                         <span>.{{ newNameExt }}</span>
                      </span>
@@ -180,9 +180,15 @@ ul.pending {
       display: flex;
       flex-flow: row wrap;
       gap: 10px;
-      input {
+      .rename-entry {
          flex-grow: 1;
-         margin-right: 5px;
+         display: flex;
+         flex-flow: row nowrap;
+         align-items: center;
+         input {
+            margin-right: 5px;
+            flex-grow: 1;
+         }
       }
    }
 }
