@@ -121,13 +121,26 @@ body {
    outline: 0;
    border: 0;
 
-   #app h1 {
-      padding: 3rem 0;
+   h1 {
+      padding: 1.75rem 0;
       position: relative;
       font-weight: 700;
-      color: #232d4b;
-      line-height: 1.15;
-      margin: 0;
+      color: $uva-brand-blue;
+      margin: 0 ;
+      font-size: 1.5em;
+   }
+   h2 {
+      color: $uva-brand-blue;
+      text-align: left;
+      font-size: 1.3em;
+      margin: 50px 0 17px 0;
+   }
+   select {
+      padding: 0.5em;
+      border-radius: 0.3rem;
+      border-color: #cbd5e1;
+      font-size: 1rem;
+      color: #334155;
    }
 }
 

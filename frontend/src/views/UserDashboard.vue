@@ -1,6 +1,6 @@
 <template>
    <div class="dashboard">
-      <h2>My Active Theses</h2>
+      <h1>My Active Theses</h1>
       <WaitSpinner v-if="user.working" :overlay="true" message="<div>Please wait...</div><p>Searching for active theses</p>" />
       <div class="content" v-else>
          <Card>
