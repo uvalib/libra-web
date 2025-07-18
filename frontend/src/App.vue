@@ -120,28 +120,28 @@ body {
    background: #fafafa;
    outline: 0;
    border: 0;
+}
 
-   h1 {
-      padding: 1.75rem 0;
-      position: relative;
-      font-weight: 700;
-      color: $uva-brand-blue;
-      margin: 0 ;
-      font-size: 1.5em;
-   }
-   h2 {
-      color: $uva-brand-blue;
-      text-align: left;
-      font-size: 1.3em;
-      margin: 50px 0 17px 0;
-   }
-   select {
-      padding: 0.5em;
-      border-radius: 0.3rem;
-      border-color: #cbd5e1;
-      font-size: 1rem;
-      color: #334155;
-   }
+ h1 {
+   padding: 1.75rem 0;
+   position: relative;
+   font-weight: 700;
+   color: $uva-brand-blue;
+   margin: 0 ;
+   font-size: 1.5em;
+}
+h2 {
+   color: $uva-brand-blue;
+   text-align: left;
+   font-size: 1.3em;
+   margin: 50px 0 17px 0;
+}
+select {
+   padding: 0.5em;
+   border-radius: 0.3rem;
+   border-color: #cbd5e1;
+   font-size: 1rem;
+   color: #334155;
 }
 
 a {

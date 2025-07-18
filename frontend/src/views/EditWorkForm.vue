@@ -1,10 +1,10 @@
 <template>
    <div class="edit">
       <div class="work-head">
-         <h2>
+         <h1>
             <span>LibraETD Work</span>
             <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
-         </h2>
+         </h1>
          <div class="help">View <a target="_blank" aria-describedby="new-window" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
       </div>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
@@ -444,7 +444,7 @@ const endDatePicked = ( (newDate) => {
    .help {
       margin: 0 5% 20px 5%;
    }
-   .sections, h2 {
+   .sections, h1 {
       margin-left: 5%;
       margin-right: 5%;
       gap: 25px;
@@ -454,7 +454,7 @@ const endDatePicked = ( (newDate) => {
    }
 }
 @media only screen and (max-width: 768px) {
-    h2, .help {
+    h1, .help {
       margin: 15px;
    }
    .sections {
@@ -486,7 +486,7 @@ const endDatePicked = ( (newDate) => {
    text-align: left;
    position: relative;
 
-   h2 {
+   h1 {
       display: flex;
       flex-flow: row nowrap;
       justify-content: space-between;
