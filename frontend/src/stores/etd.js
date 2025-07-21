@@ -168,18 +168,13 @@ export const useETDStore = defineStore('etd', {
 
       async downloadFile( name ) {
          return axios.get(`/api/works/${this.work.id}/files/${name}`).then((response) => {
-            this.work.files.forEach( f => {
-               if (f.name == name ) {
-                  f.url = response.data
-                  let now = dayjs()
-                  let exp = now.add(1, 'hour')
-                  f.expire = exp.format("YYYY-MM-DD hh:mm A")
-                  setTimeout( ()=>{
-                     f.url=""
-                     delete f.expire
-                  }, 60*60*1000)
-               }
-            })
+            const element = document.createElement('a')
+            element.setAttribute('href', response.data)
+            element.setAttribute('download', name)
+            element.style.display = 'none'
+            document.body.appendChild(element)
+            element.click()
+            document.body.removeChild(element)
          }).catch((error) => {
             const system = useSystemStore()
             system.setError( error)
