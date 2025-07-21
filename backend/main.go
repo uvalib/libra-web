@@ -34,7 +34,8 @@ func main() {
 	router.GET("/config", svc.getConfig)
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/version", svc.getVersion)
-	router.GET("/sitemap.xml", svc.GetSitemap)
+	router.GET("/sitemap.xml", svc.getSitemap)
+	router.GET("/robots.txt", svc.getRobotsTxt)
 
 	api := router.Group("/api", svc.userMiddleware)
 	{
@@ -85,7 +86,6 @@ func main() {
 		}
 	})
 
-	svc.WriteRobotsTxt()
 	portStr := fmt.Sprintf(":%d", cfg.port)
 	versionMap := svc.lookupVersion()
 	versionStr := fmt.Sprintf("%s-%s", versionMap["version"], versionMap["build"])

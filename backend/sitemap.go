@@ -6,28 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
 
-// WriteRobotsTxt creates or overwrites the robots.txt file.
-// To be run once at startup
-func (svc *serviceContext) WriteRobotsTxt() {
-
-	robotsTxt := fmt.Appendf(nil, "Sitemap: %s/sitemap.xml", svc.EtdURL)
-	robotsPath := filepath.Join("frontend", "public", "robots.txt")
-
-	if err := os.WriteFile(robotsPath, robotsTxt, 0644); err != nil {
-		log.Fatal(err)
-	} else {
-		log.Printf("INFO: %s written [%s]", robotsPath, robotsTxt)
-	}
+// getRobotsTxt serves the robots.txt file.
+func (svc *serviceContext) getRobotsTxt(c *gin.Context) {
+	robotsTxt := fmt.Sprintf("Sitemap: %s/sitemap.xml", svc.EtdURL)
+	c.String(http.StatusOK, robotsTxt)
 }
 
 // GetSitemap is a handler function that serves the sitemap.xml file.
-func (svc *serviceContext) GetSitemap(c *gin.Context) {
+func (svc *serviceContext) getSitemap(c *gin.Context) {
 	log.Printf("INFO: sitemap requested for %s", svc.EtdURL)
 	sitemap, err := generateSitemap(svc, svc.EtdURL)
 	if err != nil {
