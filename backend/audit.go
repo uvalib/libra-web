@@ -172,6 +172,7 @@ func (svc *serviceContext) auditStructField(auditCtx auditContext, fieldName str
 				changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, structSliceIdx, structField)
 			}
 			structVal := newValue.Field(i).String()
+			log.Printf("INFO: struct field %s=[%s]", changeFieldName, structVal)
 			if structVal != "" {
 				// To maintin the UI, the advisors list has at least one entry. Before an advisor is looked up/added the fields
 				// will be blank. Don't audit that
@@ -182,6 +183,8 @@ func (svc *serviceContext) auditStructField(auditCtx auditContext, fieldName str
 					After:     structVal,
 				}
 				svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+			} else {
+				log.Printf("INFO: new value is blank, not auditing it")
 			}
 		}
 	} else {

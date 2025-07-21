@@ -169,12 +169,13 @@ func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
 		}
 		obj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReg.MimeType(), pl))
 
-		_, err = svc.EasyStore.ObjectCreate(obj)
+		created, err := svc.EasyStore.ObjectCreate(obj)
 		if err != nil {
 			log.Printf("ERROR: admin create registration failed: %s", err.Error())
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
+		svc.publishEvent(uvalibrabus.EventWorkCreate, created.Namespace(), created.Id())
 	}
 	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
 }
@@ -249,11 +250,12 @@ func (svc *serviceContext) adminDeleteWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: delete %s work %s", svc.Namespace, workID)
-	_, err = svc.EasyStore.ObjectDelete(delObj, uvaeasystore.AllComponents)
+	obj, err := svc.EasyStore.ObjectDelete(delObj, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unablle to delete  %s work %s: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+	svc.publishEvent(uvalibrabus.EventWorkDelete, obj.Namespace(), obj.Id())
 	c.String(http.StatusOK, "deleted")
 }
