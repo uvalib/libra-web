@@ -91,8 +91,9 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 		return
 	}
 
+	// load the work - including all current files. Thsi list is necessary for audits of the file list
 	log.Printf("INFO: load existing work %s", workID)
-	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Fields|uvaeasystore.Metadata)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: get work %s for update failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())

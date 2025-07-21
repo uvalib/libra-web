@@ -73,9 +73,7 @@ func (svc *serviceContext) auditWorkUpdate(computeID string, etdUpdate etdUpdate
 	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], etdUpdate.Visibility)
 	svc.auditFiles(auditCtx, origObj.Files(), etdUpdate.AddFiles, etdUpdate.DelFiles)
 
-	updateVal := reflect.ValueOf(&etdUpdate.Work).Elem()
-	origVal := reflect.ValueOf(origWork.ETDWork).Elem()
-	svc.auditWork(auditCtx, origVal, updateVal)
+	svc.auditWork(auditCtx, *origWork.ETDWork, etdUpdate.Work)
 }
 
 func (svc *serviceContext) auditVisibiliy(auditCtx auditContext, origVis string, newVis string) {
@@ -91,10 +89,11 @@ func (svc *serviceContext) auditVisibiliy(auditCtx auditContext, origVis string,
 }
 
 func (svc *serviceContext) auditFiles(auditCtx auditContext, origFiles []uvaeasystore.EasyStoreBlob, added, deleted []string) {
-	log.Printf("INFO: audit files; added %v, deleted %v", added, deleted)
 	if len(added) == 0 && len(deleted) == 0 {
 		return
 	}
+
+	log.Printf("INFO: audit files; added %v, deleted %v", added, deleted)
 	orig := make([]string, 0)
 	updated := make([]string, 0)
 	for _, esBlob := range origFiles {
@@ -115,13 +114,15 @@ func (svc *serviceContext) auditFiles(auditCtx auditContext, origFiles []uvaeasy
 	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 }
 
-func (svc *serviceContext) auditWork(auditCtx auditContext, origVal reflect.Value, updateVal reflect.Value) {
+func (svc *serviceContext) auditWork(auditCtx auditContext, origWork librametadata.ETDWork, updatedWork librametadata.ETDWork) {
+	updateVal := reflect.ValueOf(&updatedWork).Elem()
+	origVal := reflect.ValueOf(&origWork).Elem()
+
 	// use reflection to determine any metadata changes and report them individually
-	// there are 4 categories of data in the work metadata to deal with:
+	// there are 3 categories of data in the work metadata to deal with:
 	//     1: string
-	//     2: ContributorData
-	//     3: []string
-	//     4: []ContributorData
+	//     2: struct
+	//     3: slice (can be strings or structs)
 	for fieldIdx := 0; fieldIdx < origVal.NumField(); fieldIdx++ {
 		fieldName := origVal.Type().Field(fieldIdx).Name
 		if fieldName == "SchemaVersion" {
@@ -134,12 +135,14 @@ func (svc *serviceContext) auditWork(auditCtx auditContext, origVal reflect.Valu
 		kind := origVal.Field(fieldIdx).Kind()
 		switch kind {
 		case reflect.Slice:
+			log.Printf("INFO: audit slice %s", fieldName)
 			svc.auditSliceField(auditCtx, fieldName, origValue, newValue)
 		case reflect.String:
+			log.Printf("INFO: audit string %s", fieldName)
 			svc.auditStringField(auditCtx, fieldName, origValue, newValue)
 		case reflect.Struct:
-			// NOTE: right now contributor is the ONLY nested struct. this needs to change if that changes
-			svc.auditContributorField(auditCtx, fieldName, origValue, newValue, -1)
+			log.Printf("INFO: audit struct %s", fieldName)
+			svc.auditStructField(auditCtx, fieldName, origValue, newValue, -1)
 		}
 	}
 }
@@ -159,41 +162,44 @@ func (svc *serviceContext) auditStringField(auditCtx auditContext, fieldName str
 	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 }
 
-func (svc *serviceContext) auditContributorField(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value, contribIdx int) {
-	// all data in contributor is string; simple checks are all thats needed
+func (svc *serviceContext) auditStructField(auditCtx auditContext, fieldName string, origValue, newValue reflect.Value, structSliceIdx int) {
+	// note: all structs are composed of string fields
 	if origValue.IsValid() == false {
-		for fieldIdx := 0; fieldIdx < newValue.NumField(); fieldIdx++ {
-			contribField := newValue.Type().Field(fieldIdx).Name
-			changeFieldName := fmt.Sprintf("%s.%s", fieldName, contribField)
-			if contribIdx > -1 {
-				changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, contribIdx, contribField)
+		for i := 0; i < newValue.NumField(); i++ {
+			structField := newValue.Type().Field(i).Name
+			changeFieldName := fmt.Sprintf("%s.%s", fieldName, structField)
+			if structSliceIdx > -1 {
+				changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, structSliceIdx, structField)
 			}
-			auditEvt := uvalibrabus.UvaAuditEvent{
-				Who:       auditCtx.computeID,
-				FieldName: changeFieldName,
-				Before:    "",
-				After:     newValue.Field(fieldIdx).String(),
-			}
-			svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
-		}
-	} else {
-		for fieldIdx := 0; fieldIdx < origValue.NumField(); fieldIdx++ {
-			contribField := origValue.Type().Field(fieldIdx).Name
-			origFieldValue := origValue.Field(fieldIdx).String()
-			newFieldValue := ""
-			if newValue.IsValid() {
-				newFieldValue = newValue.FieldByName(contribField).String()
-			}
-			if origFieldValue != newFieldValue {
-				changeFieldName := fmt.Sprintf("%s.%s", fieldName, contribField)
-				if contribIdx > -1 {
-					changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, contribIdx, contribField)
-				}
+			structVal := newValue.Field(i).String()
+			if structVal != "" {
+				// To maintin the UI, the advisors list has at least one entry. Before an advisor is looked up/added the fields
+				// will be blank. Don't audit that
 				auditEvt := uvalibrabus.UvaAuditEvent{
 					Who:       auditCtx.computeID,
 					FieldName: changeFieldName,
-					Before:    origFieldValue,
-					After:     newFieldValue,
+					Before:    "",
+					After:     structVal,
+				}
+				svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+			}
+		}
+	} else {
+		for i := 0; i < origValue.NumField(); i++ {
+			structField := origValue.Type().Field(i).Name
+			changeFieldName := fmt.Sprintf("%s.%s", fieldName, structField)
+			if structSliceIdx > -1 {
+				changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, structSliceIdx, structField)
+			}
+			structVal := origValue.Field(i).String()
+			updateVal := newValue.FieldByName(structField).String()
+			log.Printf("INFO: struct field %s orig %s vs %s", changeFieldName, structField, updateVal)
+			if structVal != updateVal {
+				auditEvt := uvalibrabus.UvaAuditEvent{
+					Who:       auditCtx.computeID,
+					FieldName: changeFieldName,
+					Before:    structVal,
+					After:     updateVal,
 				}
 				svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 			}
@@ -225,14 +231,14 @@ func (svc *serviceContext) auditStructSlice(auditCtx auditContext, fieldName str
 		if idx < newValue.Len() {
 			newVal = newValue.Index(idx)
 		}
-		svc.auditContributorField(auditCtx, fieldName, origValue.Index(idx), newVal, idx)
+		svc.auditStructField(auditCtx, fieldName, origValue.Index(idx), newVal, idx)
 	}
 
 	if newValue.Len() > origValue.Len() {
 		log.Printf("INFO: new array has %d more entries than original", (newValue.Len() - origValue.Len()))
 		for idx := origValue.Len(); idx < newValue.Len(); idx++ {
 			var emptyVal reflect.Value
-			svc.auditContributorField(auditCtx, fieldName, emptyVal, newValue.Index(idx), idx)
+			svc.auditStructField(auditCtx, fieldName, emptyVal, newValue.Index(idx), idx)
 		}
 	}
 }
