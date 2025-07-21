@@ -85,6 +85,7 @@ func main() {
 		}
 	})
 
+	svc.WriteRobotsTxt()
 	portStr := fmt.Sprintf(":%d", cfg.port)
 	versionMap := svc.lookupVersion()
 	versionStr := fmt.Sprintf("%s-%s", versionMap["version"], versionMap["build"])

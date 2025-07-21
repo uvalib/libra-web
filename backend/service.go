@@ -111,7 +111,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		Dev:         cfg.dev,
 		Namespace:   cfg.namespace,
 		IndexURL:    cfg.indexURL,
-		EtdURL:      cfg.edtURL,
+		EtdURL:      cfg.etdURL,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")
