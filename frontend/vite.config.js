@@ -48,6 +48,10 @@ export default defineConfig({
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
+         '/robots.txt': {
+            target: process.env.LIBRA_SRV,
+            changeOrigin: true
+         },
       }
    },
    css: {
