@@ -381,6 +381,7 @@ const saveChanges = ( async (data) => {
       if ( system.showError == false ) {
          system.toastMessage("Saved", "All changes have been saved")
          clearEdits()
+         etdForm.value.validate()
       } else {
          return
       }
