@@ -51,6 +51,7 @@ const libraMenu = computed( () => {
    let menu = []
    if ( user.isAdmin ) {
       menu.push({label: "Dashboard", route: "/admin", icon: "pi pi-home"})
+       menu.push({label: "Deposit Registration", route: "/register", icon: "pi pi-user-plus"})
    } else if ( user.isRegistrar ) {
       menu.push({label: "Dashboard", route: "/register", icon: "pi pi-home"})
    } else {

@@ -1,7 +1,6 @@
 <template>
    <div class="admin">
       <h1>Admin Dashboard</h1>
-      <DepositRegistrationDialog />
       <div class="search">
          <IconField iconPosition="left" class="query">
             <InputIcon class="pi pi-search" />
@@ -90,7 +89,6 @@
 import { useRouter } from 'vue-router'
 import { onBeforeMount, computed } from 'vue'
 import { useAdminStore } from "@/stores/admin"
-import DepositRegistrationDialog from "@/components/DepositRegistrationDialog.vue"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
