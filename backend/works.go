@@ -100,19 +100,14 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 		return
 	}
 
-	canUpdate := false
+	// NOTE: this call has already been thru user or admin middleware, so claims will be present
 	claims := getJWTClaims(c)
-	if claims != nil {
-		depositor := tgtObj.Fields()["depositor"]
-		canUpdate = depositor == claims.ComputeID || claims.isAdmin()
-	}
-	if canUpdate == false {
+	if (claims.ComputeID == tgtObj.Fields()["depositor"] || claims.isAdmin()) == false {
 		log.Printf("INFO: unauthorized attempt to update work %s", workID)
 		c.String(http.StatusForbidden, "you do not have permission to update this work")
 		return
 	}
 
-	// update the metadata with newly submitted info
 	svc.auditWorkUpdate(claims.ComputeID, etdReq, tgtObj)
 
 	// An ETDWork does not serialize the same way as an EasyStoreMetadata object
@@ -220,11 +215,20 @@ func (svc *serviceContext) updateWorkFiles(esObj uvaeasystore.EasyStoreObject, a
 func (svc *serviceContext) publishWork(c *gin.Context) {
 	workID := c.Param("id")
 
-	log.Printf("INFO: publish %s work %s", svc.Namespace, workID)
+	// NOTE: this call has already been thru user or admin middleware, so claims will be present
+	claims := getJWTClaims(c)
+
+	log.Printf("INFO: %s requests work %s publish", claims.ComputeID, workID)
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if (claims.ComputeID == tgtObj.Fields()["depositor"] || claims.isAdmin()) == false {
+		log.Printf("INFO: unauthorized attempt by %s to publish work %s", claims.ComputeID, workID)
+		c.String(http.StatusForbidden, "you do not have permission to publish this work")
 		return
 	}
 
@@ -234,6 +238,9 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 		c.String(http.StatusConflict, fmt.Sprintf("%s is already published", workID))
 		return
 	}
+
+	svc.auditPublicationChange(claims.ComputeID, tgtObj, true)
+
 	fields["draft"] = "false"
 	fields["publish-date"] = time.Now().UTC().Format(svc.TimeFormat)
 	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields)

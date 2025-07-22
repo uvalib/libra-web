@@ -169,13 +169,12 @@ func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
 		}
 		obj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReg.MimeType(), pl))
 
-		created, err := svc.EasyStore.ObjectCreate(obj)
+		_, err = svc.EasyStore.ObjectCreate(obj)
 		if err != nil {
 			log.Printf("ERROR: admin create registration failed: %s", err.Error())
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
-		svc.publishEvent(uvalibrabus.EventWorkCreate, created.Namespace(), created.Id())
 	}
 	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
 }
@@ -199,6 +198,9 @@ func (svc *serviceContext) adminUpdatePublishedDate(c *gin.Context) {
 		return
 	}
 
+	claims := getJWTClaims(c)
+	svc.auditDatePublished(claims.ComputeID, tgtObj, dateReq.NewDate)
+
 	fields := tgtObj.Fields()
 	fields["publish-date"] = dateReq.NewDate
 	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields)
@@ -207,13 +209,16 @@ func (svc *serviceContext) adminUpdatePublishedDate(c *gin.Context) {
 		c.String(http.StatusInternalServerError, fmt.Sprintf("publish date update failed: %s", err.Error()))
 		return
 	}
+
 	c.String(http.StatusOK, fields["publish-date"])
 }
 
 func (svc *serviceContext) adminUnpublishWork(c *gin.Context) {
 	workID := c.Param("id")
+	claims := getJWTClaims(c)
+	log.Printf("INFO: admin %s requests unpublish work %s", claims.ComputeID, workID)
 
-	log.Printf("INFO: get work %s %s for unpublish", svc.Namespace, workID)
+	log.Printf("INFO: get work %s for unpublish", workID)
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.BaseComponent|uvaeasystore.Fields)
 	if err != nil {
 		log.Printf("ERROR: unable to get work %s: %s", workID, err.Error())
@@ -227,11 +232,14 @@ func (svc *serviceContext) adminUnpublishWork(c *gin.Context) {
 		c.String(http.StatusConflict, fmt.Sprintf("%s is not published", workID))
 		return
 	}
+
+	svc.auditPublicationChange(claims.ComputeID, tgtObj, false)
+
 	fields["draft"] = "true"
 	delete(fields, "publish-date")
 	_, err = svc.EasyStore.ObjectUpdate(tgtObj, uvaeasystore.Fields)
 	if err != nil {
-		log.Printf("ERROR:unpublish %s failed: %s", workID, err.Error())
+		log.Printf("ERROR: unpublish %s failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, fmt.Sprintf("unpublish failed: %s", err.Error()))
 		return
 	}
@@ -250,12 +258,11 @@ func (svc *serviceContext) adminDeleteWork(c *gin.Context) {
 	}
 
 	log.Printf("INFO: delete %s work %s", svc.Namespace, workID)
-	obj, err := svc.EasyStore.ObjectDelete(delObj, uvaeasystore.AllComponents)
+	_, err = svc.EasyStore.ObjectDelete(delObj, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unablle to delete  %s work %s: %s", svc.Namespace, workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	svc.publishEvent(uvalibrabus.EventWorkDelete, obj.Namespace(), obj.Id())
 	c.String(http.StatusOK, "deleted")
 }

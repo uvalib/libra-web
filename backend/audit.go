@@ -88,6 +88,35 @@ func (svc *serviceContext) auditVisibiliy(auditCtx auditContext, origVis string,
 	}
 }
 
+func (svc *serviceContext) auditDatePublished(computeID string, tgtObj uvaeasystore.EasyStoreObject, newDate string) {
+	if tgtObj.Fields()["publish-date"] != newDate {
+		auditEvt := uvalibrabus.UvaAuditEvent{
+			Who:       computeID,
+			FieldName: "publish-date",
+			Before:    tgtObj.Fields()["publish-date"],
+			After:     newDate,
+		}
+		svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
+	}
+}
+
+func (svc *serviceContext) auditPublicationChange(computeID string, tgtObj uvaeasystore.EasyStoreObject, published bool) {
+	before := "true"
+	after := "false"
+	if published == false {
+		before = "false"
+		after = "true"
+	}
+	auditEvt := uvalibrabus.UvaAuditEvent{
+		Who:       computeID,
+		FieldName: "draft",
+		Before:    before,
+		After:     after,
+	}
+	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
+
+}
+
 func (svc *serviceContext) auditFiles(auditCtx auditContext, origFiles []uvaeasystore.EasyStoreBlob, added, deleted []string) {
 	if len(added) == 0 && len(deleted) == 0 {
 		return

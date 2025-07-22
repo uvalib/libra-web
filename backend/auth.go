@@ -159,7 +159,7 @@ func (svc *serviceContext) checkAuthToken(c *gin.Context) {
 
 func (svc *serviceContext) userMiddleware(c *gin.Context) {
 	jwtRequired := true
-	if c.Request.Method == "GET" && (strings.Contains(c.Request.URL.Path, "/api/works/oa") || strings.Contains(c.Request.URL.Path, "/api/works/etd")) {
+	if c.Request.Method == "GET" && strings.Contains(c.Request.URL.Path, "/api/works/etd") {
 		log.Printf("INFO: public metadata request for %s; jwt not required", c.Request.URL.Path)
 		jwtRequired = false
 	} else {
