@@ -92,12 +92,27 @@ const fileTypesAccepted = computed( () => {
 const startUpload = ( (event) => {
    const file = event.files[0]
    let formData = new FormData()
-   const cnt = etdRepo.work.files.length + etdRepo.pendingFileAdd.length + 1
+
+   // find the highest index prefix on all current, add, del files. Make the
+   // new filename prefix be 1 greater than this numbner
+   let fileIdx = 0
+   let fileNames = etdRepo.work.files.map( f => f.name)
+   fileNames.concat(etdRepo.pendingFileAdd, etdRepo.pendingFileDel ).forEach( fn => {
+       let bits = fn.split("_")
+       if (bits.length > 0) {
+         let id =  parseInt(bits[0],10)
+         if (id > fileIdx) {
+            fileIdx = id
+         }
+      }
+   })
+   fileIdx++
+
    const today = new Date()
    const year = today.getFullYear()
    const degree = etdRepo.work.degree.split(" (")[0]
    const ext = file.name.split('.').pop()
-   const newFileName = `${cnt}_${user.lastName}_${user.firstName}_${year}_${degree}.${ext}`
+   const newFileName = `${fileIdx}_${user.lastName}_${user.firstName}_${year}_${degree}.${ext}`
    formData.append('file', file, newFileName)
    axios.post(`/api/upload/${etdRepo.work.id}`, formData, {
       headers: {
