@@ -1,9 +1,9 @@
 <template>
    <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Thesis</p>" />
    <div v-else-if="etdRepo.error" class="error">
-      <h2>System Error</h2>
-      <p>Sorry, a system error has occurred!</p>
-      <p>{{ etdRepo.error }}</p>
+      <h1>System Error</h1>
+      <div>Sorry, a system error has occurred!</div>
+      <div>{{ etdRepo.error }}</div>
    </div>
    <template v-else>
       <div class="work-bkg"></div>
@@ -24,7 +24,7 @@
 
             <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
                <div class="name">{{ file.name }}</div>
-               <div class="upload"><label>Uploaded:</label>{{ $formatDate(file.createdAt) }}</div>
+               <div class="upload">Uploaded on {{ $formatDate(file.createdAt) }}</div>
                <Button label="Download" icon="pi pi-cloud-download" severity="secondary" size="small" @click="etdRepo.downloadFile(file.name)" />
             </div>
          </div>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="metadata">
-               <h3>{{ etdRepo.work.title }}</h3>
+               <h1>{{ etdRepo.work.title }}</h1>
                <section>
                   <h2>Author</h2>
                   <div class="content">{{  authorDisplay(etdRepo.work.author) }}</div>
@@ -241,12 +241,14 @@ const submitThesis = ( () => {
       flex-direction: column-reverse;
    }
 }
-
 div.error {
    background-color: white;
    padding: 25px;
    min-height: 300px;
    text-align: center;
+   width: 50%;
+   margin: 0 auto;
+
 }
 
 .note {
@@ -270,6 +272,12 @@ div.work-bkg {
 
 div.public-work {
    position: relative;
+    h1 {
+      font-size: 1.5em;
+      font-weight: 400;
+      padding: 0;
+      margin: 0;
+   }
    section {
       display: flex;
       flex-direction: column;
