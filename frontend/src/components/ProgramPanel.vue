@@ -1,36 +1,31 @@
 <template>
 <div class="work-overview">
-   <table>
-      <tbody>
-         <tr>
-            <td class="label">Institution:</td><td>{{ etdRepo.work.author.institution  }}</td>
-         </tr>
-         <tr>
-            <td class="label" id="admin-program">Program:</td>
-            <td v-if="props.admin == false">{{ etdRepo.work.program  }}</td>
-            <td v-else>
-               <Select v-model="etdRepo.work.program" :options="programs" editable fluid
-                  ariaLabelledby="admin-program" @update:modelValue="emit('changed')"/>
-            </td>
-         </tr>
-         <tr>
-            <td class="label" id="admin-degree">Degree:</td>
-            <td v-if="props.admin == false">{{ etdRepo.work.degree }}</td>
-            <td v-else>
-               <Select v-model="etdRepo.work.degree" :options="degrees" fluid
-                  ariaLabelledby="admin-degree" @update:modelValue="emit('changed')"/>
-            </td>
-         </tr>
-      </tbody>
-   </table>
-   <table>
-      <tbody>
-         <tr>
-            <td class="label">Date Created:</td><td>{{ $formatDate(etdRepo.createdAt) }}</td>
-         </tr>
-         <tr v-if="etdRepo.isDraft==false">
-            <td class="label">Date Published:</td>
-            <td class="pub-date">
+   <dl>
+      <dt>Institution:</dt>
+      <dd>{{ etdRepo.work.author.institution  }}</dd>
+
+      <dt id="admin-program">Program:</dt>
+      <dd v-if="props.admin == false">{{ etdRepo.work.program  }}</dd>
+      <dd v-else>
+         <Select v-model="etdRepo.work.program" :options="programs" editable fluid
+            ariaLabelledby="admin-program" @update:modelValue="emit('changed')"/>
+      </dd>
+
+      <dt id="admin-degree">Degree:</dt>
+      <dd v-if="props.admin == false">{{ etdRepo.work.degree }}</dd>
+      <dd v-else>
+         <Select v-model="etdRepo.work.degree" :options="degrees" fluid
+            ariaLabelledby="admin-degree" @update:modelValue="emit('changed')"/>
+      </dd>
+   </dl>
+   <div class="data-column">
+      <dl>
+         <dt>Date Created:</dt>
+         <dd>{{ $formatDate(etdRepo.createdAt) }}</dd>
+
+         <template v-if="etdRepo.isDraft==false">
+            <dt class="label">Date Published:</dt>
+            <dd class="pub-date">
                <template v-if="editDate">
                   <InputMask v-model="newDate" autofocus mask="9999-99-99" slotChar="yyyy-mm-dd" @keydown.enter="updateDate" />
                   <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="editDate=false" :disabled="etdRepo.saving"/>
@@ -38,15 +33,13 @@
                </template>
                <template v-else>
                   <span>{{ $formatDate(etdRepo.publishedAt) }}</span>
-                  <Button v-if="props.admin" label="Edit" size="small" severity="secondary" @click="editDateClicked"/>
+                  <Button v-if="props.admin" label="Edit" size="small" rounded icon="pi pi-pen-to-square" severity="secondary" @click="editDateClicked"/>
                </template>
-            </td>
-         </tr>
-         <tr>
-            <td colspan="2"><AuditsPanel :workID="etdRepo.work.id"/></td>
-         </tr>
-      </tbody>
-   </table>
+            </dd>
+         </template>
+      </dl>
+      <AuditsPanel :workID="etdRepo.work.id"/>
+   </div>
 </div>
 </template>
 
@@ -103,20 +96,36 @@ const degrees = computed( () =>{
    justify-content: space-between;
    align-items: flex-start;
    gap: 25px;
-   table {
-      td.label {
+   margin-bottom: 25px;
+   .data-column {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+   }
+   dl {
+      grid-template-columns: max-content auto;
+      display: grid;
+      grid-column-gap: 0.75rem;
+      padding: 0;
+      margin: 0;
+      dt {
          font-weight: bold;
          text-align: right;
-         padding-right: 10px;
+         padding: 0.3rem 0;
+         white-space: nowrap;
       }
-      td.pub-date {
+      dd {
+         padding: 0.3rem 0;
+         margin: 0;
+      }
+      dd.pub-date {
          display: flex;
          flex-flow: row nowrap;
          gap: 5px;
          justify-content: flex-start;
          align-items: center;
+         padding: 0;
       }
-      margin-bottom: 25px;
    }
 }
 </style>

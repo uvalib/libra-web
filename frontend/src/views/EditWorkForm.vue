@@ -31,7 +31,7 @@
                   </div>
                </Fieldset>
 
-               <Fieldset class="advisors">
+               <Fieldset class="advisors" pt:contentContainer:aria-labelledby="">
                   <template #legend>
                      <span>Advisors</span><span class="required"><span class="star">*</span>(required)</span>
                   </template>
@@ -39,7 +39,7 @@
                      <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
                      <div class="id-field">
                         <div class="control-group">
-                           <InputText type="text" v-model="item.computeID" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID"/>
+                           <InputText type="text" v-model="item.computeID" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID" aria-label="advisor compute id"/>
                            <Button class="check" icon="pi pi-search" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
                         </div>
                         <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)" rounded/>
