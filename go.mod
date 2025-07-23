@@ -12,7 +12,7 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20250717150932-d438f30cb70b
 	github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1
-	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250520140939-0b78bc8b863f
+	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250722185634-5799610d7eb7
 )
 
 require (
@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.30.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.34.1 // indirect
 	github.com/aws/smithy-go v1.22.4 // indirect
-	github.com/bytedance/sonic v1.13.3 // indirect
+	github.com/bytedance/sonic v1.14.0 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
