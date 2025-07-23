@@ -2,7 +2,7 @@
    <footer role="contentinfo" id="libra-footer">
       <div class="footer-container">
          <div class="footer-bucket">
-            <h3>Contact Us</h3>
+            <h2>Contact Us</h2>
             <ul>
                <li><a href="tel:14349243021">(434) 924-3021</a></li>
                <li><a href="mailto:library@virginia.edu">library@virginia.edu</a></li>
@@ -22,7 +22,7 @@
             </ul>
          </div>
          <div class="footer-bucket">
-            <h3>About the Library</h3>
+            <h2>About the Library</h2>
             <ul>
                <li><a href="https://www.library.virginia.edu/hours/">Hours</a></li>
                <li><a href="https://www.library.virginia.edu/staff/">Staff Directory</a></li>
@@ -36,7 +36,7 @@
             </ul>
          </div>
          <div class="footer-bucket">
-            <h3>Help &amp; Assistance</h3>
+            <h2>Help &amp; Assistance</h2>
             <ul>
                <li><a href="https://answers.lib.virginia.edu/" aria-label="F A Qs">FAQs</a></li>
                <li><a href="https://www.library.virginia.edu/services/learning/">How do I...?</a></li>
@@ -48,7 +48,7 @@
             </ul>
          </div>
          <div class="footer-bucket">
-            <h3>Related Resources</h3>
+            <h2>Related Resources</h2>
             <ul>
                <li><a href="https://www.virginia.edu" aria-label="U V A Home">UVA Home</a></li>
                <li><a href="https://virginia.service-now.com/its?id=home" aria-label="I T S">ITS</a></li>
@@ -111,6 +111,11 @@ footer {
 
 .footer-bucket {
    text-align: left;
+   h2 {
+      color: white;
+      margin: 0 0 15px 0;
+      font-size: 1.25em;
+   }
    a {
       color: white;
       text-decoration: none;

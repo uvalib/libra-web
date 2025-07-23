@@ -123,10 +123,13 @@
                   <div>After that, files will be be available worldwide.</div>
                </div>
                <template v-else>
-                  <div v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
-                     <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
-                     <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
-                  </div>
+                  <fieldset>
+                     <legend>Visibility Options</legend>
+                     <div v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
+                        <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
+                        <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+                     </div>
+                  </fieldset>
                   <div v-if="etdRepo.visibility == 'uva' || (user.isAdmin && etdRepo.visibility == 'embargo')" class="visibility-info">
                      <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
                      <div v-else>Files unavailable to anyone until:</div>
@@ -533,6 +536,16 @@ const endDatePicked = ( (newDate) => {
          display: flex;
          flex-direction: column;
          gap: 10px;
+         fieldset {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: none;
+            outline: none;
+            legend {
+               display: none;
+            }
+         }
 
          .visibility-opt {
             display: flex;
