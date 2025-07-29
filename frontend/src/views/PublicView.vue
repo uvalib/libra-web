@@ -179,7 +179,7 @@ const authorDisplay = ((a) => {
 const copyCitation = (() => {
    copy( etdRepo.suggestedCitation )
    if (copied) {
-      system.toastMessage("Copied", "Citaion has been copied to the clipboard.")
+      system.toastMessage("Copied", "Citation has been copied to the clipboard.")
    }
 })
 
