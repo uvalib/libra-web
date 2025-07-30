@@ -1,5 +1,8 @@
 <template>
-   <Button @click="show" label="View Audit Log" severity="secondary" fluid size="small"/>
+   <Button v-if="props.workTitle" @click="show" label="View Audit Log" severity="secondary" fluid size="small"
+      :ariaLabel="`view audit log for work titled ${props.workTitle}`"
+   />
+   <Button v-else @click="show" label="View Audit Log" severity="secondary" fluid size="small" />
    <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
       style="width:90%; max-height:90%" position="top"
       :blockScroll="true" :maximizable="true"
@@ -47,6 +50,10 @@ const props = defineProps({
    workID: {
       type: String,
       required: true
+   },
+   workTitle: {
+      type: String,
+      required: false
    },
 })
 

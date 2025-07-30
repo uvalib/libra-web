@@ -71,15 +71,17 @@
             <template #body="slotProps">
                <div  class="acts">
                   <Button asChild v-slot="btnProps" severity="secondary" size="small">
-                     <RouterLink :to="`/admin/etd/${slotProps.data.id}`" :class="btnProps.class">Edit Work</RouterLink>
+                     <RouterLink :to="`/admin/etd/${slotProps.data.id}`" :class="btnProps.class" :ariaLabel="`edit work titled ${slotProps.data.title}`">
+                        Edit Work
+                     </RouterLink>
                   </Button>
                   <Button v-if="slotProps.data.published" asChild v-slot="btnProps" severity="secondary" size="small">
-                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class">
+                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class" :ariaLabel="`view work titled ${slotProps.data.title}`">
                         <span>Public View</span>
                      </RouterLink>
                   </Button>
-                  <AuditsPanel :workID="slotProps.data.id"/>
-                  <Button v-if="slotProps.data.author.computeID" label="Become User" severity="secondary"
+                  <AuditsPanel :workID="slotProps.data.id" :workTitle="slotProps.data.title"/>
+                  <Button v-if="slotProps.data.author.computeID" :label="`Become User ${slotProps.data.author.computeID}`" severity="secondary"
                      size="small" @click="becomeUser(slotProps.data.author.computeID)"
                   />
                </div>
