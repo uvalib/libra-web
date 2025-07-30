@@ -62,7 +62,7 @@ export const useETDStore = defineStore('etd', {
    },
    actions: {
       async getWork(id) {
-         this.$reset
+         this.$reset()
          this.working = true
          return axios.get(`/api/works/${id}`).then(response => {
             this.setWorkDetails(response.data)
