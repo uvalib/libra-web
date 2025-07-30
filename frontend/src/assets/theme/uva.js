@@ -230,6 +230,10 @@ const UVA = definePreset(Aura, {
             activeBackground: colors.grey100,
             focusColor: 'white',
             activeColor: colors.textBase,
+            icon: {
+               color: colors.textBase,
+               focusColor: 'white',
+            }
          },
          submenu: {
             background: 'white',
@@ -237,6 +241,11 @@ const UVA = definePreset(Aura, {
             borderRadius: '0.3rem',
             shadow: '{overlay.navigation.shadow}',
             mobileIndent: '1rem',
+            icon: {
+               color: colors.textBase,
+               focusColor: 'white',
+
+            }
         },
       },
       panel: {

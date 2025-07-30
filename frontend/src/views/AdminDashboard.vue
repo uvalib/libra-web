@@ -67,7 +67,7 @@
                <span v-else class="na">Undefined</span>
             </template>
          </Column>
-         <Column header="">
+         <Column header="Actions">
             <template #body="slotProps">
                <div  class="acts">
                   <Button asChild v-slot="btnProps" severity="secondary" size="small">

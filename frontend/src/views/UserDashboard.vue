@@ -60,7 +60,7 @@
                      </div>
                   </template>
                </Column>
-               <Column header="">
+               <Column header="Actions">
                   <template #body="slotProps">
                      <div  class="acts">
                         <RouterLink v-if="slotProps.data.published" :to="`/public_view/${slotProps.data.id}`">Public View</RouterLink>

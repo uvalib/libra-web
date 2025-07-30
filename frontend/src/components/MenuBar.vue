@@ -1,29 +1,9 @@
 <template>
-   <Menubar :model="libraMenu"
-      :pt="{
-            item: {
-               'aria-level': null
-            }
-         }"
-      >
+   <Menubar :model="libraMenu">
       <template #start v-if="user.isAdmin == false && user.isRegistrar == false">
          <a class="menu-link" href="mailto:libra@virginia.edu" target="_blank" aria-describedby="new-window">
             <i class="pi pi-question-circle" aria-hidden="true"></i>
             <span>Libra Support</span>
-         </a>
-      </template>
-      <template #item="{ item, props, hasSubmenu }">
-         <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
-            <a :href="href" v-bind="props.action" @click="navigate">
-               <span :class="item.icon" />
-               <span>{{ item.label }}</span>
-            </a>
-         </router-link>
-         <a v-else :href="item.url" :target="item.target" v-bind="props.action">
-            <span :class="item.icon" v-if="item.icon" />
-            <img :src="item.image" :alt="item.alt" v-if="item.image" style="width:25px;"/>
-            <span>{{ item.label }}</span>
-            <span v-if="hasSubmenu" class="pi pi-fw pi-angle-down" />
          </a>
       </template>
        <template #end v-if="user.isAdmin">
@@ -50,12 +30,12 @@ onMounted(()=>{
 const libraMenu = computed( () => {
    let menu = []
    if ( user.isAdmin ) {
-      menu.push({label: "Dashboard", route: "/admin", icon: "pi pi-home"})
-       menu.push({label: "Deposit Registration", route: "/register", icon: "pi pi-user-plus"})
+      menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/admin")})
+      menu.push({label: "Deposit Registration", icon: "pi pi-user-plus", command: ()=>router.push("/register")})
    } else if ( user.isRegistrar ) {
-      menu.push({label: "Dashboard", route: "/register", icon: "pi pi-home"})
+      menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/register")})
    } else {
-      menu.push({label: "Dashboard", route: "/", icon: "pi pi-home"})
+      menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/")})
    }
 
    if ( user.isAdmin || user.isRegistrar) {
@@ -69,10 +49,10 @@ const libraMenu = computed( () => {
    } else {
       let userMenu = { label: `${user.firstName} ${user.lastName}`, icon: "pi pi-user", items: [] }
       if ( user.orcid.id == "") {
-          userMenu.items.push( {label: "Register or connect ORCID ID", url: system.orcidURL, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+          userMenu.items.push( {label: "Register or connect ORCID ID", url: system.orcidURL, target: "_blank"} )
       } else {
          userMenu.items.push( {label: "Manage ORCID ID", url: system.orcidURL, target: "_blank", icon: "pi pi-external-link"} )
-         userMenu.items.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank", image:"./orcid_id.svg", alt:"ORCID logo"} )
+         userMenu.items.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank"} )
       }
 
       userMenu.items.push( { label: "Sign out", icon: "pi pi-sign-out", command: ()=>signOut()} )
