@@ -167,7 +167,7 @@
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
             <Button asChild v-slot="slotProps" severity="success" :disabled="needsSave || metadataComplete==false || etdRepo.hasFiles==false">
-               <RouterLink to="/" :class="slotProps.class">
+               <RouterLink :to="`/public_view/${etdRepo.work.id}`" :class="slotProps.class">
                   <span v-if="!etdRepo.publishedAt">Preview</span>
                   <span v-else>Public View</span>
                </RouterLink>
@@ -222,7 +222,7 @@ onBeforeMount( async () => {
       router.push("/forbidden")
       return
    }
-   await etdRepo.getWork( route.params.id )
+   await etdRepo.getWork( route.params.id, "edit" )
 })
 
 onBeforeRouteLeave(() => {

@@ -133,7 +133,7 @@ import { onBeforeMount, ref } from 'vue'
 import { useETDStore } from "@/stores/etd"
 import { useSystemStore } from "@/stores/system"
 import { useUserStore } from "@/stores/user"
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import { useConfirm } from "primevue/useconfirm"
 import Checkbox from 'primevue/checkbox'
@@ -156,7 +156,7 @@ const justPublished = ref(false)
 const agree = ref(false)
 
 onBeforeMount( async () => {
-   await etdRepo.getWork( route.params.id )
+   await etdRepo.getWork( route.params.id, "view" )
 })
 useSeoMeta({
    citation_title: ()=> etdRepo.work.title,

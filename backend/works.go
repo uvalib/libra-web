@@ -50,7 +50,8 @@ type workAccess struct {
 
 func (svc *serviceContext) getWork(c *gin.Context) {
 	workID := c.Param("id")
-	log.Printf("INFO: get %s work %s", svc.Namespace, workID)
+	dataFor := c.Query("for")
+	log.Printf("INFO: get %s work %s for [%s]", svc.Namespace, workID, dataFor)
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
 		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, err.Error())
@@ -75,6 +76,27 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 		log.Printf("ERROR: unable to parse work %s: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	if dataFor == "view" {
+		// when requested for public view, trigger a view event
+		log.Printf("INFO: track public view for work %s", tgtObj.Id())
+		viewDetail := getPublicRequestEventDetails(c)
+		evt := uvalibrabus.UvaBusEvent{
+			EventName:  uvalibrabus.EventContentView,
+			Namespace:  tgtObj.Namespace(),
+			Identifier: tgtObj.Id(),
+			Detail:     viewDetail,
+		}
+		log.Printf("INFO: publish view event %s", viewDetail)
+		if svc.Events.DevMode {
+			log.Printf("INFO: dev mode work %s send view event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
+		} else {
+			err := svc.Events.Bus.PublishEvent(&evt)
+			if err != nil {
+				log.Printf("ERROR: unable to publish view event %+v : %s", evt, err.Error())
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, etdWork)
@@ -350,20 +372,9 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 	}
 
 	// publish download event
-	srcIP := c.RemoteIP()
-	hdrIP := c.Request.Header.Get("x-forwarded-for")
-	if hdrIP != "" {
-		srcIP = hdrIP
-	}
-	dlEvt := uvalibrabus.UvaContentEvent{
-		SourceIp:       srcIP,
-		Referrer:       c.Request.Referer(),
-		UserAgent:      c.Request.UserAgent(),
-		AcceptLanguage: c.Request.Header.Get("Accept-Language"),
-	}
-	dlDetail, _ := dlEvt.Serialize()
+	dlDetail := getPublicRequestEventDetails(c)
 	evt := uvalibrabus.UvaBusEvent{
-		EventName:  uvalibrabus.EventFieldUpdate,
+		EventName:  uvalibrabus.EventContentDownload,
 		Namespace:  tgtObj.Namespace(),
 		Identifier: tgtObj.Id(),
 		Detail:     dlDetail,
@@ -380,6 +391,22 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 
 	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
 	c.String(http.StatusOK, dlFile.Url())
+}
+
+func getPublicRequestEventDetails(c *gin.Context) []byte {
+	srcIP := c.RemoteIP()
+	hdrIP := c.Request.Header.Get("x-forwarded-for")
+	if hdrIP != "" {
+		srcIP = hdrIP
+	}
+	dlEvt := uvalibrabus.UvaContentEvent{
+		SourceIp:       srcIP,
+		Referrer:       c.Request.Referer(),
+		UserAgent:      c.Request.UserAgent(),
+		AcceptLanguage: c.Request.Header.Get("Accept-Language"),
+	}
+	dlDetail, _ := dlEvt.Serialize()
+	return dlDetail
 }
 
 func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.EasyStoreObject) workAccess {
