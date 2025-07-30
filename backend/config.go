@@ -10,10 +10,6 @@ type userServiceCfg struct {
 	JWT string
 }
 
-type orcidServiceCfg struct {
-	GetURL string
-}
-
 type devConfig struct {
 	user    string
 	role    string

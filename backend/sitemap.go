@@ -77,7 +77,7 @@ func generateSitemap(svc *serviceContext, baseURL string) (*urlSet, error) {
 	urls := []sitemapURL{}
 	for _, result := range jsonResp.Results {
 		url := sitemapURL{
-			Loc:     fmt.Sprintf("%s/public/etd/%s", baseURL, result.ID),
+			Loc:     fmt.Sprintf("%s/public_view/%s", baseURL, result.ID),
 			LastMod: result.ModifiedAt,
 		}
 		urls = append(urls, url)

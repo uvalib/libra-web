@@ -166,7 +166,12 @@
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
-            <Button label="Preview" severity="success" @click="previewClicked" :disabled="needsSave || metadataComplete==false || etdRepo.hasFiles==false"/>
+            <Button asChild v-slot="slotProps" severity="success" :disabled="needsSave || metadataComplete==false || etdRepo.hasFiles==false">
+               <RouterLink to="/" :class="slotProps.class">
+                  <span v-if="!etdRepo.publishedAt">Preview</span>
+                  <span v-else>Public View</span>
+               </RouterLink>
+            </Button>
          </span>
       </div>
    </div>
@@ -291,10 +296,6 @@ const resolver = ({ values }) => {
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
    etdForm.value.submit()
-})
-
-const previewClicked = (() => {
-   router.push({ name: 'etdpublic', params: { id: etdRepo.work.computeID } })
 })
 
 const exitClicked = (() => {

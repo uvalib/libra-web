@@ -45,9 +45,9 @@
                   </label>
                </div>
                <div class="buttons">
-                  <Button severity="secondary" label="Exit" size="small" @click="cancelPreview"/>
-                  <Button severity="secondary" label="Edit" size="small" @click="editThesis"/>
-                  <Button severity="primary" label="Submit Thesis" size="small"  @click="submitThesis" :disabled="!agree"/>
+                  <RouterLink :to="user.homePage">Dashboard</RouterLink>
+                  <RouterLink :to="editThesisLink">Edit thesis</RouterLink>
+                  <Button severity="primary" label="Submit Thesis" size="small" class="submit" @click="submitThesis" :disabled="!agree"/>
                </div>
             </div>
             <div class="published" v-if="justPublished">
@@ -147,7 +147,6 @@ const etdRepo = useETDStore()
 const system = useSystemStore()
 const user = useUserStore()
 const route = useRoute()
-const router = useRouter()
 const confirm = useConfirm()
 
 const canClipboard = usePermission('clipboard-write')
@@ -183,16 +182,11 @@ const copyCitation = (() => {
    }
 })
 
-const editThesis = (() => {
+const editThesisLink = (() => {
    if (user.isAdmin) {
-      router.push(`/admin/etd/${route.params.id}`)
-   } else {
-      router.push(`/etd/${route.params.id}`)
+      return `/admin/etd/${route.params.id}`
    }
-})
-
-const cancelPreview = ( () => {
-   router.push(user.homePage)
+   return `/etd/${route.params.id}`
 })
 
 const submitThesis = ( () => {
@@ -305,10 +299,15 @@ div.public-work {
             text-align: center;
          }
          .buttons {
+            margin-top: 10px;
             display: flex;
             flex-flow: row wrap;
-            justify-content: center;
-            gap: 5px;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 1.15rem;
+            .submit {
+               margin-left: auto;
+            }
          }
          .agree {
             display: flex;

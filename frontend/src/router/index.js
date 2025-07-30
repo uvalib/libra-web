@@ -37,7 +37,7 @@ const router = createRouter({
          meta: { requiresAdmin: true }
       },
       {
-         path: '/public/etd/:id',
+         path: '/public_view/:id',
          name: 'etdpublic',
          component: () => import('../views/PublicView.vue'),
       },

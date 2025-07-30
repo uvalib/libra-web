@@ -67,17 +67,19 @@
                <span v-else class="na">Undefined</span>
             </template>
          </Column>
-         <Column header="Actions" style="width:110px">
+         <Column header="">
             <template #body="slotProps">
                <div  class="acts">
+                  <Button asChild v-slot="btnProps" severity="secondary" size="small">
+                     <RouterLink :to="`/admin/etd/${slotProps.data.id}`" :class="btnProps.class">Edit Work</RouterLink>
+                  </Button>
+                  <Button asChild v-slot="btnProps" severity="secondary" size="small">
+                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class">Preview</RouterLink>
+                  </Button>
+                  <AuditsPanel :workID="slotProps.data.id"/>
                   <Button v-if="slotProps.data.author.computeID" label="Become User" severity="secondary"
                      size="small" @click="becomeUser(slotProps.data.author.computeID)"
                   />
-                  <Button label="Edit" severity="primary" size="small" @click="editWorkClicked(slotProps.data.id)"/>
-                  <Button v-if="slotProps.data.published" label="Public View" severity="info"
-                     size="small" @click="viewWorkClicked(slotProps.data.id)"
-                  />
-                  <AuditsPanel :workID="slotProps.data.id"/>
                </div>
             </template>
          </Column>
@@ -86,7 +88,6 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
 import { onBeforeMount, computed } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import DataTable from 'primevue/datatable'
@@ -96,7 +97,6 @@ import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import AuditsPanel from '@/components/AuditsPanel.vue'
 
-const router = useRouter()
 const admin = useAdminStore()
 
 const publishOpts = computed(() => {
@@ -137,16 +137,6 @@ const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
       admin.search()
    }
-})
-
-const editWorkClicked = ( (id) => {
-   let url = `/admin/etd/${id}`
-   router.push(url)
-})
-
-const viewWorkClicked = ( (id) => {
-   let url = `/public/etd/${id}`
-   router.push(url)
 })
 
 const becomeUser = ((computeID) => {
@@ -223,7 +213,7 @@ const becomeUser = ((computeID) => {
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
-      gap: 0.3rem;
+      gap: 0.5rem;
    }
 }
 </style>

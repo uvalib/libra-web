@@ -42,7 +42,7 @@
                      <span v-else class="none">Undefined</span>
                   </template>
                </Column>
-               <Column field="created" header="Date Uploaded" >
+               <Column field="created" header="Date Uploaded" class="nowrap">
                   <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
                </Column>
                <Column header="Visibility" >
@@ -52,7 +52,7 @@
                      </div>
                   </template>
                </Column>
-               <Column field="published" header="Date Published" >
+               <Column field="published" header="Date Published" class="nowrap">
                   <template #body="slotProps">
                      <span v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published)}}</span>
                      <div v-else class="tag">
@@ -60,13 +60,11 @@
                      </div>
                   </template>
                </Column>
-               <Column header="Actions" style="width:175px;">
+               <Column header="">
                   <template #body="slotProps">
                      <div  class="acts">
-                        <Button v-if="slotProps.data.published" class="action" label="Public View" severity="secondary"
-                           @click="previewWorkClicked(slotProps.data.id)"/>
-                        <Button v-else class="action" label="Edit Thesis" severity="secondary"
-                           @click="editWorkClicked(slotProps.data.id)"/>
+                        <RouterLink v-if="slotProps.data.published" :to="`/public_view/${slotProps.data.id}`">Public View</RouterLink>
+                        <RouterLink v-else :to="`/etd/${slotProps.data.id}`">Edit Thesis</RouterLink>
                      </div>
                   </template>
                </Column>
@@ -98,16 +96,6 @@ const system = useSystemStore()
 
 onMounted( () => {
    user.getTheses()
-})
-
-const editWorkClicked = ( (id) => {
-   let url = `/etd/${id}`
-   router.push(url)
-})
-
-const previewWorkClicked = ( (id) => {
-   let url = `/public/etd/${id}`
-   router.push(url)
 })
 </script>
 
@@ -175,10 +163,10 @@ a.ext-link {
    .acts {
       display: flex;
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
       justify-content: flex-start;
       gap: 0.5rem;
-      width:max-content;
+      white-space: nowrap;
    }
 }
 </style>

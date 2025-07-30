@@ -1,5 +1,5 @@
 <template>
-   <Button @click="show" label="Audit Log" severity="secondary" fluid size="small"/>
+   <Button @click="show" label="View Audit Log" severity="secondary" fluid size="small"/>
    <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
       style="width:90%; max-height:90%" position="top"
       :blockScroll="true" :maximizable="true"
