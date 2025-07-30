@@ -349,6 +349,35 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 		return
 	}
 
+	// publish download event
+	srcIP := c.RemoteIP()
+	hdrIP := c.Request.Header.Get("x-forwarded-for")
+	if hdrIP != "" {
+		srcIP = hdrIP
+	}
+	dlEvt := uvalibrabus.UvaContentEvent{
+		SourceIp:       srcIP,
+		Referrer:       c.Request.Referer(),
+		UserAgent:      c.Request.UserAgent(),
+		AcceptLanguage: c.Request.Header.Get("Accept-Language"),
+	}
+	dlDetail, _ := dlEvt.Serialize()
+	evt := uvalibrabus.UvaBusEvent{
+		EventName:  uvalibrabus.EventFieldUpdate,
+		Namespace:  tgtObj.Namespace(),
+		Identifier: tgtObj.Id(),
+		Detail:     dlDetail,
+	}
+	log.Printf("INFO: publish download event %s", dlDetail)
+	if svc.Events.DevMode {
+		log.Printf("INFO: dev mode work %s send download event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
+	} else {
+		err := svc.Events.Bus.PublishEvent(&evt)
+		if err != nil {
+			log.Printf("ERROR: unable to publish download event %+v : %s", evt, err.Error())
+		}
+	}
+
 	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
 	c.String(http.StatusOK, dlFile.Url())
 }
