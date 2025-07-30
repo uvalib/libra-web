@@ -4,11 +4,11 @@
       <div class="form">
          <div class="row">
             <label id="program-sel">Program:</label>
-            <Select v-model="program" :options="system.optPrograms" ariaLabelledby="program-sel" />
+            <Select v-model="program" :options="system.optPrograms" ariaLabelledby="program-sel" placeholder="Select a program" />
          </div>
          <div class="row">
             <label id="degree-sel">Degree:</label>
-            <Select v-model="degree" :options="system.optDegrees" ariaLabelledby="degree-sel" />
+            <Select v-model="degree" :options="system.optDegrees" ariaLabelledby="degree-sel" placeholder="Select a degree" />
          </div>
          <FieldSet legend="Registrants">
             <div class="lookup">
