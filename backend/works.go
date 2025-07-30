@@ -78,8 +78,8 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 		return
 	}
 
-	if dataFor == "view" {
-		// when requested for public view, trigger a view event
+	// when requested for public view of a publish worked, trigger a view event
+	if dataFor == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
 		log.Printf("INFO: track public view for work %s", tgtObj.Id())
 		viewDetail := getPublicRequestEventDetails(c)
 		evt := uvalibrabus.UvaBusEvent{

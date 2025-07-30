@@ -73,8 +73,10 @@
                   <Button asChild v-slot="btnProps" severity="secondary" size="small">
                      <RouterLink :to="`/admin/etd/${slotProps.data.id}`" :class="btnProps.class">Edit Work</RouterLink>
                   </Button>
-                  <Button asChild v-slot="btnProps" severity="secondary" size="small">
-                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class">Preview</RouterLink>
+                  <Button v-if="slotProps.data.published" asChild v-slot="btnProps" severity="secondary" size="small">
+                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class">
+                        <span>Public View</span>
+                     </RouterLink>
                   </Button>
                   <AuditsPanel :workID="slotProps.data.id"/>
                   <Button v-if="slotProps.data.author.computeID" label="Become User" severity="secondary"
