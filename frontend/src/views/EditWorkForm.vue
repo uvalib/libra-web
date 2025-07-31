@@ -415,15 +415,20 @@ const checkAdvisorID = ((idx) => {
    let cID = etdRepo.work.advisors[idx].computeID
    etdRepo.work.advisors[idx].msg = ""
    axios.get(`/api/users/lookup/${cID}`).then(r => {
-      let department = ""
-      if ( r.data.department && r.data.department.length > 0 ) {
-         department = r.data.department[0]
+      let existing = etdRepo.work.advisors.find( a => a.computeID == r.data.cid)
+      if (existing) {
+         etdRepo.work.advisors[idx].msg = cID+" is is already an advisor"
+      } else {
+         let department = ""
+         if ( r.data.department && r.data.department.length > 0 ) {
+            department = r.data.department[0]
+         }
+         let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
+         etdRepo.work.advisors.splice(idx,1, auth)
+         // set firs/last name in the form state data so validation works
+         etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
+         etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
       }
-      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
-      etdRepo.work.advisors.splice(idx,1, auth)
-      // set firs/last name in the form state data so validation works
-      etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
-      etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
    }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
