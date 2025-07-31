@@ -25,19 +25,18 @@
 
          <template v-if="etdRepo.isDraft==false">
             <dt class="label">Date Published:</dt>
-            <dd class="pub-date">
-               <template v-if="editDate">
-                  <InputMask v-model="newDate" autofocus mask="9999-99-99" slotChar="yyyy-mm-dd" @keydown.enter="updateDate" />
-                  <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="editDate=false" :disabled="etdRepo.saving"/>
-                  <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="updateDate" :loading="etdRepo.saving"/>
-               </template>
-               <template v-else>
-                  <span>{{ $formatDate(etdRepo.publishedAt) }}</span>
-                  <Button v-if="props.admin" label="Edit" size="small" rounded icon="pi pi-pen-to-square" severity="secondary" @click="editDateClicked"/>
-               </template>
+            <dd v-if="editDate" class="pub-date">
+               <InputMask v-model="newDate" autofocus mask="9999-99-99" slotChar="yyyy-mm-dd" @keydown.enter="updateDate" />
+               <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="editDate=false" :disabled="etdRepo.saving"/>
+               <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="updateDate" :loading="etdRepo.saving"/>
+            </dd>
+            <dd v-else class="pub-date">
+               <span>{{ $formatDate(etdRepo.publishedAt) }}</span>
+               <Button v-if="props.admin" label="Edit" size="small" rounded icon="pi pi-pen-to-square" severity="secondary" @click="editDateClicked"/>
             </dd>
          </template>
       </dl>
+      <div class="error" v-if="dateError">{{ dateError }}</div>
       <AuditsPanel :workID="etdRepo.work.id"/>
    </div>
 </div>
@@ -50,12 +49,16 @@ import { useSystemStore } from "@/stores/system"
 import { useETDStore } from "@/stores/etd"
 import Select from 'primevue/select'
 import InputMask from 'primevue/inputmask'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat)
 
 const system = useSystemStore()
 const etdRepo = useETDStore()
 
 const editDate = ref(false)
 const newDate = ref()
+const dateError = ref("")
 
 const emit = defineEmits( ['changed'])
 
@@ -71,6 +74,19 @@ const editDateClicked = (() => {
    editDate.value = true
 })
 const updateDate = ( async () => {
+   dateError.value = ""
+   var nd = new Date(newDate.value).getTime()
+   var now = new Date().getTime()
+   if ( nd > now ) {
+      dateError.value = "Publication date cannot be in the future"
+      return
+   }
+
+   if ( dayjs( newDate.value, 'YYYY-MM-DD', true).isValid() == false ) {
+      dateError.value = `${newDate.value} is not a valid date`
+      return
+   }
+
    await etdRepo.updatePublishedDate( newDate.value )
    if ( system.showError == false ) {
       system.toastMessage("Updated", "The publication date has been updated")
@@ -126,6 +142,10 @@ const degrees = computed( () =>{
          align-items: center;
          padding: 0;
       }
+   }
+   .error {
+      color: $uva-red-A;
+      text-align: center;
    }
 }
 </style>
