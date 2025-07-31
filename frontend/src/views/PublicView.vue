@@ -25,9 +25,8 @@
             <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
                <div class="name">{{ file.name }}</div>
                <div class="file-stat">Uploaded on {{ $formatDate(file.createdAt) }}</div>
-               <div class="file-stat">Download count: {{ file.downloads }}</div>
                <Button label="Download" icon="pi pi-cloud-download" severity="secondary"
-                  size="small" :ariaLabel="`download file ${file.name}`"
+                  :ariaLabel="`download file ${file.name}`" :badge="file.downloads" badgeSeverity="contrast"
                   @click="etdRepo.downloadFile(file.name)" />
             </div>
          </div>
