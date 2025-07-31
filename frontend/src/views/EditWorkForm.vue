@@ -39,7 +39,7 @@
                      <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
                      <div class="id-field">
                         <div class="control-group">
-                           <InputText type="text" v-model="item.computeID" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID" aria-label="advisor compute id"/>
+                           <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID" aria-label="advisor compute id"/>
                            <Button class="check" icon="pi pi-search" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
                         </div>
                         <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)" rounded/>
@@ -65,7 +65,7 @@
                      </div>
                   </div>
                   <div class="acts">
-                     <Button label="Add Advisor" size="small" @click="addAdvisor"/>
+                     <Button label="Add Advisor" size="small" @click="addAdvisor" :disabled="addAdvisorDisabled"/>
                   </div>
                </Fieldset>
 
@@ -215,6 +215,7 @@ const advisorsChanged = ref(false)
 const programChanged = ref(false)
 const embargoChanged = ref(false)
 const metadataComplete = ref(false)
+const advisorLookup = ref([])
 
 onBeforeMount( async () => {
    document.title = "LibraETD"
@@ -223,6 +224,9 @@ onBeforeMount( async () => {
       return
    }
    await etdRepo.getWork( route.params.id, "edit" )
+   etdRepo.work.advisors.forEach( a => {
+      advisorLookup.value.push( a.computeID )
+   })
 })
 
 onBeforeRouteLeave(() => {
@@ -230,6 +234,12 @@ onBeforeRouteLeave(() => {
       const exit = window.confirm('You have unsaved changes that will be lost if you return to the dashboard. Are you sure?')
       if (!exit) return false
    }
+})
+
+
+const addAdvisorDisabled = computed(() => {
+   let lastIdx = etdRepo.work.advisors.length -1
+   return etdRepo.work.advisors[lastIdx].lastName == ""
 })
 
 const needsSave  = computed( () => {
@@ -412,23 +422,29 @@ const removeAdvisor = ((idx)=> {
 })
 
 const checkAdvisorID = ((idx) => {
-   let cID = etdRepo.work.advisors[idx].computeID
    etdRepo.work.advisors[idx].msg = ""
+   let cID = advisorLookup.value[idx]
    axios.get(`/api/users/lookup/${cID}`).then(r => {
+      if ( etdRepo.work.author.computeID == r.data.cid) {
+         etdRepo.work.advisors[idx].msg = cID +" is the author and cannot be an advisor"
+         return
+      }
+
       let existing = etdRepo.work.advisors.find( a => a.computeID == r.data.cid)
       if (existing) {
-         etdRepo.work.advisors[idx].msg = cID+" is is already an advisor"
-      } else {
-         let department = ""
-         if ( r.data.department && r.data.department.length > 0 ) {
-            department = r.data.department[0]
-         }
-         let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
-         etdRepo.work.advisors.splice(idx,1, auth)
-         // set firs/last name in the form state data so validation works
-         etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
-         etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
+         etdRepo.work.advisors[idx].msg = cID+" is already an advisor"
+         return
       }
+
+      let department = ""
+      if ( r.data.department && r.data.department.length > 0 ) {
+         department = r.data.department[0]
+      }
+      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
+      etdRepo.work.advisors.splice(idx,1, auth)
+      // set firs/last name in the form state data so validation works
+      etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
+      etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
    }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
