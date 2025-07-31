@@ -7,7 +7,7 @@
    </div>
    <template v-else>
       <div class="work-bkg"></div>
-      <div class="public-work">
+      <div class="public-work" aria-live="polite">
          <div class="files">
             <div class="title">Files</div>
             <template  v-if="etdRepo.visibility == 'embargo'">
@@ -24,8 +24,11 @@
 
             <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
                <div class="name">{{ file.name }}</div>
-               <div class="upload">Uploaded on {{ $formatDate(file.createdAt) }}</div>
-               <Button label="Download" icon="pi pi-cloud-download" severity="secondary" size="small" @click="etdRepo.downloadFile(file.name)" />
+               <div class="file-stat">Uploaded on {{ $formatDate(file.createdAt) }}</div>
+               <div class="file-stat">Download count: {{ file.downloads }}</div>
+               <Button label="Download" icon="pi pi-cloud-download" severity="secondary"
+                  size="small" :ariaLabel="`download file ${file.name}`"
+                  @click="etdRepo.downloadFile(file.name)" />
             </div>
          </div>
 
@@ -56,7 +59,10 @@
             </div>
 
             <div class="metadata">
-               <h1>{{ etdRepo.work.title }}</h1>
+               <h1>
+                  <span>{{ etdRepo.work.title }}</span>
+                  <span class="view-cnt">{{ etdRepo.work.views }} views</span>
+               </h1>
                <section>
                   <h2>Author</h2>
                   <div class="content">{{  authorDisplay(etdRepo.work.author) }}</div>
@@ -271,6 +277,19 @@ div.public-work {
       font-weight: 400;
       padding: 0;
       margin: 0;
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      .view-cnt {
+         padding: 10px;
+         font-size: 0.5em;
+         text-align: center;
+         display: inline-block;
+         border: 1px solid $uva-grey-50;
+         border-radius: 100px;
+      }
    }
    section {
       display: flex;
@@ -361,17 +380,15 @@ div.public-work {
       text-align: left;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 10px;
       padding: 20px;
       border: 1px solid $uva-grey-100;
       .title {
          font-weight: bold;
       }
 
-      .upload {
-         display: flex;
-         flex-flow: row nowrap;
-         gap: 10px;
+      .file-stat {
+         font-size: 0.9em;
       }
 
       .file-embargo {

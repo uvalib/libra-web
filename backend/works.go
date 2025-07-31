@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -22,18 +23,23 @@ type embargoData struct {
 	ReleaseVisibility string `json:"releaseVisibility"`
 }
 
+type fileDetails struct {
+	librametadata.FileData
+	Downloads int `json:"downloads"`
+}
+
 type coreWorkDetails struct {
-	ID             string                   `json:"id"`
-	Version        string                   `json:"version"`
-	PersistentLink string                   `json:"persistentLink,omitempty"`
-	IsDraft        bool                     `json:"isDraft"`
-	Visibility     string                   `json:"visibility"`
-	Embargo        *embargoData             `json:"embargo,omitempty"`
-	Files          []librametadata.FileData `json:"files"`
-	Depositor      string                   `json:"depositor"`
-	CreatedAt      time.Time                `json:"createdAt"`
-	ModifiedAt     string                   `json:"modifiedAt,omitempty"`
-	PublishedAt    string                   `json:"publishedAt,omitempty"`
+	ID             string         `json:"id"`
+	Version        string         `json:"version"`
+	PersistentLink string         `json:"persistentLink,omitempty"`
+	IsDraft        bool           `json:"isDraft"`
+	Visibility     string         `json:"visibility"`
+	Embargo        *embargoData   `json:"embargo,omitempty"`
+	Files          []*fileDetails `json:"files"`
+	Depositor      string         `json:"depositor"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	ModifiedAt     string         `json:"modifiedAt,omitempty"`
+	PublishedAt    string         `json:"publishedAt,omitempty"`
 }
 
 type workDetails struct {
@@ -41,11 +47,22 @@ type workDetails struct {
 	*librametadata.ETDWork
 	Source   string `json:"source,omitempty"`
 	SourceID string `json:"sourceID,omitempty"`
+	Views    int    `json:"views"`
 }
 
 type workAccess struct {
 	files    bool
 	metadata bool
+}
+
+type workMetrics struct {
+	Oid       string `json:"oid"`
+	Namespace string `json:"namespace"`
+	Views     int    `json:"views"`
+	Files     []struct {
+		FileID    string `json:"file_id"`
+		Downloads int    `json:"downloads"`
+	} `json:"files"`
 }
 
 func (svc *serviceContext) getWork(c *gin.Context) {
@@ -95,6 +112,27 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 			err := svc.Events.Bus.PublishEvent(&evt)
 			if err != nil {
 				log.Printf("ERROR: unable to publish view event %+v : %s", evt, err.Error())
+			}
+		}
+
+		log.Printf("INFO: load metrics for public view")
+		resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.MetricsQueryURL, svc.Namespace, workID))
+		if err != nil {
+			log.Printf("ERROR: unable to get metrics for %s: %s", workID, err.Message)
+		} else {
+			var metrics workMetrics
+			parseErr := json.Unmarshal(resp, &metrics)
+			if parseErr != nil {
+				log.Printf("ERROR: unabel to parse metrics response: %s", parseErr.Error())
+			}
+			etdWork.Views = metrics.Views
+			for _, fm := range metrics.Files {
+				for _, f := range etdWork.Files {
+					if f.Name == fm.FileID || fm.FileID == "this" { // TODO hack... remove once real data is returned
+						f.Downloads = fm.Downloads
+						break
+					}
+				}
 			}
 		}
 	}
@@ -470,7 +508,7 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 			Visibility:     visibility,
 			Depositor:      tgtObj.Fields()["depositor"],
 			PersistentLink: tgtObj.Fields()["doi"],
-			Files:          make([]librametadata.FileData, 0),
+			Files:          make([]*fileDetails, 0),
 		},
 		ETDWork: etdWork,
 	}
@@ -495,7 +533,21 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 	if canAccessFiles {
 		for _, etdFile := range tgtObj.Files() {
 			log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
-			resp.Files = append(resp.Files, librametadata.FileData{Name: etdFile.Name(), MimeType: etdFile.MimeType(), CreatedAt: etdFile.Created()})
+			// fData := librametadata.FileData{
+			// 	Name:      etdFile.Name(),
+			// 	MimeType:  etdFile.MimeType(),
+			// 	CreatedAt: etdFile.Created(),
+			// }
+			fd := fileDetails{
+				FileData: librametadata.FileData{
+					Name:      etdFile.Name(),
+					MimeType:  etdFile.MimeType(),
+					CreatedAt: etdFile.Created(),
+				},
+				Downloads: 0,
+			}
+			// fd.FileData = &fData
+			resp.Files = append(resp.Files, &fd)
 		}
 	} else {
 		log.Printf("INFO: access to files for work %s is restricted", tgtObj.Id())
