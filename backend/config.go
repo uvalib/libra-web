@@ -27,6 +27,7 @@ type configData struct {
 	userService     userServiceCfg
 	orcid           orcidConfig
 	auditQueryURL   string
+	metricsQueryURL string
 	jwtKey          string
 	easyStoreProxy  string
 	namespace       string
@@ -43,6 +44,7 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
 	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
 	flag.StringVar(&config.auditQueryURL, "auditqueryurl", "", "Query URL for the audit service")
+	flag.StringVar(&config.metricsQueryURL, "metricsqueryurl", "", "Query URL for the metrics service")
 
 	// ORCID ID:
 	// * getorcidurl is backed request to get a users ORCID ID
@@ -79,6 +81,9 @@ func getConfiguration() *configData {
 	if config.auditQueryURL == "" {
 		log.Fatal("Parameter auditqueryurl is required")
 	}
+	if config.metricsQueryURL == "" {
+		log.Fatal("Parameter metricsqueryurl is required")
+	}
 	if config.busName == "" {
 		log.Fatal("Parameter busname is required")
 	}
@@ -92,21 +97,22 @@ func getConfiguration() *configData {
 		log.Fatal("Parameter index is required")
 	}
 
-	log.Printf("[CONFIG] port          = [%d]", config.port)
-	log.Printf("[CONFIG] etdurl        = [%s]", config.etdURL)
-	log.Printf("[CONFIG] userws        = [%s]", config.userService.URL)
-	log.Printf("[CONFIG] getorcidurl   = [%s]", config.orcid.serviceURL)
-	log.Printf("[CONFIG] orcidurl      = [%s]", config.orcid.clientURL)
-	log.Printf("[CONFIG] auditqueryurl = [%s]", config.auditQueryURL)
-	log.Printf("[CONFIG] namespace     = [%s]", config.namespace)
-	log.Printf("[CONFIG] eventsrc      = [%s]", config.eventSourceName)
-	log.Printf("[CONFIG] busname       = [%s]", config.busName)
-	log.Printf("[CONFIG] index         = [%s]", config.indexURL)
-	log.Printf("[CONFIG] esproxy       = [%s]", config.easyStoreProxy)
+	log.Printf("[CONFIG] port            = [%d]", config.port)
+	log.Printf("[CONFIG] etdurl          = [%s]", config.etdURL)
+	log.Printf("[CONFIG] userws          = [%s]", config.userService.URL)
+	log.Printf("[CONFIG] getorcidurl     = [%s]", config.orcid.serviceURL)
+	log.Printf("[CONFIG] orcidurl        = [%s]", config.orcid.clientURL)
+	log.Printf("[CONFIG] auditqueryurl   = [%s]", config.auditQueryURL)
+	log.Printf("[CONFIG] metricsqueryurl = [%s]", config.metricsQueryURL)
+	log.Printf("[CONFIG] namespace       = [%s]", config.namespace)
+	log.Printf("[CONFIG] eventsrc        = [%s]", config.eventSourceName)
+	log.Printf("[CONFIG] busname         = [%s]", config.busName)
+	log.Printf("[CONFIG] index           = [%s]", config.indexURL)
+	log.Printf("[CONFIG] esproxy         = [%s]", config.easyStoreProxy)
 
 	if config.dev.user != "" {
-		log.Printf("[CONFIG] devuser       = [%s]", config.dev.user)
-		log.Printf("[CONFIG] devrole       = [%s]", config.dev.role)
+		log.Printf("[CONFIG] devuser         = [%s]", config.dev.user)
+		log.Printf("[CONFIG] devrole         = [%s]", config.dev.role)
 	}
 	if config.dev.fakeBus {
 		log.Printf("[CONFIG] ** dev mode bus - event publishing is disabled **")

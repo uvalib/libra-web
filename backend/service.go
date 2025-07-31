@@ -29,20 +29,21 @@ type eventContext struct {
 
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
-	Version       string
-	EtdURL        string
-	TimeFormat    string
-	HTTPClient    *http.Client
-	EasyStore     uvaeasystore.EasyStore
-	Events        eventContext
-	UserService   userServiceCfg
-	ORCID         orcidConfig
-	JWTKey        string
-	Namespace     string
-	UVAWhiteList  []*net.IPNet
-	AuditQueryURL string
-	IndexURL      string
-	Dev           devConfig
+	Version         string
+	EtdURL          string
+	TimeFormat      string
+	HTTPClient      *http.Client
+	EasyStore       uvaeasystore.EasyStore
+	Events          eventContext
+	UserService     userServiceCfg
+	ORCID           orcidConfig
+	JWTKey          string
+	Namespace       string
+	UVAWhiteList    []*net.IPNet
+	AuditQueryURL   string
+	MetricsQueryURL string
+	IndexURL        string
+	Dev             devConfig
 }
 
 // RequestError contains http status code and message for a failed HTTP request
@@ -104,14 +105,16 @@ type configResponse struct {
 // InitializeService sets up the service context for all API handlers
 func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{Version: version,
-		TimeFormat:  "2006-01-02T15:04:05Z",
-		JWTKey:      cfg.jwtKey,
-		UserService: cfg.userService,
-		ORCID:       cfg.orcid,
-		Dev:         cfg.dev,
-		Namespace:   cfg.namespace,
-		IndexURL:    cfg.indexURL,
-		EtdURL:      cfg.etdURL,
+		TimeFormat:      "2006-01-02T15:04:05Z",
+		JWTKey:          cfg.jwtKey,
+		UserService:     cfg.userService,
+		ORCID:           cfg.orcid,
+		Dev:             cfg.dev,
+		Namespace:       cfg.namespace,
+		IndexURL:        cfg.indexURL,
+		EtdURL:          cfg.etdURL,
+		AuditQueryURL:   cfg.auditQueryURL,
+		MetricsQueryURL: cfg.metricsQueryURL,
 	}
 
 	log.Printf("INFO: initialize uva ip whitelist")
@@ -182,8 +185,6 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		}
 		ctx.Events.Bus = bus
 	}
-
-	ctx.AuditQueryURL = cfg.auditQueryURL
 
 	return &ctx
 }
