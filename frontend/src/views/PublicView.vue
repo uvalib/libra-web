@@ -26,7 +26,7 @@
                <div class="name">{{ file.name }}</div>
                <div class="file-stat">Uploaded on {{ $formatDate(file.createdAt) }}</div>
                <Button label="Download" icon="pi pi-cloud-download" severity="secondary"
-                  :ariaLabel="`download file ${file.name}`" :badge="file.downloads" badgeSeverity="contrast"
+                  :ariaLabel="`download file ${file.name}`" :badge="`${file.downloads}`" badgeSeverity="contrast"
                   @click="etdRepo.downloadFile(file.name)" />
             </div>
          </div>

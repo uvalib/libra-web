@@ -60,7 +60,7 @@ type workMetrics struct {
 	Namespace string `json:"namespace"`
 	Views     int    `json:"views"`
 	Files     []struct {
-		FileID    string `json:"file_id"`
+		TargetID  string `json:"target_id"`
 		Downloads int    `json:"downloads"`
 	} `json:"files"`
 }
@@ -120,6 +120,7 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 		if err != nil {
 			log.Printf("ERROR: unable to get metrics for %s: %s", workID, err.Message)
 		} else {
+			log.Printf("INFO: metrics response [%s]", resp)
 			var metrics workMetrics
 			parseErr := json.Unmarshal(resp, &metrics)
 			if parseErr != nil {
@@ -128,7 +129,7 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 			etdWork.Views = metrics.Views
 			for _, fm := range metrics.Files {
 				for _, f := range etdWork.Files {
-					if f.Name == fm.FileID || fm.FileID == "this" { // TODO hack... remove once real data is returned
+					if f.Name == fm.TargetID {
 						f.Downloads = fm.Downloads
 						break
 					}
