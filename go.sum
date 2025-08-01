@@ -126,6 +126,8 @@ github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1 h1:eSDmfVQk1
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250729171533-58f2a52d4a53 h1:3nrGMSeeyy34VCK1Crgm7TqdilIkLP7uJv6bqDeKnKU=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250729171533-58f2a52d4a53/go.mod h1:cITJrlIM3D+iX5y0dnyFWg45MfnmYKFvyHU1Ghj8Tjk=
+github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250801130056-157231a1fcac h1:8WAZ9xsOK4U4gtDlx7csTNRMLzxXqIo2WipuokkGyco=
+github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250801130056-157231a1fcac/go.mod h1:cITJrlIM3D+iX5y0dnyFWg45MfnmYKFvyHU1Ghj8Tjk=
 golang.org/x/arch v0.19.0 h1:LmbDQUodHThXE+htjrnmVD73M//D9GTH6wFZjyDkjyU=
 golang.org/x/arch v0.19.0/go.mod h1:bdwinDaKcfZUGpH09BB7ZmOfhalA8lQdzl62l8gGWsk=
 golang.org/x/crypto v0.40.0 h1:r4x+VvoG5Fm+eJcxMaY8CQM7Lb0l1lsmjGBQ6s8BfKM=

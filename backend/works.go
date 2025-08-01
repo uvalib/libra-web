@@ -98,7 +98,7 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 	// when requested for public view of a publish worked, trigger a view event
 	if dataFor == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
 		log.Printf("INFO: track public view for work %s", tgtObj.Id())
-		viewDetail := getPublicRequestEventDetails(c)
+		viewDetail := getPublicRequestEventDetails(c, fmt.Sprintf("public_view/%s", etdWork.ID))
 		evt := uvalibrabus.UvaBusEvent{
 			EventName:  uvalibrabus.EventContentView,
 			Namespace:  tgtObj.Namespace(),
@@ -410,7 +410,7 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 	}
 
 	// publish download event
-	dlDetail := getPublicRequestEventDetails(c)
+	dlDetail := getPublicRequestEventDetails(c, tgtFile)
 	evt := uvalibrabus.UvaBusEvent{
 		EventName:  uvalibrabus.EventContentDownload,
 		Namespace:  tgtObj.Namespace(),
@@ -431,7 +431,7 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 	c.String(http.StatusOK, dlFile.Url())
 }
 
-func getPublicRequestEventDetails(c *gin.Context) []byte {
+func getPublicRequestEventDetails(c *gin.Context, targetID string) []byte {
 	srcIP := c.RemoteIP()
 	hdrIP := c.Request.Header.Get("x-forwarded-for")
 	if hdrIP != "" {
@@ -439,6 +439,7 @@ func getPublicRequestEventDetails(c *gin.Context) []byte {
 	}
 	dlEvt := uvalibrabus.UvaContentEvent{
 		SourceIp:       srcIP,
+		TargetId:       targetID,
 		Referrer:       c.Request.Referer(),
 		UserAgent:      c.Request.UserAgent(),
 		AcceptLanguage: c.Request.Header.Get("Accept-Language"),
@@ -533,11 +534,6 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 	if canAccessFiles {
 		for _, etdFile := range tgtObj.Files() {
 			log.Printf("INFO: add file %s %s to work", etdFile.Name(), etdFile.Url())
-			// fData := librametadata.FileData{
-			// 	Name:      etdFile.Name(),
-			// 	MimeType:  etdFile.MimeType(),
-			// 	CreatedAt: etdFile.Created(),
-			// }
 			fd := fileDetails{
 				FileData: librametadata.FileData{
 					Name:      etdFile.Name(),
@@ -546,7 +542,6 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 				},
 				Downloads: 0,
 			}
-			// fd.FileData = &fData
 			resp.Files = append(resp.Files, &fd)
 		}
 	} else {
