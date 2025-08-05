@@ -95,7 +95,7 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 		return
 	}
 
-	// when requested for public view of a publish worked, trigger a view event
+	// when requested for public view of a published work, trigger a view event
 	if dataFor == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
 		log.Printf("INFO: track public view for work %s", tgtObj.Id())
 		viewDetail := getPublicRequestEventDetails(c, fmt.Sprintf("public_view/%s", etdWork.ID))
@@ -389,6 +389,7 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 func (svc *serviceContext) downloadFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
+	downloadFor := c.Query("for")
 	log.Printf("INFO: request to download file %s from work %s", tgtFile, workID)
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
@@ -410,21 +411,29 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 		return
 	}
 
-	// publish download event
-	dlDetail := getPublicRequestEventDetails(c, tgtFile)
-	evt := uvalibrabus.UvaBusEvent{
-		EventName:  uvalibrabus.EventContentDownload,
-		Namespace:  tgtObj.Namespace(),
-		Identifier: tgtObj.Id(),
-		Detail:     dlDetail,
-	}
-	log.Printf("INFO: publish download event %s", dlDetail)
-	if svc.Events.DevMode {
-		log.Printf("INFO: dev mode work %s send download event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
-	} else {
-		err := svc.Events.Bus.PublishEvent(&evt)
-		if err != nil {
-			log.Printf("ERROR: unable to publish download event %+v : %s", evt, err.Error())
+	esWork, _ := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Fields)
+	fields := esWork.Fields()
+	isDraft, _ := strconv.ParseBool(fields["draft"])
+	publishedAt := fields["publish-date"]
+	if downloadFor == "view" && isDraft == false && publishedAt != "" {
+		log.Printf("INFO: download requested from a public view; track it")
+
+		// publish download event for public views of works that are not draft
+		dlDetail := getPublicRequestEventDetails(c, tgtFile)
+		evt := uvalibrabus.UvaBusEvent{
+			EventName:  uvalibrabus.EventContentDownload,
+			Namespace:  tgtObj.Namespace(),
+			Identifier: tgtObj.Id(),
+			Detail:     dlDetail,
+		}
+		log.Printf("INFO: publish download event %s", dlDetail)
+		if svc.Events.DevMode {
+			log.Printf("INFO: dev mode work %s send download event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
+		} else {
+			err := svc.Events.Bus.PublishEvent(&evt)
+			if err != nil {
+				log.Printf("ERROR: unable to publish download event %+v : %s", evt, err.Error())
+			}
 		}
 	}
 

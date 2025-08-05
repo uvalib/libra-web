@@ -19,7 +19,7 @@
                   <div class="acts" v-if="rename != slotProps.data.name">
                      <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
                      <Button class="action"icon="pi pi-cloud-download"  label="Download" severity="secondary" size="small"
-                        @click="etdRepo.downloadFile(slotProps.data.name)"
+                        @click="etdRepo.downloadFile(slotProps.data.name,'edit')" :loading="etdRepo.downloading == slotProps.data.name"
                      />
                      <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
                   </div>

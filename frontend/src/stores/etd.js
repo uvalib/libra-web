@@ -7,6 +7,7 @@ export const useETDStore = defineStore('etd', {
    state: () => ({
       working: false,
       saving: false,
+      downloading: "",
       error: "",
       work: {},
       isDraft: true,
@@ -166,8 +167,9 @@ export const useETDStore = defineStore('etd', {
          })
       },
 
-      async downloadFile( name ) {
-         return axios.get(`/api/works/${this.work.id}/files/${name}`).then((response) => {
+      async downloadFile( name, usage ) {
+         this.downloading = name
+         return axios.get(`/api/works/${this.work.id}/files/${name}?for=${usage}`).then((response) => {
             const element = document.createElement('a')
             element.setAttribute('href', response.data)
             element.setAttribute('download', name)
@@ -175,7 +177,9 @@ export const useETDStore = defineStore('etd', {
             document.body.appendChild(element)
             element.click()
             document.body.removeChild(element)
+            this.downloading = ""
          }).catch((error) => {
+            this.downloading = ""
             const system = useSystemStore()
             system.setError( error)
          })
