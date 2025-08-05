@@ -151,7 +151,7 @@ export const useUserStore = defineStore('user', {
                   if (err.response && err.response.status == 401) {
                      this.signOut()
                      system.working = false
-                     this.router.push("/expired")
+                     window.location.href = "/authenticate"
                      return new Promise(() => { })
                   }
                }

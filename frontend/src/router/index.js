@@ -47,11 +47,6 @@ const router = createRouter({
          component: () => import('../views/SignedOut.vue'),
       },
       {
-         path: '/expired',
-         name: "expired",
-         component: () => import('../views/Expired.vue'),
-      },
-      {
          path: '/forbidden',
          name: "forbidden",
          component: () => import('../views/ForbiddenView.vue'),
