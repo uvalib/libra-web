@@ -10,7 +10,12 @@ import { createHead } from '@unhead/vue/client'
 const app = createApp(App)
 
 app.use(router)
-const head = createHead()
+const head = createHead({
+    init: [
+      {
+        title: 'Libra ETD'
+      }
+   ]})
 app.use(head)
 app.use(formatDatePlugin)
 app.use(formatDateTimePlugin)

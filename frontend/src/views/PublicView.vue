@@ -165,6 +165,7 @@ onBeforeMount( async () => {
    document.title = etdRepo.work.title
 })
 useSeoMeta({
+   title: () => etdRepo.work.title,
    citation_title: ()=> etdRepo.work.title,
    citation_author: ()=> etdRepo.work.author ? `${etdRepo.work.author.lastName}, ${etdRepo.work.author.firstName}` : null,
    citation_publication_date: ()=> etdRepo.publishedAt ? dayjs(etdRepo.publishedAt).utc().format("YYYY-MM-DD") : null,
