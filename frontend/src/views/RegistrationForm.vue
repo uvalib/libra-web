@@ -13,7 +13,7 @@
          <FieldSet legend="Registrants">
             <div class="lookup">
                <div class="note">
-                  Add one ore more computing IDs to register. IDs can be separated by spaces, commas or newlines. Click 'Add'
+                  Add one or more computing IDs to register. IDs can be separated by spaces, commas or newlines. Click 'Add'
                   to validate the IDs and add them to the registration list.
                </div>
                <div class="user-lookup">
@@ -21,7 +21,7 @@
                   <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" :disabled="computeID.length == 0"/>
                </div>
                <div class="users">
-                  <Chip v-for="u in users" removable @remove="removeUser(u.computeID)">
+                  <Chip v-for="u in users" removable @remove="removeUser(u.computeID)" :key="u.computeID">
                      <span class="computeID">{{  u.computeID }}</span>
                      <span class="name">- {{  u.lastName }}, {{ u.firstName }}</span>
                   </Chip>
@@ -67,6 +67,7 @@ const idChanged = (() => {
 })
 
 const removeUser = ( (cID) => {
+   console.log( "remove "+cID)
    const idx = users.value.findIndex( u => u.computeID == cID)
    if (idx > -1 ) {
       users.value.splice(idx,1)
@@ -104,16 +105,17 @@ const lookup = ( () => {
 })
 
 const submitRegistrations = ( async ( ) => {
-   await admin.addRegistrations(program.value, degree.value, users.value)
-   if (system.error == "") {
-      system.toastMessage("Registration success", "All specified users have been registered.")
-   } else {
-      program.value = ""
-      degree.value = ""
-      computeID.value = ""
-      userErrors.value = []
-      users.value = []
-   }
+   console.log(users.value)
+   // await admin.addRegistrations(program.value, degree.value, users.value)
+   // if (system.error == "") {
+   //    system.toastMessage("Registration success", "All specified users have been registered.")
+   // } else {
+   //    program.value = ""
+   //    degree.value = ""
+   //    computeID.value = ""
+   //    userErrors.value = []
+   //    users.value = []
+   // }
 })
 </script>
 
