@@ -78,7 +78,7 @@ watch(() => systemStore.toast.show, (newShow) => {
 
 
 onBeforeMount( async () => {
-   document.title = `Libra`
+   document.title = `Libra ETD`
    await systemStore.getConfig()
    configuring.value = false
 })
@@ -161,7 +161,7 @@ a:focus, input:focus, select:focus, textarea:focus, button.pool:focus, .pre-foot
 a:focus {
    border-radius: 0.3rem;
 }
-footer, div.header, nav.menu {
+footer, div.main-header {
    a:focus {
       outline: 2px dotted $uva-grey-200;
       outline-offset: 3px;

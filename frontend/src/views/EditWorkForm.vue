@@ -218,7 +218,7 @@ const metadataComplete = ref(false)
 const advisorLookup = ref([])
 
 onBeforeMount( async () => {
-   document.title = "LibraETD"
+   document.title = "Edit LibraETD Work"
    if ( user.isSignedIn == false) {
       router.push("/forbidden")
       return

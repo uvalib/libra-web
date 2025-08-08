@@ -37,7 +37,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onBeforeMount } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
 import Select from 'primevue/select'
@@ -57,6 +57,10 @@ const userErrors = ref([])
 const users = ref([])
 const working = ref(false)
 const added = ref(false)
+
+onBeforeMount( () => {
+   document.title = "Libra Deposit Registration"
+})
 
 const submitDisabled = computed( () => {
    return program.value == "" || degree.value == "" || users.value.length == 0

@@ -162,6 +162,7 @@ const agree = ref(false)
 
 onBeforeMount( async () => {
    await etdRepo.getWork( route.params.id, "view" )
+   document.title = etdRepo.work.title
 })
 useSeoMeta({
    citation_title: ()=> etdRepo.work.title,
