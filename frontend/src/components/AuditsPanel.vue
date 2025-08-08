@@ -1,11 +1,11 @@
 <template>
    <Button v-if="props.workTitle" @click="show" label="View Audit Log" severity="secondary" fluid size="small"
-      :ariaLabel="`view audit log for work titled ${props.workTitle}`"
+      :aria-describedby="props.workID"
    />
    <Button v-else @click="show" label="View Audit Log" severity="secondary" fluid size="small" />
    <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
-      style="width:90%; max-height:90%" position="top"
-      :blockScroll="true" :maximizable="true"
+      style="width:95%; height:80%" position="top"
+      :blockScroll="true"
    >
       <div class="loading" v-if="auditStore.working">
          <WaitSpinner :overlay="false" message="Loading Audit History..." />

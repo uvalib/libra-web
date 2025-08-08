@@ -20,14 +20,12 @@
                   <TextArea v-model="computeID"  rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs" aria-label="registrant lookup" />
                   <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" :disabled="computeID.length == 0"/>
                </div>
-               <div class="users">
-                  <Chip v-for="u in users" removable @remove="removeUser(u.computeID)" :key="u.computeID">
-                     <span class="computeID">{{  u.computeID }}</span>
-                     <span class="name">- {{  u.lastName }}, {{ u.firstName }}</span>
-                  </Chip>
-               </div>
-               <div class="errors">
+               <Message v-if="added" severity="success" :life="3000" @life-end="added=false" variant="simple">Registrants added</Message>
+               <div class="errors" aria-live="assertive">
                   <div v-for="err in userErrors" class="err">{{ err }}</div>
+               </div>
+               <div class="users">
+                  <Chip v-for="u in users" removable @remove="removeUser(u.computeID)" :key="u.computeID" :label="`${ u.computeID } - ${u.lastName}, ${u.firstName}`"/>
                </div>
             </div>
          </FieldSet>
@@ -46,6 +44,7 @@ import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
 import TextArea from 'primevue/textarea'
 import Chip from 'primevue/chip'
+import Message from 'primevue/message'
 import axios from 'axios'
 
 const system = useSystemStore()
@@ -57,6 +56,7 @@ const computeID = ref("")
 const userErrors = ref([])
 const users = ref([])
 const working = ref(false)
+const added = ref(false)
 
 const submitDisabled = computed( () => {
    return program.value == "" || degree.value == "" || users.value.length == 0
@@ -93,6 +93,7 @@ const lookup = ( () => {
                computeID: r.data.cid, firstName: r.data.first_name, lastName:
                r.data.last_name, email: r.data.email }
             users.value.push( user )
+            added.value = true
          } else {
             userErrors.value.push(`${computeID} already added`)
          }
@@ -105,17 +106,16 @@ const lookup = ( () => {
 })
 
 const submitRegistrations = ( async ( ) => {
-   console.log(users.value)
-   // await admin.addRegistrations(program.value, degree.value, users.value)
-   // if (system.error == "") {
-   //    system.toastMessage("Registration success", "All specified users have been registered.")
-   // } else {
-   //    program.value = ""
-   //    degree.value = ""
-   //    computeID.value = ""
-   //    userErrors.value = []
-   //    users.value = []
-   // }
+   await admin.addRegistrations(program.value, degree.value, users.value)
+   if (system.error == "") {
+      system.toastMessage("Registration success", "All specified users have been registered.")
+   } else {
+      program.value = ""
+      degree.value = ""
+      computeID.value = ""
+      userErrors.value = []
+      users.value = []
+   }
 })
 </script>
 

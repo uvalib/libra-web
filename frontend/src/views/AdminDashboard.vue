@@ -63,7 +63,7 @@
          </Column>
          <Column field="title" header="Title" sortable>
             <template #body="slotProps">
-               <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
+               <span v-if="slotProps.data.title" :id="slotProps.data.id">{{ slotProps.data.title }}</span>
                <span v-else class="na">Undefined</span>
             </template>
          </Column>
@@ -71,12 +71,12 @@
             <template #body="slotProps">
                <div  class="acts">
                   <Button asChild v-slot="btnProps" severity="secondary" size="small">
-                     <RouterLink :to="`/admin/etd/${slotProps.data.id}`" :class="btnProps.class" :ariaLabel="`edit work titled ${slotProps.data.title}`">
+                     <RouterLink :to="`/admin/etd/${slotProps.data.id}`" :class="btnProps.class" :aria-describedby="slotProps.data.id">
                         Edit Work
                      </RouterLink>
                   </Button>
                   <Button v-if="slotProps.data.published" asChild v-slot="btnProps" severity="secondary" size="small">
-                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class" :ariaLabel="`view work titled ${slotProps.data.title}`">
+                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class" :aria-describedby="slotProps.data.id">
                         <span>Public View</span>
                      </RouterLink>
                   </Button>
