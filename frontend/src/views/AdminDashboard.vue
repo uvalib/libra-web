@@ -111,7 +111,7 @@ const sourceOpts = computed(() => {
 })
 
 onBeforeMount( () => {
-   document.title = "Libra Admin"
+   document.title = "Libra Admin Dashboard"
 })
 
 const onPage = ((event) => {

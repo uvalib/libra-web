@@ -226,7 +226,7 @@ const UVA = definePreset(Aura, {
          },
          item: {
             color: colors.textDark,
-            focusBackground: colors.brandBlue200,
+            focusBackground: colors.brandBlue100,
             activeBackground: colors.grey100,
             focusColor: 'white',
             activeColor: colors.textBase,
