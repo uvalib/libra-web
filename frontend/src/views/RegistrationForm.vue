@@ -37,9 +37,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue'
+import { ref, computed } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
+import { useHead } from '@unhead/vue'
 import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
 import TextArea from 'primevue/textarea'
@@ -57,9 +58,8 @@ const userErrors = ref([])
 const users = ref([])
 const working = ref(false)
 const added = ref(false)
-
-onBeforeMount( () => {
-   document.title = "Libra Deposit Registration"
+useHead({
+   title: 'Libra Deposit Registration'
 })
 
 const submitDisabled = computed( () => {

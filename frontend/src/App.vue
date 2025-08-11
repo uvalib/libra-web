@@ -78,7 +78,6 @@ watch(() => systemStore.toast.show, (newShow) => {
 
 
 onBeforeMount( async () => {
-   document.title = `Libra ETD`
    await systemStore.getConfig()
    configuring.value = false
 })

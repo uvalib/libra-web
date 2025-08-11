@@ -187,6 +187,7 @@ import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import axios from 'axios'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
+import {useHead} from '@unhead/vue'
 
 import { Form } from '@primevue/forms'
 import ProgramPanel from '@/components/ProgramPanel.vue'
@@ -217,8 +218,11 @@ const embargoChanged = ref(false)
 const metadataComplete = ref(false)
 const advisorLookup = ref([])
 
+useHead({
+   title: 'Edit LibraETD Work'
+})
+
 onBeforeMount( async () => {
-   document.title = "Edit LibraETD Work"
    if ( user.isSignedIn == false) {
       router.push("/forbidden")
       return
