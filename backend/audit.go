@@ -224,14 +224,25 @@ func (svc *serviceContext) auditStructField(auditCtx auditContext, fieldName str
 				changeFieldName = fmt.Sprintf("%s[%d].%s", fieldName, structSliceIdx, structField)
 			}
 			structVal := origValue.Field(i).String()
-			updateVal := newValue.FieldByName(structField).String()
-			log.Printf("INFO: struct field %s orig %s vs %s", changeFieldName, structField, updateVal)
-			if structVal != updateVal {
+			if newValue.IsValid() {
+				updateVal := newValue.FieldByName(structField).String()
+				log.Printf("INFO: struct field %s orig %s vs %s", changeFieldName, structField, updateVal)
+				if structVal != updateVal {
+					auditEvt := uvalibrabus.UvaAuditEvent{
+						Who:       auditCtx.computeID,
+						FieldName: changeFieldName,
+						Before:    structVal,
+						After:     updateVal,
+					}
+					svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+				}
+			} else {
+				log.Printf("INFO: struct field %s orig %s vs nil", changeFieldName, structField)
 				auditEvt := uvalibrabus.UvaAuditEvent{
 					Who:       auditCtx.computeID,
 					FieldName: changeFieldName,
 					Before:    structVal,
-					After:     updateVal,
+					After:     "",
 				}
 				svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
 			}

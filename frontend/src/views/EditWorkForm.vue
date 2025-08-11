@@ -42,7 +42,7 @@
                            <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID" aria-label="advisor compute id"/>
                            <Button class="check" icon="pi pi-search" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
                         </div>
-                        <Button v-if="index > 0" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)" rounded/>
+                        <Button v-if="etdRepo.work.advisors.length > 1" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)" rounded/>
                      </div>
                      <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
                      <div class="two-col">
