@@ -1,6 +1,6 @@
 <template>
    <div class="registration">
-      <h1>ETD Deposit Registration</h1>
+      <h1>Libra Deposit Registration</h1>
       <div class="form">
          <div class="row">
             <label id="program-sel">Program:</label>
@@ -12,12 +12,14 @@
          </div>
          <FieldSet legend="Registrants">
             <div class="lookup">
-               <div class="note">
+               <div class="note" id="add-help">
                   Add one or more computing IDs to register. IDs can be separated by spaces, commas or newlines. Click 'Add'
                   to validate the IDs and add them to the registration list.
                </div>
                <div class="user-lookup">
-                  <TextArea v-model="computeID"  rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs" aria-label="registrant lookup" />
+                  <TextArea v-model="computeID" id="user-input" rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs"
+                     aria-label="registrants" aria-describedby="add-help"
+                  />
                   <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" :disabled="computeID.length == 0"/>
                </div>
                <Message v-if="added" severity="success" :life="3000" @life-end="added=false" variant="simple">Registrants added</Message>
@@ -107,6 +109,9 @@ const lookup = ( () => {
    })
    computeID.value = ""
    working.value = false
+   let input = document.getElementById("user-input")
+   input.setAttribute('aria-describedby', '')
+   setTimeout( ()=>{ input.focus()}, 2000)
 })
 
 const submitRegistrations = ( async ( ) => {

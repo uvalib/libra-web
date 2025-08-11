@@ -2,9 +2,10 @@
    <div class="admin">
       <h1>Admin Dashboard</h1>
       <div class="search">
+         <label for="admin-search">Search for works:</label>
          <IconField iconPosition="left" class="query">
             <InputIcon class="pi pi-search" />
-            <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" placeholder="Search for works" id="admin-search"/>
+            <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
          </IconField>
          <label for="status-filter">Publication Status:</label>
          <select v-model="admin.statusFilter" id="status-filter"  @change="admin.search()">
@@ -92,7 +93,7 @@
 </template>
 
 <script setup>
-import { onBeforeMount, computed } from 'vue'
+import { computed } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -100,6 +101,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import AuditsPanel from '@/components/AuditsPanel.vue'
+import { useHead } from '@unhead/vue'
 
 const admin = useAdminStore()
 
@@ -110,8 +112,8 @@ const sourceOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "SIS", value: "sis"}, {label: "Optional", value: "optional"} ]
 })
 
-onBeforeMount( () => {
-   document.title = "Libra Admin Dashboard"
+useHead({
+   title: 'Libra Admin Dashboard'
 })
 
 const onPage = ((event) => {
