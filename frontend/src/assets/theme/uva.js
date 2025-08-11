@@ -67,25 +67,6 @@ const UVA = definePreset(Aura, {
       }
    },
    components: {
-      accordion: {
-         header: {
-            background: '#f8f9fa',
-            hoverBackground: '#f5f5ff',
-            activeBackground: '#f8f9fa',
-            activeHoverBackground: '#f8f9fa',
-            borderRadius: 0,
-         },
-         panel: {
-            borderWidth: '1px',
-            borderColor: colors.grey200,
-            hoverBackground: colors.grey200,
-        },
-        content: {
-            background: '#ffffff',
-            borderWidth: '1px 0 0 0',
-            padding: '1.125rem 1.125rem 1.125rem 1.125rem'
-        }
-      },
       button: {
          root: {
             paddingY: '.5em',
@@ -110,6 +91,9 @@ const UVA = definePreset(Aura, {
                      background: colors.greenDarker,
                      borderColor: colors.greenDark,
                      hoverBackground: colors.greenDark,
+                     focusRing: {
+                        color: colors.brandBlue100,
+                     },
                   },
                   secondary: {
                      background: colors.grey200,
@@ -127,6 +111,9 @@ const UVA = definePreset(Aura, {
                      hoverBorderColor: colors.red,
                      borderColor: colors.red,
                      color: "white",
+                     focusRing: {
+                        color: colors.brandBlue100,
+                     },
                   },
                   contrast: {
                      background: colors.brandOrangeDark,

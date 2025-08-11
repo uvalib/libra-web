@@ -505,7 +505,7 @@ const endDatePicked = ( (newDate) => {
 }
 
 .unsaved {
-   background: $uva-red;
+   background: $uva-red-A;
    padding: 0.5rem 1rem;
    border-radius: 50px;
    color: white;
@@ -630,7 +630,7 @@ const endDatePicked = ( (newDate) => {
    }
 
    .toolbar {
-      background: $uva-grey-100;
+      background: $uva-grey-200;
       border-top: 1px solid $uva-grey;
       padding: 10px;
       margin-top: 50px;
