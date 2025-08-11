@@ -1,7 +1,7 @@
 <template>
    <svg id="library_logo_primary" data-name="library_logo_primary" xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="xMinYMid meet" viewBox="0 0 213 48"
-      role="image" alt="University of Virginia Library"
+      role="img" alt="University of Virginia Library"
    >
       <g>
          <rect x="109.5" width="0.41" height="48" style="fill: #fff"/>
