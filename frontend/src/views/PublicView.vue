@@ -8,54 +8,8 @@
    <template v-else>
       <div class="work-bkg"></div>
       <div class="public-work" aria-live="polite">
-         <div class="files">
-            <div class="title">Files</div>
-            <template  v-if="etdRepo.visibility == 'embargo'">
-               <span class="file-embargo">
-               This item is restricted to abstract view only until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
-               </span>
-               <span  v-if="etdRepo.isDraft" class="file-embargo author">
-                  The files listed below will NOT be available to anyone until the embargo date has passed.
-               </span>
-            </template>
-            <span  v-if="etdRepo.visibility == 'uva'" class="file-embargo">
-               This item is restricted to UVA until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
-            </span>
-
-            <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
-               <div class="name">{{ file.name }}</div>
-               <div class="file-stat">Uploaded on {{ $formatDate(file.createdAt) }}</div>
-               <Button label="Download" icon="pi pi-cloud-download" severity="secondary"
-                  :ariaLabel="`download file ${file.name}`" :badge="`${file.downloads}`" badgeSeverity="contrast"
-                  @click="etdRepo.downloadFile(file.name, 'view')" :loading="etdRepo.downloading==file.name" />
-            </div>
-         </div>
-
          <div class="details">
-            <div class="draft" v-if="etdRepo.isDraft">
-               <div class="proof">Submission Proof</div>
-               <div>
-                  Before proceeding, we encourage you to review the information in this page.
-                  If you experience problems with your submission, please <a href="mailto:libra@virginia.edu">contact</a> us.
-               </div>
-               <div class="agree">
-                  <Checkbox inputId="agree-cb" v-model="agree" :binary="true" />
-                  <label for="agree-cb">
-                     I have read and agree to the
-                     <a href="https://www.library.virginia.edu/libra/etds/etd-license" target="_blank" aria-describedby="new-window">Libra Deposit License</a>,
-                     including discussing my deposit access options with my faculty advisor.
-                  </label>
-               </div>
-               <div class="buttons">
-                  <RouterLink :to="user.homePage">Dashboard</RouterLink>
-                  <RouterLink :to="editThesisLink">Edit thesis</RouterLink>
-                  <Button severity="primary" label="Submit Thesis" size="small" class="submit" @click="submitThesis" :disabled="!agree"/>
-               </div>
-            </div>
-            <div class="published" v-if="justPublished">
-               Thank you for submitting your thesis. Be sure to take note of and use
-               the Persistent Link when you refer to this work.
-            </div>
+            <SubmitPanel />
 
             <div class="metadata">
                <h1>
@@ -129,19 +83,19 @@
                </section>
             </div>
          </div>
+         <ThesisFiles />
       </div>
    </template>
 </template>
 
 <script setup>
-import { onBeforeMount, ref } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useETDStore } from "@/stores/etd"
 import { useSystemStore } from "@/stores/system"
-import { useUserStore } from "@/stores/user"
 import { useRoute } from 'vue-router'
 import WaitSpinner from "@/components/WaitSpinner.vue"
-import { useConfirm } from "primevue/useconfirm"
-import Checkbox from 'primevue/checkbox'
+import ThesisFiles from "@/components/publicview/ThesisFiles.vue"
+import SubmitPanel from "@/components/publicview/SubmitPanel.vue"
 import { useClipboard, usePermission } from '@vueuse/core'
 import { useSeoMeta } from '@unhead/vue'
 import dayjs from 'dayjs'
@@ -150,19 +104,15 @@ dayjs.extend(utc)
 
 const etdRepo = useETDStore()
 const system = useSystemStore()
-const user = useUserStore()
 const route = useRoute()
-const confirm = useConfirm()
 
 const canClipboard = usePermission('clipboard-write')
 const { copy, copied } = useClipboard()
 
-const justPublished = ref(false)
-const agree = ref(false)
-
 onBeforeMount( async () => {
    await etdRepo.getWork( route.params.id, "view" )
 })
+
 useSeoMeta({
    title: () => etdRepo.work.title,
    citation_title: ()=> etdRepo.work.title,
@@ -187,35 +137,13 @@ const copyCitation = (() => {
       system.toastMessage("Copied", "Citation has been copied to the clipboard.")
    }
 })
-
-const editThesisLink = (() => {
-   if (user.isAdmin) {
-      return `/admin/etd/${route.params.id}`
-   }
-   return `/etd/${route.params.id}`
-})
-
-const submitThesis = ( () => {
-   confirm.require({
-      message: `This is your final step and you cannot change the document afterwards. Are you sure?`,
-      header: 'Confirm Submission',
-      icon: 'pi pi-question-circle',
-      rejectClass: 'p-button-secondary',
-      accept: async () => {
-         await etdRepo.publish()
-         if (system.error == "") {
-            justPublished.value = true
-         }
-      },
-   })
-})
 </script>
 
 <style lang="scss" scoped>
 @media only screen and (min-width: 768px) {
    div.public-work {
       display: flex;
-      flex-flow: row nowrap;
+      flex-flow: row-reverse nowrap;
       justify-content: center;
       align-items: flex-start;
       gap: 1rem;
@@ -225,11 +153,6 @@ const submitThesis = ( () => {
    .details {
       flex-basis: 70%;
    }
-
-   .files {
-      margin-top: 280px;
-      flex-basis: 30%;
-   }
 }
 
 @media only screen and (max-width: 768px) {
@@ -238,7 +161,7 @@ const submitThesis = ( () => {
    }
    div.public-work {
       display: flex;
-      flex-direction: column-reverse;
+      flex-direction: column;
    }
 }
 div.error {
@@ -304,40 +227,6 @@ div.public-work {
       text-align: left;
       margin-bottom: 50px;
 
-      div.draft {
-         background: $uva-yellow-100;
-         padding: 20px;
-         border: 2px solid $uva-yellow-A;
-         display: flex;
-         flex-direction: column;
-         gap: 10px;
-         text-align: left;
-         .proof {
-            font-size: 1.2em;
-            font-weight: bold;
-            text-align: center;
-         }
-         .buttons {
-            margin-top: 10px;
-            display: flex;
-            flex-flow: row wrap;
-            justify-content: flex-start;
-            align-items: center;
-            gap: 1.15rem;
-            .submit {
-               margin-left: auto;
-            }
-         }
-         .agree {
-            display: flex;
-            flex-flow: row nowrap;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 10px;
-            margin: 10px 0;
-         }
-      }
-
       h3 {
          font-size: 1.5em;
          font-weight: normal;
@@ -364,47 +253,6 @@ div.public-work {
             padding:0;
             margin:0 0 5px 0;
          }
-      }
-   }
-
-   div.published {
-      background: $uva-yellow-100;
-      padding: 20px;
-      border: 1px solid $uva-yellow-A;
-      text-align: left;
-   }
-
-   div.files {
-      font-family: 'Open Sans', sans-serif;
-      background: white;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 20px;
-      border: 1px solid $uva-grey-100;
-      .title {
-         font-weight: bold;
-      }
-
-      .file-stat {
-         font-size: 0.9em;
-      }
-
-      .file-embargo {
-         padding: 10px;
-         font-style: normal;
-         background: $uva-yellow-100;
-         border: 1px solid $uva-yellow-A;
-         border-radius: 4px;
-      }
-
-      .file {
-         display: flex;
-         flex-direction: column;
-         gap: 10px;
-         padding-top: 15px;
-         border-top: 1px solid $uva-grey-100;
       }
    }
 }

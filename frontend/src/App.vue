@@ -100,11 +100,12 @@ body {
    color: $uva-grey-A;
    background: $uva-blue-alt-B;
    .screen-reader-text {
-      clip: rect(1px, 1px, 1px, 1px);
-      position: absolute !important;
-      height: 1px;
-      width: 1px;
-      overflow: hidden;
+      position:absolute;
+      left:-10000px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
    }
 }
 
