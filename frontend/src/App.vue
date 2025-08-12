@@ -10,7 +10,9 @@
          <Button icon="pi pi-sign-out" label="Back to Admin" @click="admin.endImpersonate()"/>
       </div>
       <div class="main-header">
-         <UvaLibraryLogo />
+         <div class="library-link">
+             <UvaLibraryLogo />
+         </div>
          <div class="site-link">
             <router-link to="/">
                <img src="@/assets/LibraETD.svg" alt="libra etd"/>
@@ -188,19 +190,12 @@ header {
       justify-content: space-between;
       align-content: stretch;
       align-items: center;
-      padding: 1vw 20px 5px 10px;
+      gap: 10px;
    }
    p.version {
       margin: 5px 0 0 0;
       font-size: 0.5em;
       text-align: right;
-   }
-   div.site-link {
-      text-align: right;
-      .sub {
-         display: block;
-         font-size: 0.9em;
-      }
    }
 }
 .authenticating {
@@ -208,5 +203,44 @@ header {
    margin-top:5%;
    font-size: 1.5rem;
    font-weight: bold;
+}
+@media only screen and (min-width: 768px) {
+   .main-header {
+      padding: 1vw 20px 5px 10px;
+      div.library-link {
+         width: 250px;
+         order: 0;
+         flex: 0 1 auto;
+         align-self: flex-start;
+      }
+      div.site-link {
+         order: 0;
+         text-align: right;
+         .sub {
+            display: block;
+            font-size: 0.9em;
+         }
+      }
+   }
+}
+@media only screen and (max-width: 768px) {
+   .main-header {
+      padding: 1vw 2vw;
+      div.library-link {
+         width: 250px;
+         flex: 0 1 auto;
+         align-self: flex-start;
+      }
+      div.site-link {
+         text-align: right;
+         img {
+            width: 60%;
+         }
+         .sub {
+            display: block;
+            font-size: 0.85em;
+         }
+      }
+   }
 }
 </style>

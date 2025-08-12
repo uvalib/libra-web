@@ -38,11 +38,12 @@
                   <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
                      <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
                      <div class="id-field">
+                        <label :for="`work.advisors[${index}].computeID`">Computing ID</label>
                         <div class="control-group">
-                           <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" placeholder="Computing ID" aria-label="advisor compute id"/>
-                           <Button class="check" icon="pi pi-search" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
+                           <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" :id="`work.advisors[${index}].computeID`"/>
+                           <Button class="check" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
+                           <Button v-if="etdRepo.work.advisors.length > 1" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="removeAdvisor(index)"/>
                         </div>
-                        <Button v-if="etdRepo.work.advisors.length > 1" icon="pi pi-trash" severity="danger" aria-label="remove advisor" @click="removeAdvisor(index)" rounded/>
                      </div>
                      <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
                      <div class="two-col">
@@ -65,7 +66,7 @@
                      </div>
                   </div>
                   <div class="acts">
-                     <Button label="Add Advisor" size="small" @click="addAdvisor" :disabled="addAdvisorDisabled"/>
+                     <Button label="Add Advisor" @click="addAdvisor" :disabled="addAdvisorDisabled"/>
                   </div>
                </Fieldset>
 
@@ -124,7 +125,7 @@
                </div>
                <template v-else>
                   <fieldset>
-                     <legend>Visibility Options</legend>
+                     <legend>Access and Visibility</legend>
                      <div v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
                         <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
                         <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
@@ -194,10 +195,10 @@ import ProgramPanel from '@/components/ProgramPanel.vue'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
-import LabeledInput from '@/components/LabeledInput.vue'
-import RepeatField from '@/components/RepeatField.vue'
-import DatePickerDialog from "@/components/DatePickerDialog.vue"
-import FilesPanel from '@/components/FilesPanel.vue'
+import LabeledInput from '@/components/editform/LabeledInput.vue'
+import RepeatField from '@/components/editform/RepeatField.vue'
+import DatePickerDialog from "@/components/editform/DatePickerDialog.vue"
+import FilesPanel from '@/components/editform/FilesPanel.vue'
 import RadioButton from 'primevue/radiobutton'
 import { useConfirm } from "primevue/useconfirm"
 
@@ -306,6 +307,13 @@ const resolver = ({ values }) => {
 
    return { values, errors }
 }
+
+const removeAdvisorLabel = ( (index) => {
+   if ( etdRepo.work.advisors[index].computeID != "" ) {
+      return `Remove ${etdRepo.work.advisors[index].computeID}`
+   }
+   return "Remove Advisor"
+})
 
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
@@ -482,6 +490,9 @@ const endDatePicked = ( (newDate) => {
    .visibility-panel {
       min-width: 375px;
    }
+   .remove {
+      margin-left: auto;
+   }
 }
 @media only screen and (max-width: 768px) {
     h1, .help {
@@ -492,14 +503,9 @@ const endDatePicked = ( (newDate) => {
       margin-right: 2px;
       gap: 15px;
    }
-   .id-field {
-      .control-group {
-         input, button {
-            flex-grow: 1;
-         }
-      }
-      .p-button-rounded {
-         width: 60px;
+   .control-group {
+      button, input {
+         flex-grow: 1;
       }
    }
 }
@@ -607,10 +613,8 @@ const endDatePicked = ( (newDate) => {
          }
          .id-field {
             display: flex;
-            flex-flow: row nowrap;
-            justify-content: space-between;
-            gap: 10px;
-            align-items: flex-start;
+            gap: 5px;
+            flex-direction: column;
             .control-group {
                display: flex;
                flex-flow: row wrap;

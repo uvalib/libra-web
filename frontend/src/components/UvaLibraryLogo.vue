@@ -55,7 +55,4 @@
 </script>
 
 <style scoped lang="scss">
-svg {
-   width: 250px;
-}
 </style>
