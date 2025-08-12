@@ -18,7 +18,7 @@
                </div>
                <div class="user-lookup">
                   <TextArea v-model="computeID" id="user-input" rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs"
-                     aria-label="registrants" aria-describedby="add-help"
+                     aria-label="Computing IDs" aria-describedby="add-help"
                   />
                   <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" />
                </div>
