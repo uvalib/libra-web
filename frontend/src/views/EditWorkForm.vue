@@ -2,14 +2,14 @@
    <div class="edit">
       <div class="work-head">
          <h1>
-            <span>LibraETD Work</span>
+            <span>Libra ETD Work</span>
             <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
          </h1>
          <div class="help">View <a target="_blank" aria-describedby="new-window" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
       </div>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
-         <Panel header="Metadata" toggleable>
+         <Panel header="Metadata" toggleable pt:title:id="metadata-panel" pt:contentContainer:aria-labelledby="metadata-panel">
             <ProgramPanel :admin="user.isAdmin" @changed="programChanged = true"/>
             <div class="fields">
                <div class="field" >
@@ -102,7 +102,7 @@
             </template>
          </Panel>
 
-         <Panel header="Files" toggleable>
+         <Panel header="Files" toggleable pt:title:id="files-panel" pt:contentContainer:aria-labelledby="files-panel">
             <FilesPanel />
             <template #icons>
                <i v-if="etdRepo.hasFiles" class="complete pi pi-check-circle"></i>
@@ -110,7 +110,7 @@
             </template>
          </Panel>
 
-         <Panel header="Access and Visibility" toggleable>
+         <Panel header="Access and Visibility" toggleable pt:title:id="visibilty-panel" pt:contentContainer:aria-labelledby="visibilty-panel">
             <div class="license">
                <div class="note">
                   For more information, see the
@@ -220,7 +220,7 @@ const metadataComplete = ref(false)
 const advisorLookup = ref([])
 
 useHead({
-   title: 'Edit LibraETD Work'
+   title: 'Edit Libra ETD Work'
 })
 
 onBeforeMount( async () => {
