@@ -10,11 +10,7 @@
          <Button icon="pi pi-sign-out" label="Back to Admin" @click="admin.endImpersonate()"/>
       </div>
       <div class="main-header">
-         <div class="library-link">
-            <a href="https://library.virginia.edu" aria-label="go to the uva library homepage">
-               <UvaLibraryLogo />
-            </a>
-         </div>
+         <UvaLibraryLogo />
          <div class="site-link">
             <router-link to="/">
                <img src="@/assets/LibraETD.svg" alt="libra etd"/>
@@ -27,10 +23,10 @@
       </div>
    </header>
 
-   <main  >
+   <main>
       <RouterView  v-if="configuring == false"/>
       <div v-else class="authenticating">Authenticating...</div>
-      <span id="new-window" class="screen-reader-text">(opens in a new window)</span>
+      <span id="new-window" tabindex="-1" class="screen-reader-text">opens in a new window</span>
    </main>
 
    <LibraryFooter />
@@ -106,6 +102,7 @@ body {
       width:1px;
       height:1px;
       overflow:hidden;
+      visibility: hidden;
    }
 }
 
@@ -198,14 +195,7 @@ header {
       font-size: 0.5em;
       text-align: right;
    }
-   div.library-link {
-      width: 250px;
-      order: 0;
-      flex: 0 1 auto;
-      align-self: flex-start;
-   }
    div.site-link {
-      order: 0;
       text-align: right;
       .sub {
          display: block;

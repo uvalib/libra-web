@@ -20,12 +20,10 @@
                   <TextArea v-model="computeID" id="user-input" rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs"
                      aria-label="registrants" aria-describedby="add-help"
                   />
-                  <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" :disabled="computeID.length == 0"/>
+                  <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" />
                </div>
                <Message v-if="added" severity="success" :life="3000" @life-end="added=false" variant="simple">Registrants added</Message>
-               <div class="errors" aria-live="assertive">
-                  <div v-for="err in userErrors" class="err">{{ err }}</div>
-               </div>
+               <Message severity="error" v-for="err in userErrors" class="err">{{ err }}</Message>
                <div class="users">
                   <Chip v-for="u in users" removable @remove="removeUser(u.computeID)" :key="u.computeID" :label="`${ u.computeID } - ${u.lastName}, ${u.firstName}`"/>
                </div>
@@ -88,6 +86,11 @@ const lookup = ( () => {
       request = normalized.split(",")
    }
 
+   if (normalized.length==0) {
+      userErrors.value = ["Please enter one or more computing IDs"]
+      return
+   }
+
    working.value = true
    userErrors.value = []
    request.forEach( computeID => {
@@ -109,9 +112,6 @@ const lookup = ( () => {
    })
    computeID.value = ""
    working.value = false
-   let input = document.getElementById("user-input")
-   input.setAttribute('aria-describedby', '')
-   setTimeout( ()=>{ input.focus()}, 2000)
 })
 
 const submitRegistrations = ( async ( ) => {
