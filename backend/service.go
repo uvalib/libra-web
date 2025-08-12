@@ -397,7 +397,6 @@ func (svc *serviceContext) lookupComputeID(c *gin.Context) {
 		return
 	}
 
-	log.Printf("GOT: %s", resp)
 	var jsonResp userServiceResp
 	err = json.Unmarshal(resp, &jsonResp)
 	if err != nil {

@@ -25,7 +25,10 @@
                <Message v-if="added" severity="success" :life="3000" @life-end="added=false" variant="simple">Registrants added</Message>
                <Message severity="error" v-for="err in userErrors" class="err">{{ err }}</Message>
                <div class="users">
-                  <Chip v-for="u in users" removable @remove="removeUser(u.computeID)" :key="u.computeID" :label="`${ u.computeID } - ${u.lastName}, ${u.firstName}`"/>
+                  <div v-for="u in users" class="registrant">
+                     <span @click="removeUser(u.computeID)">{{ u.computeID }} - {{ u.lastName }}, {{ u.firstName }}</span>
+                     <Button icon="pi pi-times" severity="danger" rounded small :aria-label="`remove ${u.computeID}`" @click="removeUser(u.computeID)"/>
+                  </div>
                </div>
             </div>
          </FieldSet>
@@ -44,7 +47,6 @@ import { useHead } from '@unhead/vue'
 import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
 import TextArea from 'primevue/textarea'
-import Chip from 'primevue/chip'
 import Message from 'primevue/message'
 import axios from 'axios'
 
@@ -96,10 +98,10 @@ const lookup = ( () => {
    request.forEach( computeID => {
       if (computeID.length == 0) return
       axios.get(`/api/users/lookup/${computeID}`).then(r => {
-         const idx = users.value.findIndex( u => u.computeID == r.data.cid)
+         const idx = users.value.findIndex( u => u.computeID.toLowerCase() == r.data.cid.toLowerCase())
          if ( idx == -1) {
             let user = {
-               computeID: r.data.cid, firstName: r.data.first_name, lastName:
+               computeID: r.data.cid.toLowerCase(), firstName: r.data.first_name, lastName:
                r.data.last_name, email: r.data.email }
             users.value.push( user )
             added.value = true
@@ -189,6 +191,22 @@ const submitRegistrations = ( async ( ) => {
          justify-content: flex-start;
          align-items: flex-start;
          gap: 5px;
+
+         .registrant {
+            display: flex;
+            flex-flow: row nowrap;
+            gap: 8px;
+            align-items: center;
+            border: 1px solid $uva-grey-100;
+            border-radius: 50px;
+            padding: 6px;
+            background-color: #fafafa;
+            cursor: default;
+            button {
+               width: 24px;
+               height: 24px;
+            }
+         }
       }
    }
 
