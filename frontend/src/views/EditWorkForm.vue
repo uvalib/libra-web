@@ -258,8 +258,10 @@ onBeforeRouteLeave(() => {
 })
 
 const previewDisabled = computed( () => {
-   // needsSave || metadataComplete==false || etdRepo.hasFiles==false
-   return true
+   if (needsSave.value == true || metadataComplete.value ==false || etdRepo.hasFiles==false || etdRepo.visibility == "") {
+      return true
+   }
+   return false
 })
 
 
