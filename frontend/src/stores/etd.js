@@ -115,7 +115,6 @@ export const useETDStore = defineStore('etd', {
          this.work.files.forEach( f => f.url = "")
 
          // lookup licence ID based on URL
-         this.licenseID = "0"
          if ( this.work.licenseURL || this.work.license) {
             const system = useSystemStore()
             let lic = system.licenses.find( l => l.url == this.work.licenseURL )

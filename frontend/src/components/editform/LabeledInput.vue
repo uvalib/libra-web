@@ -6,9 +6,8 @@
       </div>
       <InputText v-if="props.type=='text'" v-model="model" :name="props.name" fluid :readonly="props.readonly"/>
       <Textarea v-if="props.type=='textarea'" v-model="model" :name="props.name" fluid rows="10" :readonly="props.readonly"/>
-      <select v-if="props.type=='select'" v-model="model" >
-         <option v-for="o in options" :value="o.value">{{ o.label }}</option>
-      </select>
+      <Select v-if="props.type=='select'" :options="props.options" optionLabel="label" optionValue="value"
+         v-model="model" :name="props.name" :placeholder="`Select ${props.label}`" :readonly="props.readonly"/>
    </label>
 </template>
 
@@ -16,6 +15,7 @@
 const model = defineModel()
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
+import Select from 'primevue/select'
 
 const props = defineProps({
    label: {

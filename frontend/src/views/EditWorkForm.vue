@@ -319,7 +319,7 @@ const resolver = ({ values }) => {
    }
 
    let licID = parseInt(values.licenseID)
-   if ( licID == 0 ) {
+   if ( !values.licenseID || licID == 0 ) {
       metadataComplete.value = false
       errors.licenseID = [{ message: 'Rights are required' }]
    }
