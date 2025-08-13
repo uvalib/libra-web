@@ -97,16 +97,28 @@
                </div>
             </div>
             <template #icons>
-               <i v-if="metadataComplete" class="complete pi pi-check-circle"></i>
-               <i v-else class="incomplete pi pi-exclamation-circle"></i>
+               <span v-if="metadataComplete" class="complete">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Complete</span>
+               </span>
+               <span v-else class="incomplete">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Incomplete</span>
+               </span>
             </template>
          </Panel>
 
          <Panel header="Files" toggleable pt:title:id="files-panel" pt:contentContainer:aria-labelledby="files-panel">
             <FilesPanel />
             <template #icons>
-               <i v-if="etdRepo.hasFiles" class="complete pi pi-check-circle"></i>
-               <i v-else class="incomplete pi pi-exclamation-circle"></i>
+               <span v-if="etdRepo.hasFiles" class="complete">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Complete</span>
+               </span>
+               <span v-else class="incomplete">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Incomplete</span>
+               </span>
             </template>
          </Panel>
 
@@ -151,8 +163,14 @@
             </div>
 
             <template #icons>
-               <i v-if="etdRepo.visibility != ''" class="complete pi pi-check-circle"></i>
-               <i v-else class="incomplete pi pi-exclamation-circle"></i>
+               <span v-if="etdRepo.visibility != ''" class="complete">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Complete</span>
+               </span>
+               <span v-else class="incomplete">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Incomplete</span>
+               </span>
             </template>
          </Panel>
       </Form>
@@ -167,11 +185,9 @@
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
-            <Button asChild v-slot="slotProps" severity="success" :disabled="needsSave || metadataComplete==false || etdRepo.hasFiles==false">
-               <RouterLink :to="`/public_view/${etdRepo.work.id}`" :class="slotProps.class">
-                  <span v-if="!etdRepo.publishedAt">Preview</span>
-                  <span v-else>Public View</span>
-               </RouterLink>
+            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked">
+               <span v-if="!etdRepo.publishedAt">Preview</span>
+               <span v-else>Public View</span>
             </Button>
          </span>
       </div>
@@ -239,6 +255,11 @@ onBeforeRouteLeave(() => {
       const exit = window.confirm('You have unsaved changes that will be lost if you return to the dashboard. Are you sure?')
       if (!exit) return false
    }
+})
+
+const previewDisabled = computed( () => {
+   // needsSave || metadataComplete==false || etdRepo.hasFiles==false
+   return true
 })
 
 
@@ -318,6 +339,10 @@ const removeAdvisorLabel = ( (index) => {
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
    etdForm.value.submit()
+})
+
+const previewClicked = (() => {
+    router.push(`/public_view/${etdRepo.work.id}`)
 })
 
 const exitClicked = (() => {
@@ -537,12 +562,30 @@ const endDatePicked = ( (newDate) => {
    }
 
    .complete {
-      font-size: 1.25rem;
       color: $uva-green-A;
+      border: 1px solid $uva-grey-50;
+      padding: 8px;
+      border-radius: 20px;
+      background: white;
+      display: inline-flex;
+      gap: 5px;
+      span {
+         color: $uva-text-color-dark;
+         font-size: 0.9em;
+      }
    }
    .incomplete {
-      font-size: 1.25rem;
       color: $uva-red-A;
+      border: 1px solid $uva-grey-50;
+      padding: 8px;
+      border-radius: 20px;
+      background: white;
+      display: inline-flex;
+      gap: 5px;
+      span {
+         color: $uva-text-color-dark;
+         font-size: 0.9em;
+      }
    }
 
    .sections {
