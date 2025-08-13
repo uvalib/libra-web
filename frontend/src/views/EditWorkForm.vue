@@ -75,13 +75,13 @@
                   <Message v-if="$form.work?.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.work.abstract.error.message }}</Message>
                </div>
 
-               <RepeatField label="Keywords" name="keyword" @change="listChanged=true" help="Add one keyword or keyword phrase per line" v-model="etdRepo.work.keywords" />
+               <RepeatField title="Keywords" label="Keyword" name="keyword" @change="listChanged=true" help="Add one keyword or keyword phrase per line." v-model="etdRepo.work.keywords" />
                <LabeledInput label="Language" name="work.language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
-               <RepeatField label="Related Links" @change="listChanged=true" name="related"
-                  help="A link to a website or other specific content (audio, video, PDF document) related to the work"
+               <RepeatField title="Related Links" label="Link" @change="listChanged=true" name="related"
+                  help="A link to a website or other specific content (audio, video, PDF document) related to the work. Add one link per line."
                   v-model="etdRepo.work.relatedURLs"
                />
-               <RepeatField label="Sponsoring Agencies" name="agency" @change="listChanged=true" v-model="etdRepo.work.sponsors"/>
+               <RepeatField title="Sponsoring Agencies" label="Agency" name="agency" @change="listChanged=true" v-model="etdRepo.work.sponsors" help="Add one agency per line."/>
                <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
                <LabeledInput v-if="user.isAdmin" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
                <div class="field" >
