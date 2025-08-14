@@ -62,7 +62,7 @@ func generateSitemap(svc *serviceContext, baseURL string) (*urlSet, error) {
 	rawResp, respErr := svc.sendPostRequest(url, payload)
 	if respErr != nil {
 		log.Printf("ERROR: Sitemap search for works failed: %s", respErr.Message)
-		return nil, fmt.Errorf(respErr.Message)
+		return nil, fmt.Errorf("%s", respErr.Message)
 	}
 
 	var jsonResp documentResp

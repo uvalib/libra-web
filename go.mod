@@ -1,8 +1,8 @@
 module github.com/uvalib/libra3
 
-go 1.23.0
+go 1.24.0
 
-toolchain go1.24.2
+toolchain go1.24.5
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -59,7 +59,7 @@ require (
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
+	golang.org/x/exp v0.0.0-20250813145105-42675adae3e6 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect

@@ -99,7 +99,9 @@ export const useUserStore = defineStore('user', {
          if (jwt == null || jwt == "" || jwt == "null") {
             return
          }
-         if (jwt == this.jwt) return
+         if (jwt == this.jwt) {
+            return
+         }
 
          this.jwt = jwt
          localStorage.setItem("libra3_jwt", jwt)
@@ -123,9 +125,10 @@ export const useUserStore = defineStore('user', {
          console.log(`jwt is for user ${this.displayName} (${this.computeID}) with role ${this.role}`)
 
          // add interceptor to put bearer token in header
-         if ( this.requestInterceptor ) {
-            console.log("remove existing request intercptor")
+         if ( this.requestInterceptor != null ) {
+            console.log("remove existing request intercoptor")
             axios.interceptors.request.eject( this.requestInterceptor)
+            this.requestInterceptor = null
          }
          const system = useSystemStore()
          this.requestInterceptor = axios.interceptors.request.use(config => {
@@ -136,9 +139,10 @@ export const useUserStore = defineStore('user', {
          })
 
          // Catch 401 errors and redirect to an expired auth page
-         if ( this.responseInterceptor ) {
+         if ( this.responseInterceptor != null ) {
             console.log("remove existing response intercptor")
             axios.interceptors.response.eject(this.responseInterceptor )
+            this.responseInterceptor = null
          }
         this.responseInterceptor = axios.interceptors.response.use(
             res => res,
