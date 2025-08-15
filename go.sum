@@ -115,8 +115,8 @@ github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.3.0 h1:Qd2W2sQawAfG8XSvzwhBeoGq71zXOC/Q1E9y/wUcsUA=
 github.com/ugorji/go/codec v1.3.0/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
-github.com/uvalib/easystore/uvaeasystore v0.0.0-20250723164731-027ac39929ad h1:7YoWxl4yzSx8i37KRvm5ZcDkRlFlbDkpRrouY5vo2YI=
-github.com/uvalib/easystore/uvaeasystore v0.0.0-20250723164731-027ac39929ad/go.mod h1:skAzCr9RvYNyEFgDgFzA7W0Q+HMC9vNIeIKCj/dniBU=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20250814165717-bc008fee8685 h1:VRE9vXkewa+CktveIDTK4p8nYqCVHmiYtWkzCH2Tp0U=
+github.com/uvalib/easystore/uvaeasystore v0.0.0-20250814165717-bc008fee8685/go.mod h1:skAzCr9RvYNyEFgDgFzA7W0Q+HMC9vNIeIKCj/dniBU=
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1 h1:eSDmfVQk1tehn1bgnCwvMxS8kmIXNE1jlXeYlXM8ZI4=
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20250801130056-157231a1fcac h1:8WAZ9xsOK4U4gtDlx7csTNRMLzxXqIo2WipuokkGyco=

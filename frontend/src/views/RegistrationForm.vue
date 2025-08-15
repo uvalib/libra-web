@@ -60,6 +60,7 @@ const userErrors = ref([])
 const users = ref([])
 const working = ref(false)
 const added = ref(false)
+
 useHead({
    title: 'Libra Deposit Registration'
 })
@@ -120,7 +121,6 @@ const submitRegistrations = ( async ( ) => {
    await admin.addRegistrations(program.value, degree.value, users.value)
    if (system.error == "") {
       system.toastMessage("Registration success", "All specified users have been registered.")
-   } else {
       program.value = ""
       degree.value = ""
       computeID.value = ""
