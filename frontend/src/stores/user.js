@@ -162,7 +162,7 @@ export const useUserStore = defineStore('user', {
                      } else {
                         this.signOut()
                         system.working = false
-                        window.location.href = "/authenticate"
+                        this.authenticate()
                      }
                      return new Promise(() => { })
                   }
@@ -170,6 +170,12 @@ export const useUserStore = defineStore('user', {
                return Promise.reject(err)
             }
          )
+      },
+      authenticate() {
+         // save the full path of the location reqquested so it can be restored after signin
+         localStorage.setItem("libra3_lasturl", window.location.toString())
+         console.log("AUTHENTICATE")
+         window.location.href = "/authenticate"
       }
    }
 })

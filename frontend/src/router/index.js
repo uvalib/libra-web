@@ -86,6 +86,12 @@ router.beforeEach( async (to) => {
       userStore.setJWT(jwtStr)
       if ( userStore.isSignedIn  ) {
          console.log(`GRANTED [${jwtStr}]`)
+         let savedURL = localStorage.getItem("libra3_lasturl")
+         if (savedURL) {
+            localStorage.removeItem("libra3_lasturl")
+            window.location.href = savedURL
+            return false   // cancel the original navigation
+         }
          return userStore.homePage
       }
       return {name: "forbidden"}
@@ -115,8 +121,7 @@ router.beforeEach( async (to) => {
    } else {
       // force authentication for all other pages
       if ( userStore.isSignedIn == false) {
-         console.log("AUTHENTICATE")
-         window.location.href = "/authenticate"
+         userStore.authenticate()
          return false   // cancel the original navigation
       }
 
