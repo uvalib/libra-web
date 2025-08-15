@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { useSystemStore } from './system'
+import { useAdminStore } from './admin'
 import axios from 'axios'
 
 function parseJwt(token) {
@@ -60,7 +61,7 @@ export const useUserStore = defineStore('user', {
                this.signOut()
             })
          } else {
-            console.log("not sugned in, no auth to validate")
+            console.log("not signed in, no auth to validate")
          }
       },
       getORCID() {
@@ -99,9 +100,7 @@ export const useUserStore = defineStore('user', {
          if (jwt == null || jwt == "" || jwt == "null") {
             return
          }
-         if (jwt == this.jwt) {
-            return
-         }
+         if (jwt == this.jwt) return
 
          this.jwt = jwt
          localStorage.setItem("libra3_jwt", jwt)
@@ -153,9 +152,18 @@ export const useUserStore = defineStore('user', {
                   this.router.push("/forbidden")
                } else {
                   if (err.response && err.response.status == 401) {
-                     this.signOut()
-                     system.working = false
-                     window.location.href = "/authenticate"
+                     console.log("REQUEST FAILED WITH 401")
+                     const admin = useAdminStore()
+                     if ( admin.isImpersonating ) {
+                        console.log("IMPERSONATE EXPIRED")
+                        admin.endImpersonate()
+                        system.setError("Impersonate user session has expired.")
+                        this.router.push("/admin")
+                     } else {
+                        this.signOut()
+                        system.working = false
+                        window.location.href = "/authenticate"
+                     }
                      return new Promise(() => { })
                   }
                }

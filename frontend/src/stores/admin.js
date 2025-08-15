@@ -85,6 +85,7 @@ export const useAdminStore = defineStore('admin', {
             localStorage.setItem("libra3_impersonate", strData)
             this.router.push("/")
          }).catch( err => {
+            console.error("Unable to impersonate user: "+err)
             const system = useSystemStore()
             system.setError(  `Unable to impersonate user '${tgtID}'` )
              this.endImpersonate()

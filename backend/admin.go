@@ -110,8 +110,8 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 	}
 
 	jsonResp.User.Role = "user"
-	log.Printf("INFO: generate jwt for impersonated user %+v", jsonResp.User)
 	expirationTime := time.Now().Add(1 * time.Hour)
+	log.Printf("INFO: generate jwt for impersonated user %+v with expiration %s", jsonResp.User, expirationTime.String())
 	claims := jwtClaims{
 		UserDetails: &jsonResp.User,
 		StandardClaims: jwt.StandardClaims{
@@ -127,6 +127,7 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 		return
 	}
 
+	log.Printf("INFO: impersonate jwt: %s", signedStr)
 	c.SetCookie("libra3_impersonate_jwt", signedStr, 10, "/", "", false, false)
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.String(http.StatusOK, "impersonated")

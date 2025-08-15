@@ -73,9 +73,10 @@ const router = createRouter({
 router.beforeEach( async (to) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
+   const admin = useAdminStore()
    const noAuthRoutes = ["not_found", "forbidden", "expired", "etdpublic", "signedout"]
 
-   // close any lobgering toast messages
+   // close any lingering toast messages
    useToast().removeAllGroups()
 
    // the /signedin endpoint called after authorization. it has no page itself; it just
@@ -101,7 +102,7 @@ router.beforeEach( async (to) => {
    if (impersonateData) {
       console.log("cached impersonate data found")
       if (impersonateData.userID == userStore.computeID) {
-         useAdminStore().impersonate = impersonateData
+         admin.impersonate = impersonateData
       } else {
          console.log("impersonate data fis mismatched; removing it")
          localStorage.removeItem("libra3_impersonate")
@@ -131,13 +132,6 @@ router.beforeEach( async (to) => {
             console.log("REJECT NON-REGISTRAR REQUEST FOR REGISTER PAGE")
             return {name: "forbidden"}
          }
-      }
-
-      // this page uses the auth token. be sure it is still valid before proceeding
-      await userStore.validateAuth()
-      if (userStore.isSignedIn == false) {
-         console.log("JWT HAS EXPIRED")
-         return {name: "expired"}
       }
    }
 })
