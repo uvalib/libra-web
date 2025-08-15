@@ -498,6 +498,7 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 }
 
 func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAccessFiles bool) (*workDetails, error) {
+	log.Printf("INFO: parse work %s, draft [%v]", tgtObj.Id(), tgtObj.Fields()["draft"])
 	mdBytes, err := tgtObj.Metadata().Payload()
 	if err != nil {
 		return nil, fmt.Errorf("unable to read payload: %s", err.Error())
