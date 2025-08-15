@@ -56,7 +56,7 @@ type authInfo struct {
 }
 
 func (svc *serviceContext) authenticate(c *gin.Context) {
-	log.Printf("Checking authentication headers...")
+	log.Printf("INFO: authenticate request is checking headers")
 	log.Printf("Dump all request headers ==================================")
 	for name, values := range c.Request.Header {
 		for _, value := range values {
@@ -148,12 +148,14 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 }
 
 func (svc *serviceContext) checkAuthToken(c *gin.Context) {
+	log.Printf("INFO: check authorization...")
 	_, err := svc.getAuthFromHeader(c.Request.Header.Get("Authorization"))
 	if err != nil {
 		log.Printf("INFO: check auth failed: %s", err.Error())
 		c.String(http.StatusForbidden, "invalid")
 		return
 	}
+	log.Printf("INFO: authorization check passed")
 	c.String(http.StatusOK, "valid")
 }
 
@@ -161,8 +163,13 @@ func (svc *serviceContext) userMiddleware(c *gin.Context) {
 	log.Printf("INFO: user authorization check for %s...", c.Request.URL.Path)
 	jwtRequired := true
 	if c.Request.Method == "GET" && strings.Contains(c.Request.URL.Path, "/api/works") {
-		log.Printf("INFO: public metadata request for %s; jwt not required", c.Request.URL.Path)
-		jwtRequired = false
+		dataFor := c.Request.URL.Query().Get("for")
+		if dataFor != "edit" {
+			log.Printf("INFO: public metadata request for %s; jwt not required", c.Request.URL.Path)
+			jwtRequired = false
+		} else {
+			log.Printf("INFO: authorize user access to edit metadata for %s", c.Request.URL.Path)
+		}
 	} else {
 		log.Printf("INFO: authorize user access to %s", c.Request.URL.Path)
 	}
@@ -176,7 +183,8 @@ func (svc *serviceContext) userMiddleware(c *gin.Context) {
 		}
 		log.Printf("INFO: optional auth is not present")
 	} else {
-		log.Printf("INFO: got valid bearer token: [%s] for %s", auth.tokenString, auth.jwt.ComputeID)
+		exp := time.Unix(auth.jwt.ExpiresAt, 0)
+		log.Printf("INFO: got valid bearer token: [%s] for %s with expiration %s", auth.tokenString, auth.jwt.ComputeID, exp.String())
 		c.Set("claims", auth.jwt)
 	}
 
@@ -236,14 +244,19 @@ func (svc *serviceContext) getAuthFromHeader(authHeader string) (*authInfo, erro
 		return nil, fmt.Errorf("bearer token is undefined")
 	}
 
-	log.Printf("INFO: validating JWT auth token")
+	log.Printf("INFO: validating JWT auth token %s", tokenStr)
 	jwtClaims := &jwtClaims{}
-	_, jwtErr := jwt.ParseWithClaims(tokenStr, jwtClaims, func(token *jwt.Token) (interface{}, error) {
+	_, jwtErr := jwt.ParseWithClaims(tokenStr, jwtClaims, func(token *jwt.Token) (any, error) {
 		return []byte(svc.JWTKey), nil
 	})
 	if jwtErr != nil {
 		return nil, fmt.Errorf("token validation failed: %+v", jwtErr)
 	}
+
+	exp := jwtClaims.ExpiresAt
+	expDate := time.Unix(exp, 0)
+	now := time.Now()
+	log.Printf("INFO: got claims for %s %s with expire %s vs now %s", jwtClaims.Role, jwtClaims.ComputeID, expDate.String(), now.String())
 
 	auth := authInfo{tokenString: tokenStr, jwt: jwtClaims}
 	return &auth, nil
