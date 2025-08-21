@@ -22,7 +22,7 @@
                </section>
                <section>
                   <h2>Advisors</h2>
-                  <ul class="advisors">
+                  <ul class="unstyled">
                      <li v-for="advisor in  etdRepo.work.advisors" class="advisor">
                         <span>{{ advisor.lastName }}, {{ advisor.firstName }}</span>
                         <span v-if="advisor.department">,&nbsp;{{ advisor.department }}</span>
@@ -44,14 +44,16 @@
                </section>
                <section v-if="etdRepo.hasSponsors">
                   <h2>Sponsors</h2>
-                  <ul>
+                  <ul class="unstyled">
                      <li v-for="s in etdRepo.work.sponsors">{{ s }}</li>
                   </ul>
                </section>
                <section v-if="etdRepo.hasRelatedURLs">
                   <h2>Related Links</h2>
-                  <ul>
-                     <li v-for="url in etdRepo.work.relatedURLs"><a :href="url" target="_blank" aria-describedby="new-window">{{ url }}</a></li>
+                  <ul class="links">
+                     <li v-for="url in etdRepo.work.relatedURLs">
+                        <span v-html="extractLink(url)"/>
+                     </li>
                   </ul>
                </section>
                <section v-if="etdRepo.work.notes">
@@ -137,6 +139,22 @@ const copyCitation = (() => {
       system.toastMessage("Copied", "Citation has been copied to the clipboard.")
    }
 })
+
+const extractLink = ( data) => {
+   let regex  = /(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/
+	let final = []
+   let tokens = data.split(" ")
+	tokens.forEach(  token => {
+      let trimmed = token.trim()
+      if (regex.test( trimmed ) ) {
+         let link = `<a href="${trimmed}" target="_blank" aria-describedby="new-window">${trimmed}</a>`
+         final.push(link)
+      } else {
+         final.push(trimmed)
+      }
+   })
+   return final.join(" ")
+}
 </script>
 
 <style lang="scss" scoped>
@@ -239,13 +257,21 @@ div.public-work {
          display: flex;
          flex-direction: column;
          gap: 1.5rem;
-         ul {
+         ul.unstyled {
             display: flex;
             flex-direction: column;
             gap: 5px;
             margin: 0;
             list-style: none;
             padding: 0 0 0 0px;
+         }
+         ul.links {
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-left: 20px;
+            li {
+               margin-top: 5px;
+            }
          }
          h2 {
             text-align: left;
