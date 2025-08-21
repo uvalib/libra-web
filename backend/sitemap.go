@@ -84,7 +84,7 @@ func generateSitemap(svc *serviceContext, baseURL string) (*urlSet, error) {
 	}
 
 	urlSet := urlSet{
-		Xmlns: "http://www.sitemaps.org/schemas/sitemap/1.1",
+		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		URLs:  urls,
 	}
 
