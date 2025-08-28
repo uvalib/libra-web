@@ -1,7 +1,7 @@
 <template>
    <div class="files">
       <h2 class="title">Files</h2>
-      <template  v-if="etdRepo.visibility == 'embargo'">
+      <template  v-if="etdRepo.visibility == 'embargo' || etdRepo.visibility == 'restricted' ">
          <span class="file-embargo">
          This item is restricted to abstract view only until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
          </span>
