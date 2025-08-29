@@ -30,7 +30,7 @@ import (
 // "source-id": source of the thesis, a unique SIS or Optional identifier. LibraETD only.
 // "source": source of the thesis, "sis" or "optional".
 // "submitted-sent" timestamp that indicates when a "successfully submitted" email was sent.
-// "visibility": work visibility, either "open", "uva" or "restricted".
+// "visibility": work visibility, either "open", "uva" or "embargo".
 
 type updateSettings struct {
 	Visibility               string   `json:"visibility"`

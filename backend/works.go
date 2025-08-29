@@ -329,26 +329,33 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 }
 
 func (svc *serviceContext) calculateVisibility(defaultVisibility string, releaseDateStr string, releaseVisibility string) string {
+	// older version of libra etd used restructied visibility. This is no longer used and equates to embargo
+	workVisibility := defaultVisibility
+	if workVisibility == "restricted" {
+		log.Printf("INFO: update legacy restricted visibility to embargo")
+		workVisibility = "embargo"
+	}
+
 	// ETD can have an embaro period when files can only be accessed by admin/author
 	// ETD works can have uva visibility for a limited time
 	// In either case, the date is held in embargo-release and the visibility in embargo-release-visibility
-	if defaultVisibility == "embargo" || defaultVisibility == "uva" {
+	if workVisibility == "embargo" || workVisibility == "uva" {
 		if releaseDateStr == "" {
 			// no release date means forever embargoed; just return the default visibility (embargo or uva)
-			return defaultVisibility
+			return workVisibility
 		}
 
 		releaseDate, err := time.Parse(svc.TimeFormat, releaseDateStr)
 		if err != nil {
 			log.Printf("ERROR: unable to parse embargo release date [%s]: %s", releaseDateStr, err.Error())
-			return defaultVisibility
+			return workVisibility
 		}
 
 		if time.Now().After(releaseDate) {
 			return releaseVisibility
 		}
 	}
-	return defaultVisibility
+	return workVisibility
 }
 
 func (svc *serviceContext) renameFile(c *gin.Context) {
