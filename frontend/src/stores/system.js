@@ -24,20 +24,9 @@ export const useSystemStore = defineStore('system', {
    }),
    getters: {
       visibilityLabel: state => {
-         return (mode, key) => {
-            if ( mode == "oa") {
-               let oaV = state.visibility.filter( rt => rt.oa == true)
-               if ( oaV ) {
-                  let out = oaV.find(  v=>v.value == key)
-                  if ( out ) return out.label
-               }
-            } else {
-               let etdV = state.visibility.filter( rt => rt.etd == true)
-               if (etdV) {
-                  let out = etdV.find(  v=>v.value == key)
-                  if ( out ) return out.label
-               }
-            }
+         return (key) => {
+            let out = state.visibility.find(  v=>v.value == key)
+            if ( out ) return out.label
             return key
          }
       },

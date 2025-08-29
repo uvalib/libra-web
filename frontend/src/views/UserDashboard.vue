@@ -48,7 +48,7 @@
                <Column header="Visibility" >
                   <template #body="slotProps">
                      <div class="tag">
-                        <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel("etd", slotProps.data.visibility) }}</span>
+                        <span class="visibility" :class="slotProps.data.visibility">{{ system.visibilityLabel(slotProps.data.visibility) }}</span>
                      </div>
                   </template>
                </Column>
