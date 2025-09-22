@@ -329,6 +329,7 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 }
 
 func (svc *serviceContext) calculateVisibility(defaultVisibility string, releaseDateStr string, releaseVisibility string) string {
+	log.Printf("INFO: calculate visibility called with default visibility [%s] release date [%s] and release visibility [%s]", defaultVisibility, releaseDateStr, releaseVisibility)
 	// older version of libra etd used restructied visibility. This is no longer used and equates to embargo
 	workVisibility := defaultVisibility
 	if workVisibility == "restricted" {
@@ -352,6 +353,7 @@ func (svc *serviceContext) calculateVisibility(defaultVisibility string, release
 		}
 
 		if time.Now().After(releaseDate) {
+			log.Printf("INFO: release date %s has passed, visibility is now [%s]", releaseDate, releaseVisibility)
 			return releaseVisibility
 		}
 	}
@@ -470,7 +472,7 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 	//    METADATA: visible to all - except draft content is author/admin only
 	//    FILES: open = visible to all; uva = only visible to uva for a limited timeframe; embargo: only author and admin until date
 	fields := tgtObj.Fields()
-	visibility := svc.calculateVisibility(fields["default-visibility"], fields["embargo-release"], fields["embargo-release"])
+	visibility := svc.calculateVisibility(fields["default-visibility"], fields["embargo-release"], fields["embargo-release-visibility"])
 	depositor := fields["depositor"]
 	isDraft, _ := strconv.ParseBool(fields["draft"])
 	log.Printf("INFO: check if work %s with visibility %s can be accessed", tgtObj.Id(), visibility)
