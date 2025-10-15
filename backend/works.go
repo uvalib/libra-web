@@ -316,14 +316,19 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 
 func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 	fromUVA := false
-	fwdIP := net.ParseIP(c.Request.Header.Get("X-Forwarded-For"))
-	remoteIP := net.ParseIP(c.RemoteIP())
-	log.Printf("INFO: check if request is from uva: remote ip: [%s], x-forwarded-for [%s]", c.RemoteIP(), fwdIP)
+	// clientIP does its best guess to determine the real client request IP
+	clientIP := net.ParseIP(c.ClientIP())
+	log.Printf("INFO: check if client ip [%s] is from uva", clientIP)
 	for _, ipNet := range svc.UVAWhiteList {
-		if ipNet.Contains(fwdIP) || ipNet.Contains(remoteIP) {
+		if ipNet.Contains(clientIP) {
 			fromUVA = true
 			break
 		}
+	}
+	if fromUVA {
+		log.Printf("INFO: client ip [%s] is from uva", c.ClientIP())
+	} else {
+		log.Printf("INFO: client ip [%s] is not from uva", c.ClientIP())
 	}
 	return fromUVA
 }

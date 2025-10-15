@@ -122,7 +122,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	if err != nil {
 		log.Fatalf("read ipwhitelist failed: %s", err.Error())
 	}
-	for _, ip := range strings.Split(string(wlBytes), "\n") {
+	for ip := range strings.SplitSeq(string(wlBytes), "\n") {
 		cleanIP := strings.TrimSpace(ip)
 		if cleanIP != "" {
 			_, ipnet, ipErr := net.ParseCIDR(cleanIP)
