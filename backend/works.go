@@ -525,10 +525,20 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 	fields := tgtObj.Fields()
 	visibility := svc.calculateVisibility(fields["default-visibility"], fields["embargo-release"], fields["embargo-release-visibility"])
 	isDraft, _ := strconv.ParseBool(fields["draft"])
+	dateFmt := svc.TimeFormat
+	createDateStr := tgtObj.Fields()["create-date"]
+	if strings.Contains(createDateStr, "T") == false {
+		dateFmt = "2006-01-02"
+	}
+	createDate, dateErr := time.Parse(dateFmt, createDateStr)
+	if dateErr != nil {
+		log.Printf("ERROR: unable to parse field create-date [%s], default to createdAt; %s", createDateStr, dateErr.Error())
+		createDate = tgtObj.Created()
+	}
 	resp := workDetails{
 		coreWorkDetails: &coreWorkDetails{
 			ID:             tgtObj.Id(),
-			CreatedAt:      tgtObj.Created(),
+			CreatedAt:      createDate,
 			IsDraft:        isDraft,
 			Version:        tgtObj.VTag(),
 			Visibility:     visibility,
