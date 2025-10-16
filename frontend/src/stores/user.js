@@ -1,17 +1,8 @@
 import { defineStore } from 'pinia'
 import { useSystemStore } from './system'
 import { useAdminStore } from './admin'
+import { useJwt } from '@vueuse/integrations/useJwt'
 import axios from 'axios'
-
-function parseJwt(token) {
-   var base64Url = token.split('.')[1]
-   var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-   var jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-   }).join(''))
-
-   return JSON.parse(jsonPayload);
-}
 
 export const useUserStore = defineStore('user', {
    state: () => ({
@@ -97,15 +88,13 @@ export const useUserStore = defineStore('user', {
          })
       },
       setJWT(jwt) {
-         if (jwt == null || jwt == "" || jwt == "null") {
-            return
-         }
-         if (jwt == this.jwt) return
+         if (jwt == this.jwt || jwt == "" || jwt == null || jwt == "null")  return
 
          this.jwt = jwt
          localStorage.setItem("libra3_jwt", jwt)
 
-         let parsed = parseJwt(jwt)
+         const { payload } = useJwt(jwt)
+         let parsed  = payload.value
          this.computeID = parsed.cid
          this.uvaID = parsed.uva_id
          this.displayName = parsed.display_name

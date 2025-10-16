@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useSystemStore } from './system'
 import { useETDStore } from './etd'
 import { useUserStore } from './user'
-import VueCookies from 'vue-cookies'
+import { useCookies } from "vue3-cookies"
 
 export const useAdminStore = defineStore('admin', {
    state: () => ({
@@ -79,7 +79,8 @@ export const useAdminStore = defineStore('admin', {
         this.impersonate.active = true
 
          axios.post(`/api/admin/impersonate/${tgtID}`).then(() => {
-            const jwtStr = VueCookies.get("libra3_impersonate_jwt")
+            const { cookies } = useCookies()
+            const jwtStr = cookies.get("libra3_impersonate_jwt")
             user.setJWT(jwtStr)
             const strData = JSON.stringify(this.impersonate)
             localStorage.setItem("libra3_impersonate", strData)

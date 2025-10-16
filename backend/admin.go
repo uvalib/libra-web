@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
@@ -114,8 +114,8 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 	log.Printf("INFO: generate jwt for impersonated user %+v with expiration %s", jsonResp.User, expirationTime.String())
 	claims := jwtClaims{
 		UserDetails: &jsonResp.User,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			Issuer:    "libra-web",
 		},
 	}

@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
@@ -208,8 +208,8 @@ func (svc *serviceContext) publishEvent(eventName, namespace, oid string) {
 
 func (svc *serviceContext) checkUserServiceJWT() error {
 	if svc.UserService.JWT != "" {
-		jwtClaims := &jwtClaims{}
-		_, jwtErr := jwt.ParseWithClaims(svc.UserService.JWT, jwtClaims, func(token *jwt.Token) (interface{}, error) {
+		userClaims := jwtClaims{}
+		_, jwtErr := jwt.ParseWithClaims(svc.UserService.JWT, &userClaims, func(token *jwt.Token) (any, error) {
 			return []byte(svc.JWTKey), nil
 		})
 		if jwtErr != nil {
@@ -222,8 +222,8 @@ func (svc *serviceContext) checkUserServiceJWT() error {
 
 	log.Printf("INFO: generate jwt for userws")
 	expirationTime := time.Now().Add(8 * time.Hour)
-	claims := jwt.StandardClaims{
-		ExpiresAt: expirationTime.Unix(),
+	claims := jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(expirationTime),
 		Issuer:    "libra3",
 	}
 

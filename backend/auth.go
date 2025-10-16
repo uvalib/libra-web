@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type jwtClaims struct {
 	*UserDetails
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func (c *jwtClaims) isAdmin() bool {
@@ -52,7 +52,7 @@ type userServiceResp struct {
 
 type authInfo struct {
 	tokenString string
-	jwt         *jwtClaims
+	jwt         jwtClaims
 }
 
 func (svc *serviceContext) authenticate(c *gin.Context) {
@@ -127,8 +127,8 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	expirationTime := time.Now().Add(8 * time.Hour)
 	claims := jwtClaims{
 		UserDetails: &jsonResp.User,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
 			Issuer:    "libra-web",
 		},
 	}
@@ -183,8 +183,6 @@ func (svc *serviceContext) userMiddleware(c *gin.Context) {
 		}
 		log.Printf("INFO: optional auth is not present")
 	} else {
-		exp := time.Unix(auth.jwt.ExpiresAt, 0)
-		log.Printf("INFO: got valid bearer token: [%s] for %s with expiration %s", auth.tokenString, auth.jwt.ComputeID, exp.String())
 		c.Set("claims", auth.jwt)
 	}
 
@@ -245,18 +243,17 @@ func (svc *serviceContext) getAuthFromHeader(authHeader string) (*authInfo, erro
 	}
 
 	log.Printf("INFO: validating JWT auth token %s", tokenStr)
-	jwtClaims := &jwtClaims{}
-	_, jwtErr := jwt.ParseWithClaims(tokenStr, jwtClaims, func(token *jwt.Token) (any, error) {
+	jwtClaims := jwtClaims{}
+	_, jwtErr := jwt.ParseWithClaims(tokenStr, &jwtClaims, func(token *jwt.Token) (any, error) {
 		return []byte(svc.JWTKey), nil
 	})
 	if jwtErr != nil {
 		return nil, fmt.Errorf("token validation failed: %+v", jwtErr)
 	}
 
-	exp := jwtClaims.ExpiresAt
-	expDate := time.Unix(exp, 0)
+	expDate := jwtClaims.ExpiresAt.String()
 	now := time.Now()
-	log.Printf("INFO: got claims for %s %s with expire %s vs now %s", jwtClaims.Role, jwtClaims.ComputeID, expDate.String(), now.String())
+	log.Printf("INFO: got claims for %s %s with expire %s vs now %s", jwtClaims.Role, jwtClaims.ComputeID, expDate, now.String())
 
 	auth := authInfo{tokenString: tokenStr, jwt: jwtClaims}
 	return &auth, nil
@@ -272,11 +269,11 @@ func getJWTClaims(c *gin.Context) *jwtClaims {
 	if signedIn == false {
 		return nil
 	}
-	jwtClaims, ok := claims.(*jwtClaims)
+	activeClaims, ok := claims.(jwtClaims)
 	if !ok {
 		return nil
 	}
-	return jwtClaims
+	return &activeClaims
 }
 
 func getBearerToken(authorization string) (string, error) {

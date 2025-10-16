@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import VueCookies from 'vue-cookies'
+import { useCookies } from "vue3-cookies"
 import { useUserStore } from '@/stores/user'
 import { useAdminStore } from '@/stores/admin'
 import { useToast } from "primevue/usetoast"
@@ -74,6 +74,7 @@ router.beforeEach( async (to) => {
    console.log("BEFORE ROUTE "+to.path)
    const userStore = useUserStore()
    const admin = useAdminStore()
+   const { cookies } = useCookies()
    const noAuthRoutes = ["not_found", "forbidden", "expired", "etdpublic", "signedout"]
 
    // close any lingering toast messages
@@ -82,7 +83,7 @@ router.beforeEach( async (to) => {
    // the /signedin endpoint called after authorization. it has no page itself; it just
    // processes the authorization response and redirects to the next page (or forbidden)
    if (to.path == '/signedin') {
-      const jwtStr = VueCookies.get("libra3_jwt")
+      const jwtStr = cookies.get("libra3_jwt")
       userStore.setJWT(jwtStr)
       if ( userStore.isSignedIn  ) {
          console.log(`GRANTED [${jwtStr}]`)
