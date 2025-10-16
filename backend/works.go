@@ -513,7 +513,11 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 			resp.files = false
 		default:
 			resp.files = svc.isFromUVA(c)
-			log.Printf("INFO: work %s is limited to uva users; %s from %s with uva status %t", tgtObj.Id(), userInfo, clientIP, resp.files)
+			if resp.files {
+				log.Printf("INFO: work %s is limited to uva and is fully visible to %s from %s", tgtObj.Id(), userInfo, clientIP)
+			} else {
+				log.Printf("INFO: work %s is limited to uva and only metadata is visible to %s from %s", tgtObj.Id(), userInfo, clientIP)
+			}
 		}
 	}
 	return resp
