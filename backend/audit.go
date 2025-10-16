@@ -22,24 +22,10 @@ type auditContext struct {
 
 func (svc *serviceContext) getAudits(c *gin.Context) {
 	workID := c.Param("id")
-	tgtObj, eserr := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
-	if eserr != nil {
-		if strings.Contains(eserr.Error(), "not exist") {
-			log.Printf("INFO: work %s was not found", workID)
-			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
-		} else {
-			log.Printf("ERROR: unable to get %s work %s for audit request: %s", svc.Namespace, workID, eserr.Error())
-			c.String(http.StatusInternalServerError, eserr.Error())
-		}
-		return
-	}
 
-	access := svc.canAccessWork(c, tgtObj)
-	if access.metadata == false {
-		log.Printf("INFO: access to work %s audit log is forbidden", tgtObj)
-		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-		return
-	}
+	// NOTE: previously, there were unnecessary checks:
+	// 1) load the work and make sure it exists. Audit button is only on a work page so it exists by definition.
+	// 2) a check for ability to access work. Only admins and owners can view audit, which can always view the work.
 
 	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.AuditQueryURL, svc.Namespace, workID))
 	if err != nil {

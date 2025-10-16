@@ -326,9 +326,9 @@ func (svc *serviceContext) isFromUVA(c *gin.Context) bool {
 		}
 	}
 	if fromUVA {
-		log.Printf("INFO: client ip [%s] is from uva", c.ClientIP())
+		log.Printf("INFO: client ip [%s] is from uva", clientIP)
 	} else {
-		log.Printf("INFO: client ip [%s] is not from uva", c.ClientIP())
+		log.Printf("INFO: client ip [%s] is not from uva", clientIP)
 	}
 	return fromUVA
 }
@@ -482,30 +482,38 @@ func (svc *serviceContext) canAccessWork(c *gin.Context, tgtObj uvaeasystore.Eas
 	isDraft, _ := strconv.ParseBool(fields["draft"])
 	log.Printf("INFO: check if work %s with visibility %s can be accessed", tgtObj.Id(), visibility)
 	resp := workAccess{files: false, metadata: true}
+
+	userInfo := "anonymous user"
+	clientIP := c.ClientIP()
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
-		log.Printf("INFO: work %s accessed by signed in user %s", tgtObj.Id(), jwt.ComputeID)
+		userInfo = fmt.Sprintf("user %s", jwt.ComputeID)
+		log.Printf("INFO: work %s accessed by signed in %s", tgtObj.Id(), userInfo)
 		if depositor == jwt.ComputeID || jwt.isAdmin() {
-			log.Printf("INFO: user %s is admin or author of work %s and has full access", jwt.ComputeID, tgtObj.Id())
+			// admin/owner  short circuits all visibility rules and can see everything
+			log.Printf("INFO: %s is admin or author of work %s and has full access from %s", userInfo, tgtObj.Id(), clientIP)
 			resp.files = true
+			return resp
 		}
 	} else {
-		if isDraft {
-			log.Printf("INFO: work %s is a draft cannot be accessed", tgtObj.Id())
-			resp.metadata = false
-		} else {
-			switch visibility {
-			case "open":
-				log.Printf("INFO: work %s is public and is fully visibile", tgtObj.Id())
-				resp.files = true
-			case "embargo":
-				// embargo work files are only visible to admin / author. that us handled above
-				log.Printf("INFO: work %s is embargoed and only metadata is visible", tgtObj.Id())
-				resp.files = false
-			default:
-				resp.files = svc.isFromUVA(c)
-				log.Printf("INFO: work %s is limited to uva users; user uva status %t", tgtObj.Id(), resp.files)
-			}
+		log.Printf("INFO: work %s accessed by %s", tgtObj.Id(), userInfo)
+	}
+
+	if isDraft {
+		log.Printf("INFO: work %s is a draft cannot be accessed by %s from %s", tgtObj.Id(), userInfo, clientIP)
+		resp.metadata = false
+	} else {
+		switch visibility {
+		case "open":
+			log.Printf("INFO: work %s is public and is fully visibile to %s from %s", tgtObj.Id(), userInfo, clientIP)
+			resp.files = true
+		case "embargo":
+			// embargo work files are only visible to admin / author. that us handled above
+			log.Printf("INFO: work %s is embargoed and only metadata is visible to %s from %s", tgtObj.Id(), userInfo, clientIP)
+			resp.files = false
+		default:
+			resp.files = svc.isFromUVA(c)
+			log.Printf("INFO: work %s is limited to uva users; %s from %s with uva status %t", tgtObj.Id(), userInfo, clientIP, resp.files)
 		}
 	}
 	return resp
@@ -525,9 +533,15 @@ func (svc *serviceContext) parseWork(tgtObj uvaeasystore.EasyStoreObject, canAcc
 	fields := tgtObj.Fields()
 	visibility := svc.calculateVisibility(fields["default-visibility"], fields["embargo-release"], fields["embargo-release-visibility"])
 	isDraft, _ := strconv.ParseBool(fields["draft"])
-	dateFmt := svc.TimeFormat
+	dateFmt := svc.TimeFormat //note this expects timestamp with both T and Z params
 	createDateStr := tgtObj.Fields()["create-date"]
+	log.Printf("INFO: parse create date %s", createDateStr)
 	if strings.Contains(createDateStr, "T") == false {
+		log.Printf("INFO: date lacks a T param; just parse year")
+		dateFmt = "2006-01-02"
+	} else if strings.Contains(createDateStr, "Z") == false {
+		log.Printf("INFO: date has T but no Z; strip all after T and parse raw date")
+		createDateStr = strings.Split(createDateStr, "T")[0]
 		dateFmt = "2006-01-02"
 	}
 	createDate, dateErr := time.Parse(dateFmt, createDateStr)

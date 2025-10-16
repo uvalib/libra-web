@@ -81,7 +81,6 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
@@ -90,7 +89,6 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 
-const router = useRouter()
 const user = useUserStore()
 const system = useSystemStore()
 

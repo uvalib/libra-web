@@ -1,19 +1,13 @@
 <template>
    <div class="files">
       <h2 class="title">Files</h2>
-      <template  v-if="etdRepo.visibility == 'embargo' ">
-         <span class="file-embargo">
+      <span  v-if="etdRepo.visibility == 'embargo'" class="file-embargo">
          This item is restricted to abstract view only until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
-         </span>
-         <span  v-if="etdRepo.isDraft" class="file-embargo author">
-            The files listed below will NOT be available to anyone until the embargo date has passed.
-         </span>
-      </template>
-      <span  v-if="etdRepo.visibility == 'uva'" class="file-embargo">
+      </span>
+      <span  v-else-if="etdRepo.visibility == 'uva'" class="file-embargo">
          This item is restricted to UVA until {{ $formatDate(etdRepo.embargoReleaseDate) }}.
       </span>
-
-      <div  v-if="etdRepo.isDraft || etdRepo.visibility != 'embargo'" class="file" v-for="file in etdRepo.work.files">
+      <div class="file" v-for="file in etdRepo.work.files">
          <div class="name">{{ file.name }}</div>
          <div class="file-stat">Uploaded on {{ $formatDate(file.createdAt) }}</div>
          <div class="file-stat">Downloads: {{ file.downloads }}</div>
