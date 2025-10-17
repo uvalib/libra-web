@@ -423,40 +423,51 @@ type OrcidDetails struct {
 func (svc *serviceContext) lookupOrcidID(c *gin.Context) {
 	computeID := c.Param("cid")
 	log.Printf("INFO: lookup orcid for compute id [%s]", computeID)
-	err := svc.checkUserServiceJWT()
+	orcidDetail, err := svc.doOrcidLookup(computeID)
 	if err != nil {
-		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
+		log.Printf("ERROR: orcid lookup failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	// no err and nil data means there is no orcid for this user
+	if orcidDetail == nil {
+		log.Printf("INFO: no orcid for user %s", computeID)
+		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", computeID))
+		return
+	}
+
+	c.JSON(http.StatusOK, *orcidDetail)
+}
+
+func (svc *serviceContext) doOrcidLookup(computeID string) (*OrcidDetails, error) {
+	err := svc.checkUserServiceJWT()
+	if err != nil {
+		return nil, fmt.Errorf("unable to validate jwt: %s", err.Error())
 	}
 	url := svc.ORCID.serviceURL
 	url = strings.Replace(url, "{:id}", computeID, 1)
 	url = strings.Replace(url, "{:auth}", svc.UserService.JWT, 1)
 	payload, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
-		log.Printf("INFO: lookup ORCID user [%s] failed: %s", computeID, userErr.Message)
-		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", computeID))
-		return
+		if userErr.StatusCode == 404 {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s", userErr.Message)
 	}
+
 	resp := OrcidDetailsResponse{}
 	err = json.Unmarshal(payload, &resp)
 	if err != nil {
-		log.Printf("ERROR: json unmarshal of OrcidDetailsResponse (%s)", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
+		return nil, fmt.Errorf("%s", err.Error())
 	}
 
-	log.Printf("INFO: located ORCID [%+v] for cid [%s]", resp, computeID)
-
-	// if we have details, return them
-	if len(resp.Details) != 0 {
-		c.JSON(http.StatusOK, resp.Details[0])
-		return
+	log.Printf("INFO: parsed orcid response [%+v] for cid [%s]", resp, computeID)
+	if len(resp.Details) == 0 {
+		return nil, fmt.Errorf("%s", resp.Message)
 	}
 
-	log.Printf("INFO: No ORCID details found - %d: %s", resp.Status, resp.Message)
-	c.String(resp.Status, resp.Message)
-
+	return &resp.Details[0], nil
 }
 
 func (svc *serviceContext) sendGetRequest(url string) ([]byte, *RequestError) {

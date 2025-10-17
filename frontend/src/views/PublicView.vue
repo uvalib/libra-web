@@ -18,7 +18,13 @@
                </h1>
                <section>
                   <h2>Author</h2>
-                  <div class="content">{{  authorDisplay(etdRepo.work.author) }}</div>
+                  <div class="content author">
+                     <span>{{ authorDisplay(etdRepo.work.author) }}</span>
+                     <a v-if="etdRepo.work.author.orcid" class="orcid" :href="etdRepo.work.author.orcid" target="_blank" aria-describedby="new-window">
+                        <img class="orcid-img" src="@/assets/orcid_id.svg" aria-hidden="true"/>
+                        <span>{{ etdRepo.work.author.orcid.split("/").pop() }}</span>
+                     </a>
+                  </div>
                </section>
                <section>
                   <h2>Advisors</h2>
@@ -232,6 +238,24 @@ div.public-work {
          border-radius: 100px;
       }
    }
+
+   .content.author {
+      display: flex;
+      flex-flow: row wrap;
+      gap: 10px;
+      a.orcid {
+         display: inline-flex;
+         flex-flow: row nowrap;
+         gap: 5px;
+         justify-content: flex-start;
+         align-self: center;
+
+         .orcid-img {
+            width: 20px;
+         }
+      }
+   }
+
    section {
       display: flex;
       flex-direction: column;
