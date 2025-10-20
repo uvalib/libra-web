@@ -26,7 +26,7 @@
             <select v-model="admin.sourceFilter" id="source-filter">
                <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
             </select>
-            <Button severity="secondary" class="apply" label="Apply Filters" @click="admin.search()"/>
+            <Button severity="secondary" class="apply" label="Apply Filters" @click="admin.search()" />
          </div>
       </div>
 
@@ -114,7 +114,6 @@ import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import AuditsPanel from '@/components/AuditsPanel.vue'
-import { useDateFormat } from '@vueuse/core'
 import { useHead } from '@unhead/vue'
 
 const admin = useAdminStore()
