@@ -18,6 +18,8 @@ export const useAdminStore = defineStore('admin', {
       sortOrder: "",
       statusFilter: "any",
       sourceFilter: "any",
+      fromDate: "",
+      toDate: "",
       impersonate: {
          adminJWT: "",
          userID: "",
@@ -55,6 +57,12 @@ export const useAdminStore = defineStore('admin', {
          }
          if ( this.sourceFilter != "any") {
             url += `&source=${this.sourceFilter}`
+         }
+         if ( this.fromDate != "" ) {
+            url += `&from=${this.fromDate}`
+         }
+         if ( this.toDate != "" ) {
+            url += `&to=${this.toDate}`
          }
          axios.get(url).then(response => {
             this.hits = response.data.hits

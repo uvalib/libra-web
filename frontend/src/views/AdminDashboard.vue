@@ -1,21 +1,33 @@
 <template>
    <div class="admin">
       <h1>Admin Dashboard</h1>
-      <div class="search">
-         <label for="admin-search">Search for works:</label>
-         <IconField iconPosition="left" class="query">
-            <InputIcon class="pi pi-search" />
-            <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
-         </IconField>
-         <label for="status-filter">Publication Status:</label>
-         <select v-model="admin.statusFilter" id="status-filter"  @change="admin.search()">
-            <option v-for="o in publishOpts" :value="o.value">{{ o.label }}</option>
-         </select>
-         <label for="source-filter">Source:</label>
-         <select v-model="admin.sourceFilter" id="source-filter"  @change="admin.search()">
-            <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
-         </select>
-         <Button severity="secondary" label="Reset Search" @click="admin.resetSearch"/>
+      <div class="search-setup">
+         <div class="search">
+            <label for="admin-search">Search for works:</label>
+            <IconField iconPosition="left" class="query">
+               <InputIcon class="pi pi-search" />
+               <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
+            </IconField>
+            <Button label="Search" @click="admin.search()"/>
+            <Button severity="secondary" label="Reset Search" @click="resetSearch"/>
+         </div>
+         <div class="search-filter">
+            <label for="status-filter">Publication Status:</label>
+            <select v-model="admin.statusFilter" id="status-filter">
+               <option v-for="o in publishOpts" :value="o.value">{{ o.label }}</option>
+            </select>
+            <div class="pub-dates"  v-if="admin.statusFilter=='published'">
+               <label for="from-picker">From:</label>
+               <InputMask  input-id="from-picker" v-model="admin.fromDate" mask="9999-99-99" placeholder="yyyy-mm-dd" />
+               <label for="to-picker">To: </label>
+               <InputMask input-id="to-picker" v-model="admin.toDate" mask="9999-99-99" placeholder="yyyy-mm-dd" />
+            </div>
+            <label for="source-filter">Source:</label>
+            <select v-model="admin.sourceFilter" id="source-filter">
+               <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
+            </select>
+            <Button severity="secondary" class="apply" label="Apply Filters" @click="admin.search()"/>
+         </div>
       </div>
 
       <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
@@ -51,7 +63,7 @@
                <div v-else class="na">N/A</div>
             </template>
          </Column>
-         <Column field="published" header="Published" class="nowrap">
+         <Column field="published" header="Published" sortable class="nowrap">
             <template #body="slotProps">
                <div v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published) }}</div>
                <div v-else class="na">N/A</div>
@@ -93,17 +105,21 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
+import InputMask from 'primevue/inputmask'
 import AuditsPanel from '@/components/AuditsPanel.vue'
+import { useDateFormat } from '@vueuse/core'
 import { useHead } from '@unhead/vue'
 
 const admin = useAdminStore()
+const fromDate = ref()
+const toDate = ref()
 
 const publishOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "Draft", value: "draft"}, {label: "Published", value: "published"} ]
@@ -135,6 +151,12 @@ const onSort = ((event) => {
    admin.search()
 })
 
+const resetSearch = (() => {
+   toDate.value = null
+   fromDate.value = null
+   admin.resetSearch()
+})
+
 const searchKeyPressed = ((event) => {
    admin.sortField = ""
    admin.sortOrder = ""
@@ -154,16 +176,54 @@ const becomeUser = ((computeID) => {
 @media only screen and (min-width: 768px) {
    .admin {
        width: 90%;
-      .search {
+      .search-setup {
          gap: 1rem;
+         .search {
+            gap: 1rem;
+            justify-content: flex-start;
+         }
+         .search-filter {
+            flex-flow: row wrap;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 1rem;
+            .pub-dates {
+               display: flex;
+               flex-flow: row wrap;
+               justify-content: flex-end;
+               align-items: center;
+               gap: 1rem;
+            }
+         }
       }
    }
 }
 @media only screen and (max-width: 768px) {
    .admin {
       width: 95%;
-      .search {
+      .search-setup {
          gap: 10px;
+         .search {
+            gap: 10px;
+            justify-content: flex-end;
+         }
+         .search-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            .pub-dates {
+               display: flex;
+               flex-direction: column;
+               gap: 10px;
+               .p-datepicker {
+                  flex-grow: 1;
+                  :deep(input.p-inputtext) {
+                     width: 100%;
+                  }
+               }
+            }
+         }
       }
    }
 }
@@ -187,16 +247,29 @@ const becomeUser = ((computeID) => {
       margin-top: 20px;
    }
 
-   .search {
+   .search-setup {
       display: flex;
-      flex-flow: row wrap;
-      justify-content: flex-start;
-      align-items: center;
-      margin-top: 20px;
-      .query {
-         flex-grow: 1;
+      flex-direction: column;
+      .search {
+         display: flex;
+         flex-flow: row wrap;
+         align-items: center;
+         margin-top: 20px;
+         .query {
+            flex-grow: 1;
+         }
+      }
+      .search-filter {
+         display: flex;
+         .apply {
+            margin-left: auto;
+         }
+         .pub-dates {
+            display: flex;
+         }
       }
    }
+
    .panel-header {
       font-weight: bold;
       display: flex;

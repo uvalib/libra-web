@@ -41,6 +41,8 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 			sort = "fields.create-date"
 		case "title":
 			sort = "metadata.title"
+		case "published":
+			sort = "fields.publish-date"
 		}
 		payload["sort"] = []string{fmt.Sprintf("%s:%s", sort, c.Query("order"))}
 	}
@@ -53,9 +55,20 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 	if c.Query("draft") != "" {
 		filters = append(filters, fmt.Sprintf("fields.draft=%s", c.Query("draft")))
 	}
+	if c.Query("from") != "" {
+		dateQ := fmt.Sprintf("fields.publish-date >= %s", c.Query("from"))
+		if c.Query("to") != "" {
+			dateQ += fmt.Sprintf(" AND fields.publish-date <= %s", c.Query("to"))
+		}
+		filters = append(filters, dateQ)
+	} else if c.Query("to") != "" {
+		filters = append(filters, fmt.Sprintf("fields.publish-date <= %s", c.Query("to")))
+	}
+
 	if len(filters) > 0 {
 		payload["filter"] = filters
 	}
+
 	log.Printf("PAYLOAD %v", payload)
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
 	rawResp, respErr := svc.sendPostRequest(url, payload)
