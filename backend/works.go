@@ -115,17 +115,10 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 			}
 		}
 
-		log.Printf("INFO: load metrics for public view")
-		resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.MetricsQueryURL, svc.Namespace, workID))
-		if err != nil {
-			log.Printf("ERROR: unable to get metrics for %s: %s", workID, err.Message)
+		metrics, mErr := svc.getPublicViewMetrics(workID)
+		if mErr != nil {
+			log.Printf("ERROR: %s", mErr.Error())
 		} else {
-			log.Printf("INFO: metrics response [%s]", resp)
-			var metrics workMetrics
-			parseErr := json.Unmarshal(resp, &metrics)
-			if parseErr != nil {
-				log.Printf("ERROR: unabel to parse metrics response: %s", parseErr.Error())
-			}
 			etdWork.Views = metrics.Views
 			for _, fm := range metrics.Files {
 				for _, f := range etdWork.Files {
@@ -136,6 +129,7 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 				}
 			}
 		}
+
 		log.Printf("INFO: request orcid info for work %s author %s", etdWork.ID, etdWork.Author.ComputeID)
 		orcid, oErr := svc.doOrcidLookup(etdWork.Author.ComputeID)
 		if oErr != nil {
@@ -151,6 +145,22 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, etdWork)
+}
+
+func (svc *serviceContext) getPublicViewMetrics(workID string) (*workMetrics, error) {
+	log.Printf("INFO: load metrics for public view of work %s", workID)
+	resp, err := svc.sendGetRequest(fmt.Sprintf("%s?namespace=%s&oid=%s", svc.MetricsQueryURL, svc.Namespace, workID))
+	if err != nil {
+		return nil, fmt.Errorf("metrics request failed: %s", err.Message)
+	}
+
+	log.Printf("INFO: metrics response [%s]", resp)
+	var metrics workMetrics
+	parseErr := json.Unmarshal(resp, &metrics)
+	if parseErr != nil {
+		return nil, fmt.Errorf("unable to parse metrics response: %s", parseErr.Error())
+	}
+	return &metrics, nil
 }
 
 func (svc *serviceContext) updateWork(c *gin.Context) {
