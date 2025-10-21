@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +16,125 @@ import (
 	librametadata "github.com/uvalib/libra-metadata"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
+
+func (svc *serviceContext) adminExportReport(c *gin.Context) {
+	var req struct {
+		Q      string `json:"q"`
+		Sort   string `json:"sort"`
+		Order  string `json:"order"`
+		Status string `json:"status"`
+		Source string `json:"source"`
+		From   string `json:"from"`
+		To     string `json:"to"`
+		Total  int64  `json:"total"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("INFO: invalid request for export: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	log.Printf("INFO: admin export request %+v", req)
+	payload := map[string]any{"q": req.Q, "offset": 0, "limit": req.Total}
+	if req.Sort != "" {
+		switch req.Sort {
+		case "created":
+			payload["sort"] = []string{fmt.Sprintf("fields.create-date:%s", req.Order)}
+		case "title":
+			payload["sort"] = []string{fmt.Sprintf("metadata.title:%s", req.Order)}
+		case "published":
+			payload["sort"] = []string{fmt.Sprintf("fields.publish-date:%s", req.Order)}
+		}
+	}
+	filters := make([]string, 0)
+	if req.Source != "any" {
+		filters = append(filters, fmt.Sprintf("fields.source=%s", req.Source))
+	}
+	if req.Status != "any" {
+		filters = append(filters, fmt.Sprintf("fields.draft=%t", req.Status == "draft"))
+	}
+	if req.From != "" {
+		dateQ := fmt.Sprintf("fields.publish-date >= %s", req.From)
+		if req.To != "" {
+			dateQ += fmt.Sprintf(" AND fields.publish-date <= %s", req.To)
+		}
+		filters = append(filters, dateQ)
+	} else if req.To != "" {
+		filters = append(filters, fmt.Sprintf("fields.publish-date <= %s", req.To))
+	}
+
+	if len(filters) > 0 {
+		payload["filter"] = filters
+	}
+
+	log.Printf("INFO: export payload %+v", payload)
+	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
+	rawResp, respErr := svc.sendPostRequest(url, payload)
+	if respErr != nil {
+		log.Printf("ERROR: export failed: %s", respErr.Message)
+		c.String(respErr.StatusCode, respErr.Message)
+		return
+	}
+
+	var jsonResp indexResp
+	if err := json.Unmarshal(rawResp, &jsonResp); err != nil {
+		log.Printf("ERROR: unable to parse response: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.Header("Content-Type", "text/csv")
+	cw := csv.NewWriter(c.Writer)
+	csvHead := []string{
+		"Id", "Program", "Degree", "Title", "Depositor",
+		"AuthorID", "Author First Name", "Author Last Name", "Author Institution", "Author ORCiD",
+		"Advisors", "Abstract", "Rights", "Keywords", "Language", "Related Links", "Sponsoring Agency",
+		"Notes", "Admin Notes",
+		"Create Date", "Last Modified Date", "Published Date", "Embargo State", "Embargo End Date",
+		"DOI", "Source", "Views", "Downloads"}
+	cw.Write(csvHead)
+	for _, work := range jsonResp.Hits {
+		currVis := svc.calculateVisibility(work.Fields.DefaultVisibility, work.Fields.EmbargoRelaeseDate, work.Fields.EmbargoRelaeseVisibility)
+		advisors := make([]string, 0)
+		for i, adv := range work.Metadata.Advisors {
+			adv := fmt.Sprintf("%d: (%s) %s %s %s %s", i, adv.ComputeID, adv.FirstName, adv.LastName, adv.Department, adv.Institution)
+			advisors = append(advisors, adv)
+		}
+
+		line := make([]string, 0)
+		line = append(line, work.ID)
+		line = append(line, work.Metadata.Program)
+		line = append(line, work.Metadata.Degree)
+		line = append(line, work.Metadata.Title)
+		line = append(line, work.Fields.Depositor)
+		line = append(line, work.Metadata.Author.ComputeID)
+		line = append(line, work.Metadata.Author.FirstName)
+		line = append(line, work.Metadata.Author.LastName)
+		line = append(line, work.Metadata.Author.Institution)
+		line = append(line, "") // TODO ORCID
+		line = append(line, strings.Join(advisors, "\n"))
+		line = append(line, work.Metadata.Abstract)
+		line = append(line, work.Metadata.License)
+		line = append(line, strings.Join(work.Metadata.Keywords, "; "))
+		line = append(line, work.Metadata.Language)
+		line = append(line, strings.Join(work.Metadata.RelatedURLs, "; "))
+		line = append(line, strings.Join(work.Metadata.Sponsors, "; "))
+		line = append(line, work.Metadata.Notes)
+		line = append(line, work.Metadata.AdminNotes)
+		line = append(line, work.Fields.CreateDate)
+		line = append(line, work.Fields.ModifyDate)
+		line = append(line, work.Fields.PublishDate)
+		line = append(line, currVis)
+		line = append(line, work.Fields.EmbargoRelaeseDate)
+		line = append(line, work.Fields.Doi)
+		line = append(line, work.Fields.SourceID)
+		line = append(line, "") // TODO views
+		line = append(line, "") // TODO downloads
+		cw.Write(line)
+	}
+
+	cw.Flush()
+}
 
 func (svc *serviceContext) adminSearch(c *gin.Context) {
 	qStr := c.Query("q")

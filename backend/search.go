@@ -37,11 +37,21 @@ type indexResp struct {
 	Hits           []struct {
 		ID       string `json:"id"`
 		Metadata struct {
-			Version string                        `json:"version"`
-			Program string                        `json:"program"`
-			Degree  string                        `json:"degree"`
-			Title   string                        `json:"title"`
-			Author  librametadata.ContributorData `json:"author"`
+			Version     string                          `json:"version"`
+			Program     string                          `json:"program"`
+			Degree      string                          `json:"degree"`
+			Title       string                          `json:"title"`
+			Author      librametadata.ContributorData   `json:"author"`
+			Advisors    []librametadata.ContributorData `json:"advisors"`
+			Abstract    string                          `json:"abstract"`
+			License     string                          `json:"license"`
+			LicenseURL  string                          `json:"licenseURL"`
+			Keywords    []string                        `json:"keywords"`
+			Language    string                          `json:"language"`
+			RelatedURLs []string                        `json:"relatedURLs"`
+			Sponsors    []string                        `json:"sponsors"`
+			Notes       string                          `json:"notes"`
+			AdminNotes  string                          `json:"adminNotes"`
 		} `json:"metadata"`
 		Fields struct {
 			CreateDate               string `json:"create-date"`

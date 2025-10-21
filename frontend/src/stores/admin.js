@@ -77,6 +77,35 @@ export const useAdminStore = defineStore('admin', {
          })
       },
 
+      exportCSV() {
+         this.working = true
+         let q = "*"
+         if (this.query != "" ) {
+            q = this.query
+         }
+         let req = {q: q, sort: this.sortField, order: this.sortOrder,
+            status: this.statusFilter, source: this.sourceFilter,
+            from: this.fromDate, to: this.toDate, total: this.total}
+         axios.post("/api/admin/export", req, {responseType: "blob"}).then((response) => {
+            const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.ms-excel' }))
+            const fileLink = document.createElement('a')
+            fileLink.href =  fileURL
+            fileLink.setAttribute('download', `libraetd-export.csv`)
+            document.body.appendChild(fileLink)
+            fileLink.click()
+            window.URL.revokeObjectURL(fileURL)
+            this.working = false
+         }).catch((error) => {
+            console.log(error)
+            if (error.message) {
+               useSystemStore().setError(error.message)
+            } else {
+               useSystemStore().setError(error)
+            }
+            this.working = false
+         })
+      },
+
       becomeUser(tgtID) {
          let user = useUserStore()
          if ( user.isAdmin == false ) return

@@ -8,7 +8,7 @@
                <InputIcon class="pi pi-search" />
                <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
             </IconField>
-            <Button label="Search" @click="admin.search()"/>
+            <Button label="Search" @click="admin.search()" :loading="admin.working"/>
             <Button severity="secondary" label="Reset Search" @click="resetSearch"/>
          </div>
          <div class="search-filter">
@@ -26,7 +26,11 @@
             <select v-model="admin.sourceFilter" id="source-filter">
                <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
             </select>
-            <Button severity="secondary" class="apply" label="Apply Filters" @click="admin.search()" />
+            <div class="filter-acts">
+               <Button severity="secondary" label="Apply Filters" @click="admin.search()" :loading="admin.working"/>
+               <Button severity="secondary" label="Export" @click="exportClicked()"
+                  :disabled="admin.total == 0 || admin.total >= 1000" :loading="admin.working"/>
+            </div>
          </div>
       </div>
 
@@ -76,7 +80,7 @@
          </Column>
          <Column field="title" header="Title" sortable>
             <template #body="slotProps">
-               <span v-if="slotProps.data.title" :id="slotProps.data.id">{{ slotProps.data.title }}</span>
+               <span v-if="slotProps.data.title" :id="slotProps.data.id" v-html="slotProps.data.title"></span>
                <span v-else class="na">Undefined</span>
             </template>
          </Column>
@@ -166,6 +170,10 @@ const searchKeyPressed = ((event) => {
    }
 })
 
+const exportClicked = (() => {
+   admin.exportCSV()
+})
+
 const becomeUser = ((computeID) => {
    admin.becomeUser( computeID )
 })
@@ -237,7 +245,13 @@ const becomeUser = ((computeID) => {
       gap: 10px;
       justify-content: center;
       align-items: center;
+      background-color: $uva-red-A;
+      color: white;
+      font-weight: bold;
+      padding: 5px;
+      border-radius: 0.3rem;
       i {
+         font-weight: bold;
          font-size: 1.25rem
       }
    }
@@ -260,8 +274,11 @@ const becomeUser = ((computeID) => {
       }
       .search-filter {
          display: flex;
-         .apply {
+         .filter-acts {
             margin-left: auto;
+            display: flex;
+            flex-flow: row wrap;
+            gap: 1rem;
          }
          .pub-dates {
             display: flex;
