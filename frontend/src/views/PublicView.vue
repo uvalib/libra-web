@@ -13,7 +13,7 @@
 
             <div class="metadata">
                <h1>
-                  <span>{{ etdRepo.work.title }}</span>
+                  <span v-html="etdRepo.work.title"></span>
                   <span class="view-cnt">{{ etdRepo.work.views }} views</span>
                </h1>
                <section>
