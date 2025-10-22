@@ -109,9 +109,6 @@ export const useETDStore = defineStore('etd', {
             delete data.embargo
          }
          this.work = data
-         if (this.work.advisors.length == 0) {
-            this.work.advisors.push({firstName: "", lastName:"", department: "", institution: ""})
-         }
          this.work.files.forEach( f => f.url = "")
 
          // lookup licence ID based on URL

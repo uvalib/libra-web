@@ -26,7 +26,7 @@
                      </a>
                   </div>
                </section>
-               <section>
+               <section v-if="etdRepo.work.advisors.length >0">
                   <h2>Advisors</h2>
                   <ul class="unstyled">
                      <li v-for="advisor in  etdRepo.work.advisors" class="advisor">

@@ -33,7 +33,7 @@
 
                <Fieldset class="advisors" pt:contentContainer:aria-labelledby="">
                   <template #legend>
-                     <span>Advisors</span><span class="required"><span class="star">*</span>(required)</span>
+                     <span>Advisors</span><span class="required" v-if="user.isAdmin==false"><span class="star">*</span>(required)</span>
                   </template>
                   <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
                      <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
@@ -42,7 +42,7 @@
                         <div class="control-group">
                            <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" :id="`work.advisors[${index}].computeID`"/>
                            <Button class="check" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
-                           <Button v-if="etdRepo.work.advisors.length > 1" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="removeAdvisor(index)"/>
+                           <Button v-if="etdRepo.work.advisors.length > 1 || user.isAdmin" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="removeAdvisor(index)"/>
                         </div>
                      </div>
                      <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
@@ -266,6 +266,7 @@ const previewDisabled = computed( () => {
 
 
 const addAdvisorDisabled = computed(() => {
+   if ( etdRepo.work.advisors.length == 0) return false
    let lastIdx = etdRepo.work.advisors.length -1
    return etdRepo.work.advisors[lastIdx].lastName == ""
 })
@@ -301,17 +302,23 @@ const resolver = ({ values }) => {
       errors.work.author.lastName = [{ message: 'Author last name is required' }]
    }
 
-   etdRepo.work.advisors.forEach( (a,idx) => {
-      errors.work.advisors.push ({ firstName: [], lastName: []})
-      if ( a.firstName == "") {
+   if ( user.isAdmin == false ) {
+      if ( etdRepo.work.advisors.length == 0) {
          metadataComplete.value = false
-         errors.work.advisors[ idx ].firstName = [{ message: 'Advisor first name is required' }]
+      } else {
+         etdRepo.work.advisors.forEach( (a,idx) => {
+            errors.work.advisors.push ({ firstName: [], lastName: []})
+            if ( a.firstName == "") {
+               metadataComplete.value = false
+               errors.work.advisors[ idx ].firstName = [{ message: 'Advisor first name is required' }]
+            }
+            if ( a.lastName == "") {
+               metadataComplete.value = false
+               errors.work.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
+            }
+         })
       }
-      if ( a.lastName == "") {
-         metadataComplete.value = false
-         errors.work.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
-      }
-   })
+   }
 
    if ( values.work.abstract == "" ) {
       metadataComplete.value = false
