@@ -101,6 +101,15 @@ func (svc *serviceContext) adminExportReport(c *gin.Context) {
 			advisors = append(advisors, adv)
 		}
 
+		orcidInfo, oErr := svc.doOrcidLookup(work.Metadata.Author.ComputeID)
+		if oErr != nil {
+			log.Printf("ERROR: unable to obtain orcid info for user %s: %s", work.Metadata.Author.ComputeID, oErr.Error())
+		}
+		metrics, mErr := svc.getPublicViewMetrics(work.ID)
+		if mErr != nil {
+			log.Printf("ERROR: unable to get view metrics %s", mErr.Error())
+		}
+
 		line := make([]string, 0)
 		line = append(line, work.ID)
 		line = append(line, work.Metadata.Program)
@@ -111,7 +120,11 @@ func (svc *serviceContext) adminExportReport(c *gin.Context) {
 		line = append(line, work.Metadata.Author.FirstName)
 		line = append(line, work.Metadata.Author.LastName)
 		line = append(line, work.Metadata.Author.Institution)
-		line = append(line, "") // TODO ORCID
+		if orcidInfo != nil {
+			line = append(line, orcidInfo.Orcid)
+		} else {
+			line = append(line, "")
+		}
 		line = append(line, strings.Join(advisors, "\n"))
 		line = append(line, work.Metadata.Abstract)
 		line = append(line, work.Metadata.License)
@@ -128,8 +141,18 @@ func (svc *serviceContext) adminExportReport(c *gin.Context) {
 		line = append(line, work.Fields.EmbargoRelaeseDate)
 		line = append(line, work.Fields.Doi)
 		line = append(line, work.Fields.SourceID)
-		line = append(line, "") // TODO views
-		line = append(line, "") // TODO downloads
+		if metrics != nil {
+			line = append(line, fmt.Sprintf("%d", metrics.Views))
+			dl := 0
+			for _, f := range metrics.Files {
+				dl += f.Downloads
+			}
+			line = append(line, fmt.Sprintf("%d", dl))
+		} else {
+			// no metrics data found, so zero for view and download
+			line = append(line, "0")
+			line = append(line, "0")
+		}
 		cw.Write(line)
 	}
 
