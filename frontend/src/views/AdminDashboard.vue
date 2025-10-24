@@ -8,7 +8,7 @@
                <InputIcon class="pi pi-search" />
                <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
             </IconField>
-            <Button label="Search" @click="admin.search()" :loading="admin.working"/>
+            <Button label="Search" @click="admin.search()" :loading="admin.working" :disabled="admin.working"/>
             <Button severity="secondary" label="Reset Search" @click="resetSearch"/>
          </div>
          <div class="search-filter">
@@ -27,9 +27,9 @@
                <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
             </select>
             <div class="filter-acts">
-               <Button severity="secondary" label="Apply Filters" @click="admin.search()" :loading="admin.working"/>
+               <Button severity="secondary" label="Apply Filters" @click="admin.search()" :loading="admin.working" :disabled="admin.working"/>
                <Button severity="secondary" label="Export" @click="exportClicked()"
-                  :disabled="admin.total == 0 || admin.total >= 1000" :loading="admin.working"/>
+                  :disabled="admin.total == 0 || admin.total >= 1000 || admin.working" :loading="admin.working"/>
             </div>
          </div>
       </div>
