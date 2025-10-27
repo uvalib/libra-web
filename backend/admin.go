@@ -160,8 +160,9 @@ func (svc *serviceContext) adminExportReport(c *gin.Context) {
 }
 
 func (svc *serviceContext) adminSearch(c *gin.Context) {
+	recentActivity := (c.Query("recent") != "")
 	qStr := c.Query("q")
-	if qStr == "" {
+	if qStr == "" || recentActivity {
 		qStr = "*"
 	}
 
@@ -176,44 +177,53 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
-	log.Printf("INFO: admin search for works with [%s]", qStr)
-	payload := map[string]any{"q": qStr, "offset": offset, "limit": limit}
-	if c.Query("sort") != "" {
-		sort := c.Query("sort")
-		switch sort {
-		case "created":
-			sort = "fields.create-date"
-		case "title":
-			sort = "metadata.title"
-		case "published":
-			sort = "fields.publish-date"
-		}
-		payload["sort"] = []string{fmt.Sprintf("%s:%s", sort, c.Query("order"))}
-	}
-
-	//Filter Example: "filter": ["fields.draft=true","fields.source=sis"]}
 	filters := make([]string, 0)
-	if c.Query("source") != "" {
-		filters = append(filters, fmt.Sprintf("fields.source=%s", c.Query("source")))
-	}
-	if c.Query("draft") != "" {
-		filters = append(filters, fmt.Sprintf("fields.draft=%s", c.Query("draft")))
-	}
-	if c.Query("from") != "" {
-		dateQ := fmt.Sprintf("fields.publish-date >= %s", c.Query("from"))
-		if c.Query("to") != "" {
-			dateQ += fmt.Sprintf(" AND fields.publish-date <= %s", c.Query("to"))
+	payload := map[string]any{"offset": offset, "limit": limit}
+	if recentActivity {
+		log.Printf("INFO: search for works modified in the last 7 days")
+		payload["q"] = "*"
+		sevenDaysAgoUnix := time.Now().AddDate(0, 0, -7).Unix()
+		filters = append(filters, fmt.Sprintf("modifiedUnix >= %d", sevenDaysAgoUnix))
+		payload["sort"] = []string{"modified:desc"}
+	} else {
+		log.Printf("INFO: admin search for works with [%s]", qStr)
+		payload["q"] = qStr
+		if c.Query("sort") != "" {
+			sort := c.Query("sort")
+			switch sort {
+			case "created":
+				sort = "fields.create-date"
+			case "title":
+				sort = "metadata.title"
+			case "published":
+				sort = "fields.publish-date"
+			}
+			payload["sort"] = []string{fmt.Sprintf("%s:%s", sort, c.Query("order"))}
 		}
-		filters = append(filters, dateQ)
-	} else if c.Query("to") != "" {
-		filters = append(filters, fmt.Sprintf("fields.publish-date <= %s", c.Query("to")))
+
+		//Filter Example: "filter": ["fields.draft=true","fields.source=sis"]}
+		if c.Query("source") != "" {
+			filters = append(filters, fmt.Sprintf("fields.source=%s", c.Query("source")))
+		}
+		if c.Query("draft") != "" {
+			filters = append(filters, fmt.Sprintf("fields.draft=%s", c.Query("draft")))
+		}
+		if c.Query("from") != "" {
+			dateQ := fmt.Sprintf("fields.publish-date >= %s", c.Query("from"))
+			if c.Query("to") != "" {
+				dateQ += fmt.Sprintf(" AND fields.publish-date <= %s", c.Query("to"))
+			}
+			filters = append(filters, dateQ)
+		} else if c.Query("to") != "" {
+			filters = append(filters, fmt.Sprintf("fields.publish-date <= %s", c.Query("to")))
+		}
 	}
 
 	if len(filters) > 0 {
 		payload["filter"] = filters
 	}
 
-	log.Printf("PAYLOAD %v", payload)
+	log.Printf("INFO: search payload [%v]", payload)
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
 	rawResp, respErr := svc.sendPostRequest(url, payload)
 	if respErr != nil {
@@ -221,8 +231,6 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		c.String(respErr.StatusCode, respErr.Message)
 		return
 	}
-
-	// log.Printf("INDEX RESP: %s", rawResp)
 
 	var jsonResp indexResp
 	err := json.Unmarshal(rawResp, &jsonResp)

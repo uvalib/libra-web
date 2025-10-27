@@ -13,6 +13,7 @@ export const useAdminStore = defineStore('admin', {
       offset: 0,
       limit: 20,
       query: "",
+      filterChanged: false,
       searchCompleted: false,
       sortField: "",
       sortOrder: "",
@@ -38,6 +39,7 @@ export const useAdminStore = defineStore('admin', {
    actions: {
       resetSearch() {
          this.$reset()
+         this.getRecentActivity()
       },
       async addRegistrations( program, degree, students ) {
          return axios.post(`/api/register`, {program: program, degree: degree, students: students}).catch( err => {
@@ -46,6 +48,19 @@ export const useAdminStore = defineStore('admin', {
          })
       },
 
+      getRecentActivity() {
+         this.working = true
+         let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}&recent=1`
+         axios.get(url).then(response => {
+            this.hits = response.data.hits
+            this.total = response.data.total
+            this.working = false
+         }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
+         })
+      },
       search() {
          this.working = true
          let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}`
@@ -69,6 +84,7 @@ export const useAdminStore = defineStore('admin', {
             this.total = response.data.total
             this.working = false
             this.searchCompleted = true
+            this.filterChanged = false
          }).catch( err => {
             const system = useSystemStore()
             system.setError(  err )

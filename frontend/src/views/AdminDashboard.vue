@@ -4,36 +4,48 @@
       <div class="search-setup">
          <div class="search">
             <label for="admin-search">Search for works:</label>
-            <IconField iconPosition="left" class="query">
-               <InputIcon class="pi pi-search" />
-               <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
-            </IconField>
-            <Button label="Search" @click="admin.search()" :loading="admin.working" :disabled="admin.working"/>
-            <Button severity="secondary" label="Reset Search" @click="resetSearch"/>
+            <div class="search-input">
+               <IconField iconPosition="left" class="query">
+                  <InputIcon class="pi pi-search" />
+                  <InputText v-model="admin.query" @keypress="searchKeyPressed($event)" fluid aria-label="search works" id="admin-search"/>
+               </IconField>
+               <Button label="Search" @click="admin.search()" :loading="admin.working" :disabled="admin.working"/>
+            </div>
+            <Button severity="secondary" label="Reset Search" @click="resetSearch" :disabled="admin.searchCompleted == false"/>
          </div>
          <div class="search-filter">
             <label for="status-filter">Publication Status:</label>
-            <select v-model="admin.statusFilter" id="status-filter">
+            <select v-model="admin.statusFilter" id="status-filter" @update:model-value="admin.filterChanged = true">
                <option v-for="o in publishOpts" :value="o.value">{{ o.label }}</option>
             </select>
             <div class="pub-dates"  v-if="admin.statusFilter=='published'">
                <label for="from-picker">From:</label>
-               <InputMask  input-id="from-picker" v-model="admin.fromDate" mask="9999-99-99" placeholder="yyyy-mm-dd" />
+               <InputMask  input-id="from-picker" v-model="admin.fromDate"
+                  mask="9999-99-99" placeholder="yyyy-mm-dd" @update:model-value="admin.filterChanged = true"
+               />
                <label for="to-picker">To: </label>
-               <InputMask input-id="to-picker" v-model="admin.toDate" mask="9999-99-99" placeholder="yyyy-mm-dd" />
+               <InputMask input-id="to-picker" v-model="admin.toDate" @update:model-value="admin.filterChanged = true"
+                  mask="9999-99-99" placeholder="yyyy-mm-dd"
+               />
             </div>
             <label for="source-filter">Source:</label>
-            <select v-model="admin.sourceFilter" id="source-filter">
+            <select v-model="admin.sourceFilter" id="source-filter" @update:model-value="admin.filterChanged = true">
                <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
             </select>
             <div class="filter-acts">
-               <Button severity="secondary" label="Apply Filters" @click="admin.search()" :loading="admin.working" :disabled="admin.working"/>
+               <Button severity="secondary" label="Apply Filters" @click="admin.search()"
+                  :loading="admin.working" :disabled="admin.working || admin.filterChanged == false"
+               />
                <Button severity="secondary" label="Export" @click="exportClicked()"
-                  :disabled="admin.total == 0 || admin.total >= 1000 || admin.working" :loading="admin.working"/>
+                  :disabled="admin.total == 0 || admin.total >= 1000 || admin.working || admin.searchCompleted == false" :loading="admin.working"
+               />
             </div>
          </div>
       </div>
 
+      <h2 v-if="admin.searchCompleted == false">
+         Recent Activity
+      </h2>
       <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
             stripedRows showGridlines responsiveLayout="scroll"
             :lazy="true" :paginator="true" :alwaysShowPaginator="false"
@@ -58,16 +70,16 @@
             </template>
          </Column>
          <Column field="id" header="ID" class="nowrap"/>
-         <Column field="created" header="Created" sortable class="nowrap">
+         <Column field="created" header="Created" :sortable="admin.searchCompleted" class="nowrap">
             <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
          </Column>
-         <Column field="modified" header="Modified" sortable class="nowrap">
+         <Column field="modified" header="Modified" :sortable="admin.searchCompleted" class="nowrap">
             <template #body="slotProps">
                <div v-if="slotProps.data.modified">{{ $formatDateTime(slotProps.data.modified) }}</div>
                <div v-else class="na">N/A</div>
             </template>
          </Column>
-         <Column field="published" header="Published" sortable class="nowrap">
+         <Column field="published" header="Published" :sortable="admin.searchCompleted" class="nowrap">
             <template #body="slotProps">
                <div v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published) }}</div>
                <div v-else class="na">N/A</div>
@@ -109,7 +121,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useAdminStore } from "@/stores/admin"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -133,6 +145,12 @@ const sourceOpts = computed(() => {
 
 useHead({
    title: 'Libra Admin Dashboard'
+})
+
+onMounted( () => {
+   if (admin.searchCompleted == false) {
+      admin.getRecentActivity()
+   }
 })
 
 const onPage = ((event) => {
@@ -268,8 +286,23 @@ const becomeUser = ((computeID) => {
          flex-flow: row wrap;
          align-items: center;
          margin-top: 20px;
-         .query {
+         .search-input {
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 0;
             flex-grow: 1;
+            input {
+               border-radius: 0.3rem 0 0 0.3rem;
+               border-right:0;
+            }
+            button {
+               border-radius:  0 0.3rem 0.3rem 0;
+            }
+            .query {
+               flex-grow: 1;
+            }
          }
       }
       .search-filter {
