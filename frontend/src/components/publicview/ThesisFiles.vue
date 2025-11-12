@@ -9,7 +9,6 @@
       </span>
       <div class="file" v-for="file in etdRepo.work.files">
          <div class="name">{{ file.name }}</div>
-         <div class="file-stat">Uploaded on {{ $formatDate(file.createdAt) }}</div>
          <div class="file-stat">Downloads: {{ file.downloads }}</div>
          <Button label="Download" icon="pi pi-cloud-download" severity="secondary"
             :ariaLabel="`download file ${file.name}`"
