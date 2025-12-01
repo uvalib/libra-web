@@ -130,16 +130,20 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 			}
 		}
 
-		log.Printf("INFO: request orcid info for work %s author %s", etdWork.ID, etdWork.Author.ComputeID)
-		orcid, oErr := svc.doOrcidLookup(etdWork.Author.ComputeID)
-		if oErr != nil {
-			log.Printf("ERROR: unable to get orcid info for %s: %s", etdWork.Author.ComputeID, oErr.Error())
+		if etdWork.Author.ComputeID == "" {
+			log.Printf("INFO: work %s author %s, %s has no compute id; cannot request orcid info", etdWork.ID, etdWork.Author.LastName, etdWork.Author.FirstName)
 		} else {
-			if orcid == nil {
-				log.Printf("INFO: author %s has no orcid", etdWork.Author.ComputeID)
+			log.Printf("INFO: request orcid info for work %s author %s", etdWork.ID, etdWork.Author.ComputeID)
+			orcid, oErr := svc.doOrcidLookup(etdWork.Author.ComputeID)
+			if oErr != nil {
+				log.Printf("ERROR: unable to get orcid info for %s: %s", etdWork.Author.ComputeID, oErr.Error())
 			} else {
-				log.Printf("INFO: author %s orcid %+v", etdWork.Author.ComputeID, *orcid)
-				etdWork.Author.ORCID = orcid.URI
+				if orcid == nil {
+					log.Printf("INFO: author %s has no orcid", etdWork.Author.ComputeID)
+				} else {
+					log.Printf("INFO: author %s orcid %+v", etdWork.Author.ComputeID, *orcid)
+					etdWork.Author.ORCID = orcid.URI
+				}
 			}
 		}
 	}
