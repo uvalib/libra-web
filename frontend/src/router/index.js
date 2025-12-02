@@ -26,6 +26,12 @@ const router = createRouter({
          meta: { requiresRegistrar: true }
       },
       {
+         path: '/status',
+         name: 'depositstatus',
+         component: () => import('../views/DepositStatus.vue'),
+         meta: { requiresRegistrar: true }
+      },
+      {
          path: '/etd/:id',
          name: 'edtworkform',
          component: () => import('../views/EditWorkForm.vue'),
@@ -133,9 +139,9 @@ router.beforeEach( async (to) => {
             return {name: "forbidden"}
          }
       } else if ( to.meta.requiresRegistrar ) {
-         console.log(`REQUEST REGISTER PAGE WITH JWT`)
+         console.log(`REQUEST REGISTRAR PAGE WITH JWT`)
          if ( userStore.isRegistrar == false && userStore.isAdmin == false) {
-            console.log("REJECT NON-REGISTRAR REQUEST FOR REGISTER PAGE")
+            console.log("REJECT NON-REGISTRAR REQUEST FOR REGISTRAR PAGE")
             return {name: "forbidden"}
          }
       }

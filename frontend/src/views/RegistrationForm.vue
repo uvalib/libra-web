@@ -1,6 +1,6 @@
 <template>
    <div class="registration">
-      <h1>Libra Deposit Registration</h1>
+      <h1>Deposit Registration</h1>
       <div class="form">
          <div class="row">
             <label id="program-sel">Program:</label>
