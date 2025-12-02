@@ -12,6 +12,7 @@ cd bin; ./libra-web \
    -busname         ${BUS_NAME} \
    -eventsrc        ${EVENT_SRC_NAME} \
    -auditqueryurl   ${AUDIT_QUERY_URL} \
+   -depositauthurl  ${DEPOSIT_AUTH_URL} \
    -metricsqueryurl ${PAGE_METRICS_QUERY_URL} \
    -getorcidurl     ${ORCID_GET_DETAILS_URL} \
    -orcidurl        ${ORCID_CLIENT_URL} \

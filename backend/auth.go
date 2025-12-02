@@ -77,13 +77,12 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	}
 
 	log.Printf("INFO: request user info for %s", computingID)
-	err := svc.checkUserServiceJWT()
-	if err != nil {
-		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
+	if err := svc.Protected.refreshJWT(svc.JWTKey); err != nil {
+		log.Printf("ERROR: unable to refresh protected service jwt: %s", err.Error())
 		c.Redirect(http.StatusFound, "/forbidden")
 		return
 	}
-	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.UserService.URL, computingID, svc.UserService.JWT)
+	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.Protected.UserServiceURL, computingID, svc.Protected.JWT)
 	resp, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
 		log.Printf("ERROR: unable get info for user %s: %s", computingID, userErr.Message)
@@ -91,8 +90,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		return
 	}
 	var jsonResp userServiceResp
-	err = json.Unmarshal(resp, &jsonResp)
-	if err != nil {
+	if err := json.Unmarshal(resp, &jsonResp); err != nil {
 		log.Printf("ERROR: unable to parse user serice response: %s", err.Error())
 		c.Redirect(http.StatusFound, "/forbidden")
 		return
@@ -123,18 +121,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 		}
 	}
 
-	log.Printf("INFO: generate JWT for %+v", jsonResp.User)
-	expirationTime := time.Now().Add(8 * time.Hour)
-	claims := jwtClaims{
-		UserDetails: &jsonResp.User,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			Issuer:    "libra-web",
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
+	signedStr, jwtErr := svc.mintUserJWT(&jsonResp.User)
 	if jwtErr != nil {
 		log.Printf("ERROR: unable to generate JWT for %s: %s", computingID, jwtErr.Error())
 		c.Redirect(http.StatusFound, "/forbidden")

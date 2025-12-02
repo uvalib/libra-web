@@ -5,11 +5,6 @@ import (
 	"log"
 )
 
-type userServiceCfg struct {
-	URL string
-	JWT string
-}
-
 type devConfig struct {
 	user    string
 	role    string
@@ -24,8 +19,9 @@ type orcidConfig struct {
 type configData struct {
 	port            int
 	etdURL          string
-	userService     userServiceCfg
+	userServiceURL  string
 	orcid           orcidConfig
+	depositAuthURL  string
 	auditQueryURL   string
 	metricsQueryURL string
 	jwtKey          string
@@ -42,11 +38,12 @@ func getConfiguration() *configData {
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.etdURL, "etdurl", "https://libra-web-dev.internal.lib.virginia.edu", "URL for the LibraETD service")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
-	flag.StringVar(&config.userService.URL, "userws", "", "URL for the user service")
+	flag.StringVar(&config.userServiceURL, "userws", "", "URL for the user service")
 	flag.StringVar(&config.auditQueryURL, "auditqueryurl", "", "Query URL for the audit service")
 	flag.StringVar(&config.metricsQueryURL, "metricsqueryurl", "", "Query URL for the metrics service")
+	flag.StringVar(&config.depositAuthURL, "depositauthurl", "", "URL for the deposit-auth-ws")
 
-	// ORCID ID:
+	// ORCID ID
 	// * getorcidurl is backed request to get a users ORCID ID
 	// * orcidurl is the url the ORCID client used to manage ORCID connection
 	flag.StringVar(&config.orcid.serviceURL, "getorcidurl", "", "GET orcid for user service")
@@ -75,11 +72,14 @@ func getConfiguration() *configData {
 	if config.jwtKey == "" {
 		log.Fatal("Parameter jwtkey is required")
 	}
-	if config.userService.URL == "" {
+	if config.userServiceURL == "" {
 		log.Fatal("Parameter userws is required")
 	}
 	if config.auditQueryURL == "" {
 		log.Fatal("Parameter auditqueryurl is required")
+	}
+	if config.depositAuthURL == "" {
+		log.Fatal("Parameter depositauthurl is required")
 	}
 	if config.metricsQueryURL == "" {
 		log.Fatal("Parameter metricsqueryurl is required")
@@ -99,10 +99,11 @@ func getConfiguration() *configData {
 
 	log.Printf("[CONFIG] port            = [%d]", config.port)
 	log.Printf("[CONFIG] etdurl          = [%s]", config.etdURL)
-	log.Printf("[CONFIG] userws          = [%s]", config.userService.URL)
+	log.Printf("[CONFIG] userws          = [%s]", config.userServiceURL)
 	log.Printf("[CONFIG] getorcidurl     = [%s]", config.orcid.serviceURL)
 	log.Printf("[CONFIG] orcidurl        = [%s]", config.orcid.clientURL)
 	log.Printf("[CONFIG] auditqueryurl   = [%s]", config.auditQueryURL)
+	log.Printf("[CONFIG] depositauthdurl = [%s]", config.depositAuthURL)
 	log.Printf("[CONFIG] metricsqueryurl = [%s]", config.metricsQueryURL)
 	log.Printf("[CONFIG] namespace       = [%s]", config.namespace)
 	log.Printf("[CONFIG] eventsrc        = [%s]", config.eventSourceName)

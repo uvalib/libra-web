@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
@@ -252,14 +251,12 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 	adminClaims := getJWTClaims(c)
 	log.Printf("INFO: admin user %s request to impersonate user %s", adminClaims.ComputeID, tgtComputeID)
 
-	// refresh user auth, then get target user details
-	err := svc.checkUserServiceJWT()
-	if err != nil {
-		log.Printf("ERROR: unable to check user service jwt for admin impersonate request: %s", err.Error())
+	if err := svc.Protected.refreshJWT(svc.JWTKey); err != nil {
+		log.Printf("ERROR: unable to refresh protected service jwt for admin impersonate request: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.UserService.URL, tgtComputeID, svc.UserService.JWT)
+	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.Protected.UserServiceURL, tgtComputeID, svc.Protected.JWT)
 	resp, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
 		log.Printf("ERROR: unable get info for user %s impersonate request: %s", tgtComputeID, userErr.Message)
@@ -267,25 +264,14 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 		return
 	}
 	var jsonResp userServiceResp
-	err = json.Unmarshal(resp, &jsonResp)
-	if err != nil {
+	if err := json.Unmarshal(resp, &jsonResp); err != nil {
 		log.Printf("ERROR: unable to parse user serice response: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	jsonResp.User.Role = "user"
-	expirationTime := time.Now().Add(1 * time.Hour)
-	log.Printf("INFO: generate jwt for impersonated user %+v with expiration %s", jsonResp.User, expirationTime.String())
-	claims := jwtClaims{
-		UserDetails: &jsonResp.User,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
-			Issuer:    "libra-web",
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
+	signedStr, jwtErr := svc.mintUserJWT(&jsonResp.User)
 	if jwtErr != nil {
 		log.Printf("ERROR: unable to generate JWT for impersonated user %s: %s", tgtComputeID, jwtErr.Error())
 		c.String(http.StatusInternalServerError, jwtErr.Error())

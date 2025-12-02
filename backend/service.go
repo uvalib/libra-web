@@ -27,6 +27,44 @@ type eventContext struct {
 	Bus         uvalibrabus.UvaBus
 }
 
+// services that require jwt authorization and the necessary token
+type protectedServices struct {
+	DepositAuthURL string
+	ORCID          orcidConfig
+	UserServiceURL string
+	JWT            string
+}
+
+func (ps *protectedServices) refreshJWT(key string) error {
+	if ps.JWT != "" {
+		userClaims := jwtClaims{}
+		_, jwtErr := jwt.ParseWithClaims(ps.JWT, &userClaims, func(token *jwt.Token) (any, error) {
+			return []byte(key), nil
+		})
+		if jwtErr != nil {
+			log.Printf("INFO: existing protected services jwt is not valid; generate another: %s", jwtErr.Error())
+		} else {
+			log.Printf("INFO: protected services jwt already exists and is valid")
+			return nil
+		}
+	}
+
+	log.Printf("INFO: generate jwt for protected services")
+	expirationTime := time.Now().Add(8 * time.Hour)
+	claims := jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(expirationTime),
+		Issuer:    "libra-web",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedStr, jwtErr := token.SignedString([]byte(key))
+	if jwtErr != nil {
+		return jwtErr
+	}
+	ps.JWT = signedStr
+	return nil
+}
+
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version         string
@@ -35,14 +73,13 @@ type serviceContext struct {
 	HTTPClient      *http.Client
 	EasyStore       uvaeasystore.EasyStore
 	Events          eventContext
-	UserService     userServiceCfg
-	ORCID           orcidConfig
+	AuditQueryURL   string
+	IndexURL        string
+	MetricsQueryURL string
+	Protected       protectedServices
 	JWTKey          string
 	Namespace       string
 	UVAWhiteList    []*net.IPNet
-	AuditQueryURL   string
-	MetricsQueryURL string
-	IndexURL        string
 	Dev             devConfig
 }
 
@@ -104,18 +141,22 @@ type configResponse struct {
 
 // InitializeService sets up the service context for all API handlers
 func initializeService(version string, cfg *configData) *serviceContext {
-	ctx := serviceContext{Version: version,
+	ctx := serviceContext{
+		Version:         version,
 		TimeFormat:      "2006-01-02T15:04:05Z",
-		JWTKey:          cfg.jwtKey,
-		UserService:     cfg.userService,
-		ORCID:           cfg.orcid,
 		Dev:             cfg.dev,
+		JWTKey:          cfg.jwtKey,
 		Namespace:       cfg.namespace,
-		IndexURL:        cfg.indexURL,
 		EtdURL:          cfg.etdURL,
 		AuditQueryURL:   cfg.auditQueryURL,
+		IndexURL:        cfg.indexURL,
 		MetricsQueryURL: cfg.metricsQueryURL,
 	}
+
+	// URLs to external service that just JWT protection
+	ctx.Protected.DepositAuthURL = cfg.depositAuthURL
+	ctx.Protected.ORCID = cfg.orcid
+	ctx.Protected.UserServiceURL = cfg.userServiceURL
 
 	log.Printf("INFO: initialize uva ip whitelist")
 	wlBytes, err := os.ReadFile("./data/ipwhitelist.txt")
@@ -153,9 +194,9 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 	log.Printf("INFO: HTTP Client created")
 
-	err = ctx.checkUserServiceJWT()
-	if err != nil {
-		log.Fatalf("unable to generate user service jwt: %s", err.Error())
+	log.Printf("INFO: init jwt for protected services")
+	if err := ctx.Protected.refreshJWT(ctx.JWTKey); err != nil {
+		log.Fatalf("unable to generate protected services jwt: %s", err.Error())
 	}
 
 	log.Printf("INFO: configure easystore")
@@ -206,36 +247,6 @@ func (svc *serviceContext) publishEvent(eventName, namespace, oid string) {
 	}
 }
 
-func (svc *serviceContext) checkUserServiceJWT() error {
-	if svc.UserService.JWT != "" {
-		userClaims := jwtClaims{}
-		_, jwtErr := jwt.ParseWithClaims(svc.UserService.JWT, &userClaims, func(token *jwt.Token) (any, error) {
-			return []byte(svc.JWTKey), nil
-		})
-		if jwtErr != nil {
-			log.Printf("INFO: existing user ws jwt is not valid; generate another: %s", jwtErr.Error())
-		} else {
-			log.Printf("INFO: user ws jwt already exists and is valid")
-			return nil
-		}
-	}
-
-	log.Printf("INFO: generate jwt for userws")
-	expirationTime := time.Now().Add(8 * time.Hour)
-	claims := jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(expirationTime),
-		Issuer:    "libra3",
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
-	if jwtErr != nil {
-		return jwtErr
-	}
-	svc.UserService.JWT = signedStr
-	return nil
-}
-
 func (svc *serviceContext) getVersion(c *gin.Context) {
 	vMap := svc.lookupVersion()
 	c.JSON(http.StatusOK, vMap)
@@ -244,7 +255,13 @@ func (svc *serviceContext) getVersion(c *gin.Context) {
 func (svc *serviceContext) getConfig(c *gin.Context) {
 	verInfo := svc.lookupVersion()
 	ver := fmt.Sprintf("v%s-%s", verInfo["version"], verInfo["build"])
-	resp := configResponse{Version: ver, Namespace: libraNamespace{Label: "LibraETD", Namespace: svc.Namespace}, ORCIDClientURL: svc.ORCID.clientURL}
+	resp := configResponse{
+		Version: ver,
+		Namespace: libraNamespace{
+			Label:     "LibraETD",
+			Namespace: svc.Namespace},
+		ORCIDClientURL: svc.Protected.ORCID.clientURL,
+	}
 
 	err := loadETDConfig(&resp)
 	if err != nil {
@@ -370,7 +387,7 @@ func (svc *serviceContext) healthCheck(c *gin.Context) {
 	hcMap := make(map[string]hcResp)
 	hcMap["libra3"] = hcResp{Healthy: true}
 
-	_, err := svc.sendGetRequest(fmt.Sprintf("%s/version", svc.UserService.URL))
+	_, err := svc.sendGetRequest(fmt.Sprintf("%s/version", svc.Protected.UserServiceURL))
 	if err != nil {
 		hcMap["user-ws"] = hcResp{Healthy: false, Message: err.Message}
 	} else {
@@ -380,16 +397,34 @@ func (svc *serviceContext) healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, hcMap)
 }
 
+func (svc *serviceContext) mintUserJWT(user *UserDetails) (string, error) {
+	log.Printf("INFO: generate JWT for %s", user.ComputeID)
+	expirationTime := time.Now().Add(8 * time.Hour)
+	claims := jwtClaims{
+		UserDetails: user,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			Issuer:    "libra-web",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signedStr, jwtErr := token.SignedString([]byte(svc.JWTKey))
+	if jwtErr != nil {
+		return "", jwtErr
+	}
+	return signedStr, nil
+}
+
 func (svc *serviceContext) lookupComputeID(c *gin.Context) {
 	computeID := c.Param("cid")
 	log.Printf("INFO: lookup compute id [%s]", computeID)
-	err := svc.checkUserServiceJWT()
-	if err != nil {
-		log.Printf("ERROR: unable to check user service jwt: %s", err.Error())
+	if err := svc.Protected.refreshJWT(svc.JWTKey); err != nil {
+		log.Printf("ERROR: unable to refresh protected services jwt: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.UserService.URL, computeID, svc.UserService.JWT)
+	url := fmt.Sprintf("%s/user/%s?auth=%s", svc.Protected.UserServiceURL, computeID, svc.Protected.JWT)
 	resp, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
 		log.Printf("INFO: lookup info user [%s] failed: %s", computeID, userErr.Message)
@@ -398,8 +433,7 @@ func (svc *serviceContext) lookupComputeID(c *gin.Context) {
 	}
 
 	var jsonResp userServiceResp
-	err = json.Unmarshal(resp, &jsonResp)
-	if err != nil {
+	if err := json.Unmarshal(resp, &jsonResp); err != nil {
 		log.Printf("ERROR: unable to parse user serice responce: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
@@ -441,13 +475,12 @@ func (svc *serviceContext) lookupOrcidID(c *gin.Context) {
 }
 
 func (svc *serviceContext) doOrcidLookup(computeID string) (*OrcidDetails, error) {
-	err := svc.checkUserServiceJWT()
-	if err != nil {
-		return nil, fmt.Errorf("unable to validate jwt: %s", err.Error())
+	if err := svc.Protected.refreshJWT(svc.JWTKey); err != nil {
+		return nil, fmt.Errorf("unable to refresh protected services jwt: %s", err.Error())
 	}
-	url := svc.ORCID.serviceURL
+	url := svc.Protected.ORCID.serviceURL
 	url = strings.Replace(url, "{:id}", computeID, 1)
-	url = strings.Replace(url, "{:auth}", svc.UserService.JWT, 1)
+	url = strings.Replace(url, "{:auth}", svc.Protected.JWT, 1)
 	payload, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
 		if userErr.StatusCode == 404 {
@@ -457,8 +490,7 @@ func (svc *serviceContext) doOrcidLookup(computeID string) (*OrcidDetails, error
 	}
 
 	resp := OrcidDetailsResponse{}
-	err = json.Unmarshal(payload, &resp)
-	if err != nil {
+	if err := json.Unmarshal(payload, &resp); err != nil {
 		return nil, fmt.Errorf("%s", err.Error())
 	}
 
