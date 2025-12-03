@@ -418,3 +418,89 @@ func (svc *serviceContext) adminDeleteWork(c *gin.Context) {
 	}
 	c.String(http.StatusOK, "deleted")
 }
+
+type depositStatusResponse struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Details []struct {
+		ComputingID string `json:"computing_id"`
+		FirstName   string `json:"first_name"`
+		LastName    string `json:"last_name"`
+		Title       string `json:"title"`
+		AcceptedAt  string `json:"accepted_at"`
+		ExportedAt  string `json:"exported_at"`
+		CreatedAt   string `json:"created_at"`
+		UpdatedAt   string `json:"updated_at"`
+	} `json:"details"`
+}
+
+func (svc *serviceContext) adminDepositStatusSearch(c *gin.Context) {
+	q := c.Query("q")
+	qType := c.Query("type")
+	log.Printf("INFO: query deposit status %s=%s", qType, q)
+	if err := svc.Protected.refreshJWT(svc.JWTKey); err != nil {
+		log.Printf("ERROR: unable to refrest jwt for deposit status search: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	url := fmt.Sprintf("%s?%s=%s&auth=%s", svc.Protected.DepositAuthURL, qType, q, svc.Protected.JWT)
+	respBytes, qErr := svc.sendGetRequest(url)
+	if qErr != nil {
+		log.Printf("ERROR: deposit status search for %s=%s failed: %s", qType, q, qErr.Message)
+		c.String(qErr.StatusCode, qErr.Message)
+		return
+	}
+	var parsed depositStatusResponse
+	if err := json.Unmarshal(respBytes, &parsed); err != nil {
+		log.Printf("ERROR: unable to parse deposit status results: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if !(parsed.Status == 200 || parsed.Status == 201) {
+		log.Printf("INFO: got failed %d response to status query %s=%s: %s", parsed.Status, qType, q, parsed.Message)
+		c.String(parsed.Status, parsed.Message)
+		return
+	}
+
+	type hitRec struct {
+		ComputeID       string `json:"computeID"`
+		FullName        string `json:"fullName"`
+		Title           string `json:"title"`
+		ReceivedFromSIS string `json:"receivedFromSIS"`
+		SumittedToLibra string `json:"submittedToLibra"`
+		ExportedToSIS   string `json:"exportedToSIS"`
+	}
+
+	/*
+		MAPPINGS FROM ORIGINAL RAILS CODE
+		CID = deposit['computing_id']
+		FULL NAME = "#{deposit['last_name']}, #{deposit['first_name']}"
+		RECEIVE FROM SIS = formatted_date( deposit['updated_at'].blank? ? deposit['created_at'] : deposit['updated_at'] )
+		SUBMIT TO LIBRA = formatted_date( deposit['accepted_at'] )
+		EXPORT TO SIS = deposit['exported_at'].blank? ? 'pending' : formatted_date( deposit['exported_at'] )
+		TITLE =  truncate( deposit['title'], length: 75 )
+	*/
+
+	var resp = make([]hitRec, 0)
+	for _, rawHit := range parsed.Details {
+		hit := hitRec{
+			ComputeID:       rawHit.ComputingID,
+			FullName:        fmt.Sprintf("%s, %s", rawHit.LastName, rawHit.FirstName),
+			Title:           rawHit.Title,
+			SumittedToLibra: rawHit.AcceptedAt,
+		}
+
+		hit.ReceivedFromSIS = rawHit.UpdatedAt
+		if hit.ReceivedFromSIS == "" {
+			hit.ReceivedFromSIS = rawHit.CreatedAt
+		}
+		hit.ExportedToSIS = rawHit.ExportedAt
+		if hit.ExportedToSIS == "" {
+			hit.ExportedToSIS = "pending"
+		}
+		resp = append(resp, hit)
+	}
+
+	c.JSON(http.StatusOK, resp)
+}

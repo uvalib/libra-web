@@ -9,6 +9,7 @@ export const useAdminStore = defineStore('admin', {
    state: () => ({
       working: false,
       hits: [],
+      deposits: [],
       total: 0,
       offset: 0,
       limit: 20,
@@ -90,6 +91,20 @@ export const useAdminStore = defineStore('admin', {
             system.setError(  err )
             this.working = false
             this.searchCompleted = false
+         })
+      },
+
+      depositStatusSearch( searchType, query) {
+          this.working = true
+          this.deposits = []
+          let url = `/api/admin/deposits?q=${query}&type=${searchType}`
+          axios.get(url).then(response => {
+            this.deposits = response.data
+            this.working = false
+           }).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+            this.working = false
          })
       },
 
