@@ -13,15 +13,18 @@
          </div>
       </div>
       <div class="hint">{{ searchHint }}</div>
-      <div class="results">
+      <div class="results" v-if="admin.deposits.length > 0 || admin.depositSearchMessage != ''">
          <DataTable :value="admin.deposits" ref="depositHits"
             stripedRows showGridlines responsiveLayout="scroll" removableSort
-            :paginator="true" :alwaysShowPaginator="true" paginatorPosition="both"
+            :paginator="true" :alwaysShowPaginator="true" paginatorPosition="bottom"
             :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]"
             paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} - {last} of {totalRecords} entries"
             :loading="admin.working"
          >
+            <template #empty>
+               <div class="err">{{ admin.depositSearchMessage }}</div>
+            </template>
             <Column field="computeID" header="ID" class="nowrap"/>
             <Column field="fullName" header="Name" class="nowrap" sortable/>
             <Column field="receivedFromSIS" header="Received from SIS" class="nowrap" sortable/>
@@ -128,6 +131,12 @@ const truncate = ((text) => {
       font-style: italic;
       font-size: 0.95em;
       color:  $uva-grey;
+   }
+   .err {
+      margin: 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2em;
    }
 }
 </style>
