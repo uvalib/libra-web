@@ -38,7 +38,7 @@
             >
                <Column field="title" header="Title">
                   <template #body="slotProps">
-                     <span v-if="slotProps.data.title">{{ slotProps.data.title }}</span>
+                     <span v-if="slotProps.data.title" v-html="slotProps.data.title "/>
                      <span v-else class="none">Undefined</span>
                   </template>
                </Column>
