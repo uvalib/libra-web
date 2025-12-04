@@ -89,7 +89,7 @@ const searchHint = computed( () => {
 
 const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
-      admin.depositStatusSearch(queryType.value, query.value)
+      searchClicked()
    }
 })
 
@@ -102,6 +102,7 @@ const truncate = ((text) => {
 })
 
 const searchClicked = (() => {
+   filters.value['global'].value = ""
    var queryStr = query.value
    if (queryType.value != "cid") {
       queryStr = dayjs(queryDate.value).format("YYYY-MM-DD")
