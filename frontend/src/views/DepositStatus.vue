@@ -3,18 +3,19 @@
       <h1>Deposit Status</h1>
       <div class="search">
          <label>Search by:</label>
-         <Select v-model="queryType" aria-label="query type" :options="queries" option-label="name" option-value="id"/>
+         <Select v-model="queryType" aria-label="query type selector" :options="queries" option-label="name" option-value="id"/>
          <label>for:</label>
          <div class="search-input">
-            <InputText v-model="query" @keypress="searchKeyPressed($event)" fluid
-               aria-label="deposit query" id="admin-search" :placeholder="queryPlaceholder"
+            <InputText v-if="queryType=='cid'" v-model="query" @keypress="searchKeyPressed($event)"
+               aria-label="compute id query string" placeholder="Compute ID"
             />
-            <Button label="Search" @click="admin.depositStatusSearch(queryType, query)" :loading="admin.working" :disabled="admin.working"/>
+            <DatePicker v-else v-model="queryDate" dateFormat="yy-mm-dd" showIcon fluid iconDisplay="input" aria-label="date query"/>
+            <Button label="Search" @click="searchClicked()" :loading="admin.working" :disabled="admin.working"/>
          </div>
       </div>
       <div class="hint">{{ searchHint }}</div>
-      <div class="results" v-if="admin.deposits.length > 0 || admin.depositSearchMessage != ''">
-         <DataTable :value="admin.deposits" ref="depositHits"
+      <div class="results">
+         <DataTable :value="admin.deposits" v-model:filters="filters" ref="depositHits"
             stripedRows showGridlines responsiveLayout="scroll" removableSort
             :paginator="true" :alwaysShowPaginator="true" paginatorPosition="bottom"
             :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]"
@@ -22,8 +23,14 @@
             currentPageReportTemplate="Showing {first} - {last} of {totalRecords} entries"
             :loading="admin.working"
          >
-            <template #empty>
+            <template #empty  v-if="admin.depositSearchMessage != ''">
                <div class="err">{{ admin.depositSearchMessage }}</div>
+            </template>
+            <template #header>
+               <IconField iconPosition="left">
+                  <InputIcon class="pi pi-search" />
+                  <InputText v-model="filters['global'].value" placeholder="Search within results" fluid aria-label="search within results"/>
+               </IconField>
             </template>
             <Column field="computeID" header="ID" class="nowrap"/>
             <Column field="fullName" header="Name" class="nowrap" sortable/>
@@ -42,15 +49,25 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
+import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
 import DataTable from 'primevue/datatable'
+import { FilterMatchMode } from '@primevue/core/api'
 import Column from 'primevue/column'
 import { useAdminStore } from "@/stores/admin"
+import dayjs from 'dayjs'
 
 const admin = useAdminStore()
 const query = ref("")
+const queryDate = ref( new Date() )
 const queryType = ref("cid")
+
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+})
 
 const queries = computed( () =>{
    return [
@@ -70,16 +87,6 @@ const searchHint = computed( () => {
    return "Query for deposits by computing ID (complete or partial)"
 })
 
-const queryPlaceholder = computed( () => {
-   if ( queryType.value == "created") {
-      return "Enter create date..."
-   }
-   if ( queryType.value == "exported") {
-      return "Enter exported date..."
-   }
-   return "Enter computing ID..."
-})
-
 const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
       admin.depositStatusSearch(queryType.value, query.value)
@@ -94,14 +101,32 @@ const truncate = ((text) => {
    return out
 })
 
+const searchClicked = (() => {
+   var queryStr = query.value
+   if (queryType.value != "cid") {
+      queryStr = dayjs(queryDate.value).format("YYYY-MM-DD")
+   }
+   admin.depositStatusSearch(queryType.value, queryStr)
+})
+
 </script>
 
 <style lang="scss" scoped>
+@media only screen and (min-width: 768px) {
+   .status {
+      margin: 0 50px 50px;
+   }
+}
+@media only screen and (max-width: 768px) {
+   .status {
+      margin: 0 10px;
+   }
+}
 .status {
-   margin: 0 50px 50px;
    display: flex;
    flex-direction: column;
    gap: 20px;
+   min-height: 600px;
    text-align: left;
    .search {
       display: flex;
@@ -114,7 +139,6 @@ const truncate = ((text) => {
          justify-content: flex-start;
          align-items: center;
          gap: 0;
-         flex-grow: 1;
          input {
             border-radius: 0.3rem 0 0 0.3rem;
             border-right:0;
@@ -122,15 +146,10 @@ const truncate = ((text) => {
          button {
             border-radius:  0 0.3rem 0.3rem 0;
          }
-         .query {
-            flex-grow: 1;
-         }
       }
    }
    .hint {
-      font-style: italic;
       font-size: 0.95em;
-      color:  $uva-grey;
    }
    .err {
       margin: 20px;

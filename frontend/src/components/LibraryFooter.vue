@@ -196,7 +196,7 @@ a:hover+.fdl-gov {
 
 @media only screen and (max-width: 768px) {
    .footer-container {
-      padding: 0 40px;
+      padding: 0 10px;
       grid-template-columns: 1fr;
    }
 
