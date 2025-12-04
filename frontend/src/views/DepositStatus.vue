@@ -35,7 +35,7 @@
             <Column field="computeID" header="ID" class="nowrap"/>
             <Column field="fullName" header="Name" class="nowrap" sortable/>
             <Column field="receivedFromSIS" header="Received from SIS" class="nowrap" sortable/>
-            <Column field="submittedToLibra" header="Submitted to Libra" class="nowrap" sortable/>
+            <Column field="submittedToLibra" header="Deposited in Libra" class="nowrap" sortable/>
             <Column field="exportedToSIS" header="Exported to SIS" class="nowrap" sortable/>
             <Column field="title" header="Title">
                <template #body="slotProps">
@@ -72,17 +72,17 @@ const filters = ref({
 const queries = computed( () =>{
    return [
       {id: "cid", name: "Compute ID"},
-      {id: "created", name: "Create Date"},
-      {id: "exported", name: "Export Date"}
+      {id: "created", name: "Received date"},
+      {id: "exported", name: "Exported date"}
    ]
 })
 
 const searchHint = computed( () => {
    if ( queryType.value == "created") {
-      return "Query for deposits created on or after the selected date"
+      return "Received from SIS on or after the selected date"
    }
    if ( queryType.value == "exported") {
-      return "Query for deposits exported on or after the selected date"
+      return "Exported to SIS on or after the selected date"
    }
    return "Query for deposits by computing ID (complete or partial)"
 })
