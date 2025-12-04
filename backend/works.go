@@ -221,14 +221,17 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 			// For non-admin users, visibility must be public within 5 years per provost
 			endDate, dateErr := time.Parse(svc.TimeFormat, etdReq.EmbargoReleaseDate)
 			if dateErr != nil {
-				log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", etdReq.EmbargoReleaseDate)
+				log.Printf("INFO: reject invalid limited visibiity end date %s: %s", etdReq.EmbargoReleaseDate, dateErr.Error())
 				c.String(http.StatusBadRequest, fmt.Sprintf("invalid end date: %s", etdReq.EmbargoReleaseDate))
 				return
 			}
 			if etdReq.Visibility == "uva" && claims.isAdmin() == false {
-				maxDate := time.Now().AddDate(5, 0, 0) // now + 5 years
-				if endDate.After(maxDate) {
-					log.Printf("INFO: reject limited visibiity end date langer than 5 years: %s", etdReq.EmbargoReleaseDate)
+				maxDate := time.Now().UTC().AddDate(5, 0, 0) // now + 5 years
+				maxDate = maxDate.Truncate(24 * time.Hour)
+				truncEndDate := endDate.UTC().Truncate(24 * time.Hour)
+				log.Printf("INFO: truncated release date (yyyy-mm-dd only) comparison: release %s vs 5 years %s", truncEndDate, maxDate)
+				if truncEndDate.After(maxDate) {
+					log.Printf("INFO: reject limited visibility end date longer than 5 years: %s", etdReq.EmbargoReleaseDate)
 					c.String(http.StatusBadRequest, "limited visibilty end date must be less than five years from today")
 					return
 				}
