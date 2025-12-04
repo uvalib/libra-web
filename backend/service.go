@@ -387,11 +387,28 @@ func (svc *serviceContext) healthCheck(c *gin.Context) {
 	hcMap := make(map[string]hcResp)
 	hcMap["libra3"] = hcResp{Healthy: true}
 
-	_, err := svc.sendGetRequest(fmt.Sprintf("%s/version", svc.Protected.UserServiceURL))
-	if err != nil {
+	if esErr := svc.EasyStore.Check(); esErr != nil {
+		hcMap["easystore"] = hcResp{Healthy: false, Message: esErr.Error()}
+	} else {
+		hcMap["easystore"] = hcResp{Healthy: true}
+	}
+
+	if _, err := svc.sendGetRequest(fmt.Sprintf("%s/version", svc.Protected.UserServiceURL)); err != nil {
 		hcMap["user-ws"] = hcResp{Healthy: false, Message: err.Message}
 	} else {
 		hcMap["user-ws"] = hcResp{Healthy: true}
+	}
+
+	if _, err := svc.sendGetRequest(fmt.Sprintf("%s/version", svc.Protected.ORCID.serviceURL)); err != nil {
+		hcMap["orcid"] = hcResp{Healthy: false, Message: err.Message}
+	} else {
+		hcMap["orcid"] = hcResp{Healthy: true}
+	}
+
+	if _, err := svc.sendGetRequest(fmt.Sprintf("%s/version", svc.Protected.DepositAuthURL)); err != nil {
+		hcMap["deposit-auth"] = hcResp{Healthy: false, Message: err.Message}
+	} else {
+		hcMap["deposit-auth"] = hcResp{Healthy: true}
 	}
 
 	c.JSON(http.StatusOK, hcMap)
@@ -478,9 +495,7 @@ func (svc *serviceContext) doOrcidLookup(computeID string) (*OrcidDetails, error
 	if err := svc.Protected.refreshJWT(svc.JWTKey); err != nil {
 		return nil, fmt.Errorf("unable to refresh protected services jwt: %s", err.Error())
 	}
-	url := svc.Protected.ORCID.serviceURL
-	url = strings.Replace(url, "{:id}", computeID, 1)
-	url = strings.Replace(url, "{:auth}", svc.Protected.JWT, 1)
+	url := fmt.Sprintf("%s/cid/%s?auth=%s", svc.Protected.ORCID.serviceURL, computeID, svc.Protected.JWT)
 	payload, userErr := svc.sendGetRequest(url)
 	if userErr != nil {
 		if userErr.StatusCode == 404 {
