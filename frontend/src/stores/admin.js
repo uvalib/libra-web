@@ -104,6 +104,7 @@ export const useAdminStore = defineStore('admin', {
             this.deposits = response.data
             this.working = false
          }).catch(err => {
+            console.error(err)
             this.depositSearchMessage = err.response.statusText
             if (this.depositSearchMessage == "") {
                this.depositSearchMessage = err

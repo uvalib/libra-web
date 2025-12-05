@@ -65,7 +65,9 @@ export const useUserStore = defineStore('user', {
             this.orcid.uri = response.data.uri
          }).catch( err => {
             if (err.response.status != 404) {
-               console.log(err)
+               console.error(err)
+               const system = useSystemStore()
+               system.setError(  `Unable to get ORCID info: ${err}` )
             }
          })
       },
