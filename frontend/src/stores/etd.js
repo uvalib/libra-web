@@ -27,16 +27,16 @@ export const useETDStore = defineStore('etd', {
    }),
    getters: {
       hasKeywords: state => {
-         return ( state.work.keywords.length > 0 )
+         return ( state.work && state.work.keywords.length > 0 )
       },
       hasLicense: state => {
          return (  parseInt(state.licenseID,10) != 0)
       },
       hasRelatedURLs: state => {
-         return ( state.work.relatedURLs.length > 0)
+         return ( state.work && state.work.relatedURLs.length > 0)
       },
       hasSponsors: state => {
-         return ( state.work.sponsors.length > 0)
+         return ( state.work && state.work.sponsors.length > 0)
       },
       hasFiles: state => {
          return (state.pendingFileAdd.length > 0 || state.work.files.length > 0)

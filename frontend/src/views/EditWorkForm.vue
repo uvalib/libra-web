@@ -3,11 +3,17 @@
       <div class="work-head">
          <h1>
             <span>Libra ETD Work</span>
-            <span v-if="etdRepo.isDraft" class="draft">DRAFT</span>
+            <span v-if="etdRepo.isDraft && !etdRepo.error" class="draft">DRAFT</span>
          </h1>
-         <div class="help">View <a target="_blank" aria-describedby="new-window" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.</div>
+         <div v-if="!etdRepo.error" class="help">
+            View <a target="_blank" aria-describedby="new-window" href="https://www.library.virginia.edu/libra/etds/etds-checklist">ETD Submission Checklist</a> for help.
+         </div>
       </div>
       <WaitSpinner v-if="etdRepo.working" :overlay="true" message="<div>Please wait...</div><p>Loading Work</p>" />
+      <div v-else-if="etdRepo.error" class="error">
+         <h2>Sorry, a system error has occurred!</h2>
+         <div>{{ etdRepo.error }}</div>
+      </div>
       <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
          <Panel header="Metadata" toggleable pt:title:id="metadata-panel" pt:contentContainer:aria-labelledby="metadata-panel">
             <ProgramPanel :admin="user.isAdmin" @changed="programChanged = true"/>
@@ -174,7 +180,7 @@
             </template>
          </Panel>
       </Form>
-      <div class="toolbar">
+      <div class="toolbar" v-if="!etdRepo.error && !etdRepo.working">
          <span class="group">
             <template v-if="user.isAdmin">
                <Button :disabled="!etdRepo.publishedAt" label="Unpublish" severity="danger" @click="unpublishClicked" />
@@ -543,7 +549,18 @@ const endDatePicked = ( (newDate) => {
       }
    }
 }
+div.error {
+   padding: 25px;
+   min-height: 300px;
+   text-align: center;
+   width: 50%;
+   margin: 0 auto;
+   h2 {
+      text-align: center;
+      margin-top: 10px;
+   }
 
+}
 .unsaved {
    background: $uva-red-A;
    padding: 0.5rem 1rem;
