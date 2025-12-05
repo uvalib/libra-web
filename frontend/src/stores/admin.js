@@ -108,8 +108,9 @@ export const useAdminStore = defineStore('admin', {
             console.error(err)
             if (err.response && err.response.status == 404) {
                this.depositSearchMessage = `No items found matching ${query}`
+            } else {
+               this.depositSearchMessage = err
             }
-            this.depositSearchMessage = err
             this.working = false
          })
       },
