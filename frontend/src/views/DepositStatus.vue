@@ -23,7 +23,7 @@
             currentPageReportTemplate="Showing {first} - {last} of {totalRecords} entries"
             :loading="admin.working"
          >
-            <template #empty  v-if="admin.depositSearchMessage != ''">
+            <template #empty>
                <div class="err">{{ admin.depositSearchMessage }}</div>
             </template>
             <template #header>
