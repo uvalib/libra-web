@@ -88,6 +88,7 @@ export const useAdminStore = defineStore('admin', {
             this.searchCompleted = true
             this.filterChanged = false
          }).catch( err => {
+            console.error(err)
             const system = useSystemStore()
             system.setError(  err )
             this.working = false
@@ -105,10 +106,10 @@ export const useAdminStore = defineStore('admin', {
             this.working = false
          }).catch(err => {
             console.error(err)
-            this.depositSearchMessage = err.response.statusText
-            if (this.depositSearchMessage == "") {
-               this.depositSearchMessage = err
+            if (err.response && err.response.status == 404) {
+               this.depositSearchMessage = `No items found matching ${query}`
             }
+            this.depositSearchMessage = err
             this.working = false
          })
       },
