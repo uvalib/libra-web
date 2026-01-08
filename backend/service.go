@@ -414,6 +414,21 @@ func (svc *serviceContext) healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, hcMap)
 }
 
+func (svc *serviceContext) logClientError(c *gin.Context) {
+	agent := c.Request.UserAgent()
+	body, _ := io.ReadAll(c.Request.Body)
+	build := "unknown"
+	files, _ := filepath.Glob("../buildtag.*")
+	if len(files) == 1 {
+		build = strings.Replace(files[0], "../buildtag.", "", 1)
+	}
+	if strings.Contains(agent, "Googlebot") || strings.Contains(agent, "Applebot") {
+		log.Printf("CLIENT (bot) WARN (Version %s.%s): %s", svc.Version, build, body)
+	} else {
+		log.Printf("CLIENT ERROR (Version %s.%s): %s", svc.Version, build, body)
+	}
+}
+
 func (svc *serviceContext) mintUserJWT(user *UserDetails) (string, error) {
 	log.Printf("INFO: generate JWT for %s", user.ComputeID)
 	expirationTime := time.Now().Add(8 * time.Hour)

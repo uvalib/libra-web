@@ -42,6 +42,13 @@ export const useUserStore = defineStore('user', {
          if ( state.isAdmin ) return "/admin"
          if ( state.isRegistrar) return "/register"
          return "/"
+      },
+      signedInUser: state => {
+         var name = `${state.lastName}, ${state.firstName}`
+         if (state.computeID != "") {
+            name += ` (${state.computeID})`
+         }
+         return name
       }
    },
    actions: {

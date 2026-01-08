@@ -39,6 +39,8 @@ func main() {
 
 	api := router.Group("/api", svc.userMiddleware)
 	{
+		api.POST("/error", svc.logClientError)
+
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
 

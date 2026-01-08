@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { useUserStore } from "@/stores/user"
 
 export const useSystemStore = defineStore('system', {
    state: () => ({
@@ -79,7 +80,41 @@ export const useSystemStore = defineStore('system', {
          }
          this.showError = true
          this.working = false
+
+         if (error.status != 406) {
+            // 406 is returned on jwt mismatch. do not report this as an error
+            this.reportError(e)
+         }
       },
+
+      reportError(data) {
+         let err = {
+            url: this.router.currentRoute.value.fullPath,
+            userAgent: navigator.userAgent,
+            error: JSON.stringify(data)
+         }
+         if (err.error == "{}" ) {
+            err.error = data.toString()
+         }
+
+         // dont report network errors!
+         if ( err.error.includes("System error, we regret the inconvenience") ||
+              err.error.includes("Network Error") ||
+              err.error.includes("status code 401") ||
+              err.error.includes("ECONNREFUSED") ) {
+            return
+         }
+
+         const user = useUserStore()
+         if (user.isSignedIn) {
+            err.signedIn = true
+            err.user = user.signedInUser
+         } else {
+            err.signedIn = false
+         }
+         axios.post("/api/error", err)
+      },
+
       toastMessage( summary, message ) {
          this.toast.summary = summary
          this.toast.message = message
