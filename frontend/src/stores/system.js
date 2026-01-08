@@ -126,6 +126,7 @@ export const useSystemStore = defineStore('system', {
          this.toast.message = message
          this.toast.show = true
          this.toast.error = true
+         this.reportError(message)
       },
       clearToastMessage() {
          this.toast.summary = ""
