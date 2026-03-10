@@ -26,7 +26,7 @@
                   <div class="rename" v-else>
                      <span class="rename-entry">
                         <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" v-keyfilter="/([0-9])|([a-z])|([A-Z])|_|-/"/>
-                        <span>.{{ newNameExt }}</span>
+                        <span v-if="newNameExt">.{{ newNameExt }}</span>
                      </span>
                      <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>
                      <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="doRename()" :disabled="newName.length < 3"/>
@@ -91,6 +91,10 @@ const fileTypesAccepted = computed( () => {
 
 const startUpload = ( (event) => {
    const file = event.files[0]
+   if ( file.name.indexOf(".") == -1) {
+      system.toastError("Filename Error", "An extension is required for any files you upload")
+      return
+   }
    let formData = new FormData()
 
    // find the highest index prefix on all current, add, del files. Make the
@@ -128,11 +132,17 @@ const startUpload = ( (event) => {
 const renameClicked = ( (name) => {
    rename.value = name
    newName.value = ""
-   newNameExt.value = name.split(".").pop()
+   newNameExt.value = ""
+   if ( name.indexOf(".") > -1) {
+      newNameExt.value = name.split(".").pop()
+   }
 })
 
 const doRename = ( () => {
-   let fulNewlName = newName.value+"."+newNameExt.value
+   let fulNewlName = newName.value
+   if (newNameExt.value != "" ) {
+      fulNewlName += "."+newNameExt.value
+   }
    etdRepo.renameFile(rename.value, fulNewlName)
    newName.value = ""
    newNameExt.value = ""
