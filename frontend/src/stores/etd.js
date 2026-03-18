@@ -167,7 +167,6 @@ export const useETDStore = defineStore('etd', {
          this.downloading = name
          return axios.get(`/api/works/${this.work.id}/files/${name}?for=${usage}`).then((response) => {
             const element = document.createElement('a')
-            console.log(response.data)
             element.setAttribute('href', response.data)
             element.setAttribute('download', name)
             element.style.display = 'none'
