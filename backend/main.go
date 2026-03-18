@@ -83,7 +83,7 @@ func main() {
 	// add a catchall route that returns index page
 	router.NoRoute(func(c *gin.Context) {
 		if strings.Contains(c.Request.URL.String(), "/api/") {
-			log.Printf("ERROR: invalid api request: %s", c.Request.URL.String())
+			log.Printf("INFO: request made to invalid URL: %s", c.Request.URL.String())
 			c.String(http.StatusNotFound, "the resource you requested cannot be found")
 		} else {
 			c.File("./public/index.html")
