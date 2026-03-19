@@ -87,11 +87,14 @@ export const useSystemStore = defineStore('system', {
          }
       },
 
-      reportError(data) {
+      async reportError(data) {
+         let ipResp = await fetch("https://api.ipify.org")
+         let pubIP = await ipResp.text()
          let err = {
             url: this.router.currentRoute.value.fullPath,
             userAgent: navigator.userAgent,
-            error: JSON.stringify(data)
+            error: JSON.stringify(data),
+            publicIP: pubIP
          }
          if (err.error == "{}" ) {
             err.error = data.toString()
