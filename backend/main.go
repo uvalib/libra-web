@@ -37,9 +37,12 @@ func main() {
 	router.GET("/sitemap.xml", svc.getSitemap)
 	router.GET("/robots.txt", svc.getRobotsTxt)
 
+	router.GET("/zzz/:id", svc.publicMiddleware, svc.getStaticPage)
+
 	api := router.Group("/api", svc.userMiddleware)
 	{
 		api.POST("/error", svc.logClientError)
+		api.POST("/signout", svc.signout)
 
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
@@ -75,6 +78,8 @@ func main() {
 			admin.PUT("/works/:id/published", svc.adminUpdatePublishedDate)
 		}
 	}
+
+	router.Use(static.Serve("/stylesheets", static.LocalFile("./stylesheets", true)))
 
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by node/vite and it proxies all requests to the API to the routes above

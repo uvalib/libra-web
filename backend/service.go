@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"io/ioutil"
 	"log"
@@ -68,6 +69,7 @@ func (ps *protectedServices) refreshJWT(key string) error {
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version         string
+	PublicTemplate  *template.Template
 	EtdURL          string
 	TimeFormat      string
 	HTTPClient      *http.Client
@@ -173,6 +175,18 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			ctx.UVAWhiteList = append(ctx.UVAWhiteList, ipnet)
 		}
 	}
+
+	log.Printf("INFO: load public view template...")
+	funcMap := template.FuncMap{
+		"inc": func(i int) int {
+			return i + 1
+		},
+	}
+	tpl, err := template.New("public_view.html").Funcs(funcMap).ParseFiles("./templates/public_view.html")
+	if err != nil {
+		log.Fatalf("unable to load cpublic view template: %s", err.Error())
+	}
+	ctx.PublicTemplate = tpl
 
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{

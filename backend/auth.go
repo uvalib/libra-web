@@ -129,7 +129,9 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	}
 
 	// Set auth info in a cookie the client can read and pass along in future requests
-	c.SetCookie("libra3_jwt", signedStr, 10, "/", "", false, false)
+	expirationTime := 8 * time.Hour
+	c.SetCookie("libra_etd", signedStr, int(expirationTime.Seconds()), "/zzz", "", false, true)
+	c.SetCookie("libra3_jwt", signedStr, 5, "/", "", false, false)
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.Redirect(http.StatusFound, "/signedin")
 }
@@ -144,6 +146,31 @@ func (svc *serviceContext) checkAuthToken(c *gin.Context) {
 	}
 	log.Printf("INFO: authorization check passed")
 	c.String(http.StatusOK, "valid")
+}
+
+func (svc *serviceContext) signout(c *gin.Context) {
+	log.Printf("INFO: received signout request; remove cookies")
+	c.SetCookie("libra_etd", "", -1, "/", "", false, true)
+}
+
+func (svc *serviceContext) publicMiddleware(c *gin.Context) {
+	log.Printf("INFO: public authorization check unsin libra_etd cookie")
+	jwtCookie, err := c.Cookie("libra_etd")
+	if err != nil {
+		log.Printf("INFO: optional auth for public view is not present")
+	} else {
+		log.Printf("INFO: cookie jwt: %s", jwtCookie)
+		jwtClaims := jwtClaims{}
+		_, jwtErr := jwt.ParseWithClaims(jwtCookie, &jwtClaims, func(token *jwt.Token) (any, error) {
+			return []byte(svc.JWTKey), nil
+		})
+		if jwtErr != nil {
+			log.Printf("INFO: validation failed for optional auth: %s", jwtErr.Error())
+		} else {
+			c.Set("claims", jwtClaims)
+		}
+	}
+	c.Next()
 }
 
 func (svc *serviceContext) userMiddleware(c *gin.Context) {
