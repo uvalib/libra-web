@@ -177,7 +177,7 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	log.Printf("INFO: load public view template...")
-	work, err := template.ParseFiles("./static/templates/public_view.html", "./static/templates/footer.html", "./static/templates/header.html")
+	work, err := template.ParseFiles("./static/templates/public_view.html", "./static/templates/files.html", "./static/templates/footer.html", "./static/templates/header.html")
 	if err != nil {
 		log.Fatalf("unable to load work template: %s", err.Error())
 	}

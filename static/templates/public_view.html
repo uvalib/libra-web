@@ -10,20 +10,23 @@
 </head>
 <body>
    {{template "header" .}}
-   <div class="work-bkg"></div>
-   <div class="public-work">
-      <div class="details">
-         <div>
-            <p>This is work {{.WorkID}} </p>
-            {{if .SignedIn }}
-               <div>It is being accessed by {{.DisplayName}}</div>
-            {{else}}
-               <div>It is being accessed without a signed in user</div>
-            {{end}}
+   <div class="view-content">
+      <div class="work-bkg"></div>
+      <div class="public-work">
+         <div class="details">
             <div>
-               <button onclick="downloadClicked()">TEST</button>
+               <p>This is work {{.WorkID}} </p>
+               {{if .SignedIn }}
+                  <div>It is being accessed by {{.DisplayName}}</div>
+               {{else}}
+                  <div>It is being accessed without a signed in user</div>
+               {{end}}
+               <div>
+                  <button onclick="downloadClicked()">TEST</button>
+               </div>
             </div>
          </div>
+         {{ template "files" .}}
       </div>
    </div>
    <footer>{{template "footer" .}}</footer>
