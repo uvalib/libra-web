@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <link rel="stylesheet" type="text/css" href="/stylesheets/view.css" />
+   <script>
+      const downloadClicked = (() => {
+         alert("testing")
+      })
+   </script>
+</head>
+<body>
+   {{template "header" .}}
+   <div class="work-bkg"></div>
+   <div class="public-work">
+      <div class="details">
+         <div>
+            <p>This is work {{.WorkID}} </p>
+            {{if .SignedIn }}
+               <div>It is being accessed by {{.DisplayName}}</div>
+            {{else}}
+               <div>It is being accessed without a signed in user</div>
+            {{end}}
+            <div>
+               <button onclick="downloadClicked()">TEST</button>
+            </div>
+         </div>
+      </div>
+   </div>
+   <footer>{{template "footer" .}}</footer>
+</body>
+
+</html>

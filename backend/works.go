@@ -65,38 +65,46 @@ type workMetrics struct {
 	} `json:"files"`
 }
 
-func (svc *serviceContext) getWork(c *gin.Context) {
+func (svc *serviceContext) getWorkHandler(c *gin.Context) {
 	workID := c.Param("id")
 	dataFor := c.Query("for")
 	log.Printf("INFO: get %s work %s for [%s]", svc.Namespace, workID, dataFor)
+	etdWork, err := svc.getWork(c, workID, dataFor)
+	if err != nil {
+		log.Printf("ERROR: get work %s failed: %d - %s", workID, err.StatusCode, err.Message)
+		c.String(err.StatusCode, err.Message)
+		return
+	}
+	c.JSON(http.StatusOK, etdWork)
+}
+
+type workError struct {
+	StatusCode int
+	Message    string
+}
+
+func (svc *serviceContext) getWork(c *gin.Context, workID, reason string) (*workDetails, *workError) {
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
-		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, err.Error())
 		if strings.Contains(err.Error(), "not exist") {
-			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
-		} else {
-			c.String(http.StatusInternalServerError, err.Error())
+			return nil, &workError{StatusCode: http.StatusNotFound, Message: fmt.Sprintf("%s was not found", workID)}
 		}
-		return
+		return nil, &workError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
 	}
 
 	log.Printf("INFO: check access to work %s", workID)
 	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
-		log.Printf("INFO: access to %s work %s is forbidden", svc.Namespace, workID)
-		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
-		return
+		return nil, &workError{StatusCode: http.StatusForbidden, Message: fmt.Sprintf("access to %s is not authorized", workID)}
 	}
 
 	etdWork, err := svc.parseWork(tgtObj, access.files)
 	if err != nil {
-		log.Printf("ERROR: unable to parse work %s: %s", workID, err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
+		return nil, &workError{StatusCode: http.StatusInternalServerError, Message: fmt.Sprintf("unable to parse work %s: %s", workID, err.Error())}
 	}
 
 	// when requested for public view of a published work, trigger a view event
-	if dataFor == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
+	if reason == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
 		log.Printf("INFO: track public view for work %s", tgtObj.Id())
 		viewDetail := getPublicRequestEventDetails(c, fmt.Sprintf("public_view/%s", etdWork.ID))
 		evt := uvalibrabus.UvaBusEvent{
@@ -148,7 +156,7 @@ func (svc *serviceContext) getWork(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, etdWork)
+	return etdWork, nil
 }
 
 func (svc *serviceContext) getPublicViewMetrics(workID string) (*workMetrics, error) {

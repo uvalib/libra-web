@@ -55,7 +55,7 @@ func main() {
 		api.GET("/audits/:id", svc.getAudits)
 
 		// After initial submission, the work is referenced by the permanent ID
-		api.GET("/works/:id", svc.getWork)
+		api.GET("/works/:id", svc.getWorkHandler)
 		api.PUT("/works/:id/files/rename", svc.renameFile)
 		api.GET("/works/:id/files/:name", svc.downloadFile)
 		api.PUT("/works/:id", svc.updateWork)
@@ -79,7 +79,9 @@ func main() {
 		}
 	}
 
-	router.Use(static.Serve("/stylesheets", static.LocalFile("./stylesheets", true)))
+	// serve content for staticly rendered public view page
+	router.Use(static.Serve("/stylesheets", static.LocalFile("./static/stylesheets", true)))
+	router.Use(static.Serve("/images", static.LocalFile("./static/images", true)))
 
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by node/vite and it proxies all requests to the API to the routes above
