@@ -130,12 +130,38 @@ div.files {
       border-radius: 4px;
    }
 
+   *:disabled {
+      opacity: 0.5;
+      cursor: wait !important;
+   }
+
    .file {
       display: flex;
       flex-direction: column;
       gap: 10px;
       padding-top: 15px;
       border-top: 1px solid #DADADA;
+      button {
+         background-color: #F1F1F1;
+         border: 1px solid #DADADA;
+         color: #2B2B2B;
+         border-radius: 0.3rem;
+         padding: 0.5rem 1rem;
+         font-size: 1rem;
+         display: inline-flex;
+         gap: 0.5rem;
+         align-items: center;
+         justify-content: center;
+         cursor: pointer;
+         transition: all 0.5s ease;
+         i {
+            color: #666;
+         }
+         &:hover {
+            background-color: #DADADA;
+            border: 1px solid #808080;
+         }
+      }
    }
 }
 

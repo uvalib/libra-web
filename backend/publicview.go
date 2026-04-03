@@ -46,16 +46,16 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		viewData.DisplayName = jwt.DisplayName
 	}
 
-	endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
-
 	viewData.WorkID = workID
 	viewData.Visibility = etdWork.Visibility
-	viewData.EmbargoReleaseDate = endDate.Format("2006-01-02")
 	viewData.ThisYear = fmt.Sprintf("%d", time.Now().Year())
 	viewData.Title = etdWork.Title
 	viewData.Views = etdWork.Views
 
-	log.Printf("%+v", viewData)
+	if etdWork.Visibility == "uva" || etdWork.Visibility == "embargo" {
+		endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
+		viewData.EmbargoReleaseDate = endDate.Format("2006-01-02")
+	}
 
 	for _, f := range etdWork.Files {
 		viewData.Files = append(viewData.Files, workFile{FileName: f.Name, Downloads: f.Downloads})

@@ -10,10 +10,15 @@
       This item is restricted to UVA until {{.EmbargoReleaseDate}}.
    </span>
    {{end}}
-   {{range .Files}}
+   {{- $workID := .WorkID -}}
+   {{range $idx, $file := .Files}}
    <div class="file">
-      <div class="name">{{.FileName}}</div>
-      <div class="file-stat">Downloads: {{.Downloads}}</div>
+      <div class="name">{{$file.FileName}}</div>
+      <div class="file-stat">Downloads: {{$file.Downloads}}</div>
+      <button id="file-{{$idx}}" 
+         onclick="downloadFile('{{$workID}}', '{{$file.FileName}}', 'file-{{$idx}}')">
+         <i class="fa-solid fa-cloud-arrow-down"></i>Download
+      </button>
    </div>
    {{end}}
 </div>
