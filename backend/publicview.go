@@ -21,13 +21,21 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		return
 	}
 
+	type workFile struct {
+		FileName  string
+		Downloads int
+	}
+
 	var viewData struct {
-		WorkID      string
-		Title       string
-		Views       int
-		DisplayName string
-		SignedIn    bool
-		ThisYear    string
+		WorkID             string
+		Visibility         string
+		EmbargoReleaseDate string
+		Title              string
+		Views              int
+		DisplayName        string
+		SignedIn           bool
+		ThisYear           string
+		Files              []workFile
 	}
 
 	if isSignedIn(c) {
@@ -38,10 +46,21 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		viewData.DisplayName = jwt.DisplayName
 	}
 
+	endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
+
 	viewData.WorkID = workID
+	viewData.Visibility = etdWork.Visibility
+	viewData.EmbargoReleaseDate = endDate.Format("2006-01-02")
 	viewData.ThisYear = fmt.Sprintf("%d", time.Now().Year())
 	viewData.Title = etdWork.Title
 	viewData.Views = etdWork.Views
+
+	log.Printf("%+v", viewData)
+
+	for _, f := range etdWork.Files {
+		viewData.Files = append(viewData.Files, workFile{FileName: f.Name, Downloads: f.Downloads})
+	}
+
 	var rendered bytes.Buffer
 	if err := svc.ViewTemplates.Execute(&rendered, viewData); err != nil {
 		log.Printf("ERROR: unable to generate public view for %s: %s", workID, err.Error())

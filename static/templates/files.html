@@ -1,5 +1,20 @@
 {{ define "files" }}
 <div class="files">
    <h2 class="title">Files</h2>
+   {{if eq .Visibility "embargo"}}
+   <span  class="file-embargo">
+      This item is restricted to abstract view only until {{.EmbargoReleaseDate}}.
+   </span>
+   {{else if eq .Visibility "uva"}}
+   <span class="file-embargo">
+      This item is restricted to UVA until {{.EmbargoReleaseDate}}.
+   </span>
+   {{end}}
+   {{range .Files}}
+   <div class="file">
+      <div class="name">{{.FileName}}</div>
+      <div class="file-stat">Downloads: {{.Downloads}}</div>
+   </div>
+   {{end}}
 </div>
 {{ end }}

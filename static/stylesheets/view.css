@@ -45,6 +45,25 @@ body {
       }
       div.public-work {
          position: relative;
+         h1 {
+            font-size: 1.5em;
+            font-weight: 400;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            .view-cnt {
+               padding: 10px;
+               font-size: 0.5em;
+               text-align: center;
+               display: inline-block;
+               border: 1px solid #ADADAD;
+               border-radius: 100px;
+            }
+         }
       }
    }
 }
@@ -55,6 +74,35 @@ div.details {
    background: white;
    text-align: left;
    margin-bottom: 50px;
+
+   .metadata {
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      ul.unstyled {
+         display: flex;
+         flex-direction: column;
+         gap: 5px;
+         margin: 0;
+         list-style: none;
+         padding: 0 0 0 0px;
+      }
+      ul.links {
+         margin-top: 0;
+         margin-bottom: 0;
+         padding-left: 20px;
+         li {
+            margin-top: 5px;
+         }
+      }
+      h2 {
+         text-align: left;
+         font-size: 1.15em;
+         padding:0;
+         margin:0 0 5px 0;
+      }
+   }
 }
 
 div.files {

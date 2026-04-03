@@ -14,6 +14,12 @@
       <div class="work-bkg"></div>
       <div class="public-work">
          <div class="details">
+            <div class="metadata">
+               <h1>
+                  <span>{{.Title}}</span>
+                  <span class="view-cnt">{{.Views}} views</span>
+               </h1>   
+            </div>
             <div>
                <p>This is work {{.WorkID}} </p>
                {{if .SignedIn }}
