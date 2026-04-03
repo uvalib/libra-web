@@ -41,17 +41,76 @@
                   <span>{{.Title}}</span>
                   <span class="view-cnt">{{.Views}} views</span>
                </h1>   
-            </div>
-            <div>
-               <p>This is work {{.WorkID}} </p>
-               {{if .SignedIn }}
-                  <div>It is being accessed by {{.DisplayName}}</div>
-               {{else}}
-                  <div>It is being accessed without a signed in user</div>
+               <section>
+                  <h2>Author</h2>  
+                  <div class="content author">
+                     <span>{{.Author.LastName}}, {{.Author.FirstName}}, {{.Program}}, {{.Author.Institution}}</span>
+                     {{if ne .Author.ORCID.URL ""}}
+                     <a class="orcid" href="{{.Author.ORCID.URL}}" target="_blank" aria-describedby="new-window">
+                        <img class="orcid-img" src="/images/orcid_id.svg" aria-hidden="true"/>
+                        <span>{{.Author.ORCID.ID}}</span>
+                     </a>
+                     {{end}}
+                  </div> 
+               </section>
+               {{ if .Advisors }}
+               <section>
+                  <h2>Advisors</h2>
+                  <ul class="unstyled">
+                     {{range .Advisors}}
+                     <li class="advisor">
+                        <span>{{ .LastName }}, {{ .FirstName }}</span>
+                        {{if ne .Department ""}}
+                        <span>,&nbsp;{{.Department}}</span>
+                        {{end}}
+                        {{if ne .Institution ""}}
+                        <span>,&nbsp;{{.Institution}}</span>
+                        {{end}}
+                     </li>
+                     {{end}}
+                  </ul>
+               </section>
                {{end}}
-               <div>
-                  <button onclick="downloadClicked()">TEST</button>
-               </div>
+               <section>
+                  <h2>Abstract</h2>
+                  <div style="white-space: pre-wrap;">{{ .Abstract }}</div>
+               </section>
+               <section>
+                  <h2>Degree</h2>
+                  <div>{{ .Degree }}</div>
+               </section>
+               {{ if ne .Keywords ""}}
+               <section>
+                  <h2>Keywords</h2>
+                  <div>{{ .Keywords }}</div>
+               </section>
+               {{ end }}
+               {{ if .Sponsors }}
+               <section>
+                  <h2>Sponsors</h2>
+                  <ul class="unstyled">
+                     {{ range .Sponsors }}
+                     <li>{{ . }}</li>
+                     {{ end }}
+                  </ul>
+               </section>
+               {{ end }}
+               {{ if .RelatedURLs }}
+               <section>
+                  <h2>Related Links</h2>
+                  <ul class="links">
+                     {{ range .RelatedURLs }}
+                     <a href="{{ . }}" target="_blank" >{{ . }}</a>
+                     {{ end }}
+                  </ul>  
+               </section>
+               {{ end }}
+               {{ if ne .Notes ""}}
+               <section>
+                  <h2>Notes</h2>
+                  <div style="white-space: pre-wrap;">{{ .Notes }}</div>
+               </section>
+               {{ end }}
             </div>
          </div>
          {{ template "files" .}}

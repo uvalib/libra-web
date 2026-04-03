@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -26,13 +27,32 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		Downloads int
 	}
 
+	type contributor struct {
+		FirstName   string
+		LastName    string
+		Department  string
+		Institution string
+		ORCID       struct {
+			URL string
+			ID  string
+		}
+	}
+
 	var viewData struct {
 		WorkID             string
 		Visibility         string
 		EmbargoReleaseDate string
 		Title              string
 		Views              int
-		DisplayName        string
+		Author             contributor
+		Advisors           []contributor
+		Program            string
+		Abstract           string
+		Degree             string
+		Keywords           string
+		Sponsors           []string
+		RelatedURLs        []string
+		Notes              string
 		SignedIn           bool
 		ThisYear           string
 		Files              []workFile
@@ -43,7 +63,6 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		userInfo := fmt.Sprintf("user %s", jwt.ComputeID)
 		log.Printf("INFO: work %s accessed by signed in %s", workID, userInfo)
 		viewData.SignedIn = true
-		viewData.DisplayName = jwt.DisplayName
 	}
 
 	viewData.WorkID = workID
@@ -51,6 +70,33 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	viewData.ThisYear = fmt.Sprintf("%d", time.Now().Year())
 	viewData.Title = etdWork.Title
 	viewData.Views = etdWork.Views
+	viewData.Author.FirstName = etdWork.Author.FirstName
+	viewData.Author.LastName = etdWork.Author.LastName
+	viewData.Author.Institution = etdWork.Author.Institution
+	viewData.Author.ORCID.URL = etdWork.Author.ORCID
+	if etdWork.Author.ORCID != "" {
+		bits := strings.Split(viewData.Author.ORCID.URL, "/")
+		viewData.Author.ORCID.ID = bits[len(bits)-1]
+	}
+	viewData.Program = etdWork.Program
+	for _, adv := range etdWork.Advisors {
+		viewData.Advisors = append(viewData.Advisors, contributor{
+			LastName:    adv.LastName,
+			FirstName:   adv.FirstName,
+			Department:  adv.Department,
+			Institution: adv.Institution,
+		})
+	}
+	viewData.Abstract = etdWork.Abstract
+	viewData.Degree = etdWork.Degree
+	if len(etdWork.Keywords) > 0 {
+		viewData.Keywords = strings.Join(etdWork.Keywords, "; ")
+	}
+	viewData.Sponsors = etdWork.Sponsors
+
+	// FIXME? the vue logic has mess regex to see if a url is a url (extractLink) unknown if it is needed
+	viewData.RelatedURLs = etdWork.RelatedURLs
+	viewData.Notes = etdWork.Notes
 
 	if etdWork.Visibility == "uva" || etdWork.Visibility == "embargo" {
 		endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
