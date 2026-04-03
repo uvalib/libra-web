@@ -53,6 +53,7 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		Sponsors           []string
 		RelatedURLs        []string
 		Notes              string
+		Language           string
 		SignedIn           bool
 		ThisYear           string
 		Files              []workFile
@@ -95,8 +96,10 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	viewData.Sponsors = etdWork.Sponsors
 
 	// FIXME? the vue logic has mess regex to see if a url is a url (extractLink) unknown if it is needed
+	// It is needed: https://jira.admin.virginia.edu/browse/TDG-2072
 	viewData.RelatedURLs = etdWork.RelatedURLs
 	viewData.Notes = etdWork.Notes
+	viewData.Language = etdWork.Language
 
 	if etdWork.Visibility == "uva" || etdWork.Visibility == "embargo" {
 		endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)

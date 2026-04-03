@@ -111,6 +111,12 @@
                   <div style="white-space: pre-wrap;">{{ .Notes }}</div>
                </section>
                {{ end }}
+               {{ if ne .Language ""}}
+               <section>
+                  <h2>Language</h2>
+                  <div>{{ .Language }}</div>
+               </section>
+               {{ end }}
             </div>
          </div>
          {{ template "files" .}}
