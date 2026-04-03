@@ -100,7 +100,13 @@
                   <h2>Related Links</h2>
                   <ul class="links">
                      {{ range .RelatedURLs }}
-                     <a href="{{ . }}" target="_blank" >{{ . }}</a>
+                     <li>
+                        {{ if .IsURL }}
+                        <a href="{{ .Value }}" target="_blank" >{{ .Value }}</a>
+                        {{ else }}
+                        {{ .Value }}
+                        {{ end }}
+                     </li>
                      {{ end }}
                   </ul>  
                </section>

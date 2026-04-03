@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -38,6 +39,11 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		}
 	}
 
+	type relatedURL struct {
+		IsURL bool
+		Value string
+	}
+
 	var viewData struct {
 		WorkID             string
 		Visibility         string
@@ -51,7 +57,7 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		Degree             string
 		Keywords           string
 		Sponsors           []string
-		RelatedURLs        []string
+		RelatedURLs        []relatedURL
 		Notes              string
 		Language           string
 		SignedIn           bool
@@ -94,10 +100,16 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		viewData.Keywords = strings.Join(etdWork.Keywords, "; ")
 	}
 	viewData.Sponsors = etdWork.Sponsors
-
-	// FIXME? the vue logic has mess regex to see if a url is a url (extractLink) unknown if it is needed
-	// It is needed: https://jira.admin.virginia.edu/browse/TDG-2072
-	viewData.RelatedURLs = etdWork.RelatedURLs
+	for _, relVal := range etdWork.RelatedURLs {
+		entry := relatedURL{
+			IsURL: true,
+			Value: strings.TrimSpace(relVal),
+		}
+		if _, err := url.ParseRequestURI(entry.Value); err != nil {
+			entry.IsURL = false
+		}
+		viewData.RelatedURLs = append(viewData.RelatedURLs, entry)
+	}
 	viewData.Notes = etdWork.Notes
 	viewData.Language = etdWork.Language
 
