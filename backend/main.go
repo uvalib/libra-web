@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -81,7 +82,11 @@ func main() {
 
 	// Load all templates into gin engine and setup static routes to serve images and stylesheets
 	// Once loaded, templates are rendered in handlers like c.HTML(http.StatusOK, "view.html", viewData)
-	// where "view.html" is the template filename of the target page
+	// where "view.html" is the template filename of the target page.
+	// IMPORTANT: the call to SetFuncMap msut come before LoadHTMLGlob
+	router.SetFuncMap(template.FuncMap{
+		"hasSuffix": strings.HasSuffix,
+	})
 	router.LoadHTMLGlob("./static/templates/*")
 	router.Use(static.Serve("/stylesheets", static.LocalFile("./static/stylesheets", true)))
 	router.Use(static.Serve("/images", static.LocalFile("./static/images", true)))

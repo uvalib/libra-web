@@ -3,6 +3,24 @@
 <head>
    <link rel="stylesheet" type="text/css" href="/stylesheets/view.css" />
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <title>{{ .Title }}</title>
+
+   <meta name="citation_title" content="{{ .Title }}">
+   <meta name="citation_author" content="{{ .Author.LastName }}, {{ .Author.FirstName }}">
+   <meta name="citation_publisher" content="University of Virginia">
+   <meta name="citation_dissertation_name" content="{{ .Degree }}">
+   <meta name="citation_publication_date" content="{{ .PublishedDate }}">
+   {{ if ne .Keywords ""}}
+   <meta name="citation_keywords" content="{{ .Keywords }}">
+   {{ end }}
+   {{- $workID := .WorkID -}}
+   {{- $baseURL := .BaseURL }}
+   {{ range $file := .Files }}
+   {{ if hasSuffix $file.FileName ".pdf" }}
+   <meta name="citation_pdf_url" content="{{ $baseURL }}/api/works/{{ $workID }}/files/{{ $file.FileName }}?for=view">
+   {{ end}}
+   {{ end }}
+
    <script>
       const downloadFile = ( (workID, fileName, buttonID) => {
          const btn = document.getElementById(buttonID)

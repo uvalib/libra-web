@@ -44,6 +44,7 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	}
 
 	var viewData struct {
+		BaseURL            string
 		WorkID             string
 		Visibility         string
 		EmbargoReleaseDate string
@@ -78,6 +79,7 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		log.Printf("INFO: public view of work %s accessed by anonymous user", workID)
 	}
 
+	viewData.BaseURL = svc.EtdURL
 	viewData.WorkID = workID
 	viewData.Visibility = etdWork.Visibility
 	viewData.ThisYear = fmt.Sprintf("%d", time.Now().Year())
