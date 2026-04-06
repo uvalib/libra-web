@@ -20,6 +20,15 @@ body {
       align-items: center;
       gap: 10px;
    }
+   .screen-reader-text {
+      position:absolute;
+      left:-10000px;
+      top:auto;
+      width:1px;
+      height:1px;
+      overflow:hidden;
+      visibility: hidden;
+   }
    div.view-content {
       background-color: #fafafa;
       h2 {

@@ -60,16 +60,23 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		RelatedURLs        []relatedURL
 		Notes              string
 		Language           string
-		SignedIn           bool
+		Citation           string
+		PublishedDate      string
+		PersistentLink     string
 		ThisYear           string
 		Files              []workFile
+		License            struct {
+			Name string
+			URL  string
+		}
 	}
 
 	if isSignedIn(c) {
 		jwt := getJWTClaims(c)
 		userInfo := fmt.Sprintf("user %s", jwt.ComputeID)
-		log.Printf("INFO: work %s accessed by signed in %s", workID, userInfo)
-		viewData.SignedIn = true
+		log.Printf("INFO: public view of work %s accessed by signed in user %s", workID, userInfo)
+	} else {
+		log.Printf("INFO: public view of work %s accessed by anonymous user", workID)
 	}
 
 	viewData.WorkID = workID
@@ -112,11 +119,28 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	}
 	viewData.Notes = etdWork.Notes
 	viewData.Language = etdWork.Language
+	viewData.License.Name = etdWork.License
+	viewData.License.URL = etdWork.LicenseURL
+	viewData.PersistentLink = etdWork.PersistentLink
+
+	pubDate, dErr := time.Parse(svc.TimeFormat, etdWork.PublishedAt)
+	if dErr != nil {
+		log.Printf("ERROR: unable to parse publised date: %s", dErr.Error())
+	} else {
+		viewData.PublishedDate = pubDate.Format("2006-01-02")
+	}
 
 	if etdWork.Visibility == "uva" || etdWork.Visibility == "embargo" {
 		endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
 		viewData.EmbargoReleaseDate = endDate.Format("2006-01-02")
 	}
+
+	// build suggested citaion
+	//[Author LastName], [Author FirstName]. [Title]. [Author Institution], [program], [Degree], [Published Year], [DOI URI].
+	viewData.Citation = fmt.Sprintf("%s, %s. %s. %s, %s, %s, %s, %s.",
+		etdWork.Author.LastName, etdWork.Author.FirstName,
+		etdWork.Title, etdWork.Author.Institution, etdWork.Program, etdWork.Degree,
+		viewData.PublishedDate, viewData.PersistentLink)
 
 	for _, f := range etdWork.Files {
 		viewData.Files = append(viewData.Files, workFile{FileName: f.Name, Downloads: f.Downloads})
