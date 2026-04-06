@@ -20,33 +20,6 @@
    <meta name="citation_pdf_url" content="{{ $baseURL }}/api/works/{{ $workID }}/files/{{ $file.FileName }}?for=view">
    {{ end}}
    {{ end }}
-
-   <script>
-      const downloadFile = ( (workID, fileName, buttonID) => {
-         const btn = document.getElementById(buttonID)
-         btn.setAttribute("disabled", 1)
-         const url = `/api/works/${workID}/files/${fileName}?for=view`
-         fetch(url).then( (response) => {
-            if (!response.ok) {
-               throw new Error(response.status);
-            }
-            return response.text()
-         }).then((dlURL) => {
-            const element = document.createElement('a')
-            element.setAttribute('href', dlURL)
-            element.setAttribute('download', fileName)
-            element.style.display = 'none'
-            document.body.appendChild(element)
-            element.click()
-            document.body.removeChild(element)
-            btn.removeAttribute("disabled")
-         }).catch((error) => {
-            // TODO display on client?
-            console.error(error)
-            btn.removeAttribute("disabled")
-         })
-      })
-   </script>
 </head>
 <body>
    {{template "header" .}}

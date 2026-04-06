@@ -488,8 +488,10 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 		}
 	}
 
+	// redirect to the newwly generated url so the client automatically does the download
+	// with no additional JS logic needed
 	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
-	c.String(http.StatusOK, dlFile.Url())
+	c.Redirect(http.StatusTemporaryRedirect, dlFile.Url())
 }
 
 func getPublicRequestEventDetails(c *gin.Context, targetID string) []byte {

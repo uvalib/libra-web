@@ -183,7 +183,7 @@ div.files {
       gap: 10px;
       padding-top: 15px;
       border-top: 1px solid #DADADA;
-      button {
+      a.download-link {
          background-color: #F1F1F1;
          border: 1px solid #DADADA;
          color: #2B2B2B;
@@ -195,6 +195,7 @@ div.files {
          align-items: center;
          justify-content: center;
          cursor: pointer;
+         text-decoration: none;
          transition: all 0.5s ease;
          i {
             color: #666;
@@ -237,10 +238,6 @@ footer {
          }
       }
    }
-   i.fa-external-link-alt {
-      display: inline-block;
-      margin-left: 5px;
-   }
    ul {
       list-style: none;
       padding: 0;
@@ -248,10 +245,27 @@ footer {
 
    ul li {
       padding-bottom: 14px;
+      a.social {
+         transition: all 0.5s ease;
+         text-decoration: none;
+         border: 1px solid transparent;
+         display: inline-block;
+         border-radius: 0.4rem;
+         padding: 2px 0;
+         &:hover {
+            color: #C8F2F4;
+            text-decoration: none !important;   
+            border-color: #C8F2F4;
+         }
+         i {
+            display: inline-block;
+            font-size: 1.85rem;
+         }
+      }
    }
 
    address {
-      margin-top: 25px;
+      margin-top: 20px;
    }
 
    .give-library {

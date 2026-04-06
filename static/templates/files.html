@@ -15,10 +15,7 @@
    <div class="file">
       <div class="name">{{$file.FileName}}</div>
       <div class="file-stat">Downloads: {{$file.Downloads}}</div>
-      <button id="file-{{$idx}}" 
-         onclick="downloadFile('{{$workID}}', '{{$file.FileName}}', 'file-{{$idx}}')">
-         <i class="fa-solid fa-cloud-arrow-down"></i>Download
-      </button>
+      <a class="download-link" href="/api/works/{{ $workID }}/files/{{ $file.FileName }}?for=view"><i class="fa-solid fa-cloud-arrow-down"></i>Download</a>
    </div>
    {{end}}
 </div>
