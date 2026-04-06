@@ -14,6 +14,7 @@ COPY go.mod go.sum Makefile ./
 COPY backend ./backend
 COPY frontend ./frontend
 COPY data ./data
+COPY static ./static
 RUN make linux-full
 
 #
