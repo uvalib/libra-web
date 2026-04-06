@@ -1,0 +1,25 @@
+{{ define "files" }}
+<div class="files">
+   <h2 class="title">Files</h2>
+   {{if eq .Visibility "embargo"}}
+   <span  class="file-embargo">
+      This item is restricted to abstract view only until {{.EmbargoReleaseDate}}.
+   </span>
+   {{else if eq .Visibility "uva"}}
+   <span class="file-embargo">
+      This item is restricted to UVA until {{.EmbargoReleaseDate}}.
+   </span>
+   {{end}}
+   {{- $workID := .WorkID -}}
+   {{range $idx, $file := .Files}}
+   <div class="file">
+      <div class="name">{{$file.FileName}}</div>
+      <div class="file-stat">Downloads: {{$file.Downloads}}</div>
+      <button id="file-{{$idx}}" 
+         onclick="downloadFile('{{$workID}}', '{{$file.FileName}}', 'file-{{$idx}}')">
+         <i class="fa-solid fa-cloud-arrow-down"></i>Download
+      </button>
+   </div>
+   {{end}}
+</div>
+{{ end }}

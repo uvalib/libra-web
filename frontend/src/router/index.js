@@ -43,8 +43,8 @@ const router = createRouter({
          meta: { requiresAdmin: true }
       },
       {
-         path: '/public_view/:id',
-         name: 'etdpublic',
+         path: '/preview/:id',
+         name: 'preview',
          component: () => import('../views/PublicView.vue'),
       },
       {
@@ -81,7 +81,7 @@ router.beforeEach( async (to) => {
    const userStore = useUserStore()
    const admin = useAdminStore()
    const { cookies } = useCookies()
-   const noAuthRoutes = ["not_found", "forbidden", "expired", "etdpublic", "signedout"]
+   const noAuthRoutes = ["not_found", "forbidden", "expired", "signedout"]
 
    // close any lingering toast messages
    useToast().removeAllGroups()

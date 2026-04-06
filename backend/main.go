@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -37,9 +38,13 @@ func main() {
 	router.GET("/sitemap.xml", svc.getSitemap)
 	router.GET("/robots.txt", svc.getRobotsTxt)
 
+	// render a work as a static page using HTML templates
+	router.GET("/public_view/:id", svc.publicMiddleware, svc.getStaticPage)
+
 	api := router.Group("/api", svc.userMiddleware)
 	{
 		api.POST("/error", svc.logClientError)
+		api.POST("/signout", svc.signout)
 
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
@@ -52,7 +57,7 @@ func main() {
 		api.GET("/audits/:id", svc.getAudits)
 
 		// After initial submission, the work is referenced by the permanent ID
-		api.GET("/works/:id", svc.getWork)
+		api.GET("/works/:id", svc.getWorkHandler)
 		api.PUT("/works/:id/files/rename", svc.renameFile)
 		api.GET("/works/:id/files/:name", svc.downloadFile)
 		api.PUT("/works/:id", svc.updateWork)
@@ -75,6 +80,17 @@ func main() {
 			admin.PUT("/works/:id/published", svc.adminUpdatePublishedDate)
 		}
 	}
+
+	// Load all templates into gin engine and setup static routes to serve images and stylesheets
+	// Once loaded, templates are rendered in handlers like c.HTML(http.StatusOK, "view.html", viewData)
+	// where "view.html" is the template filename of the target page.
+	// IMPORTANT: the call to SetFuncMap msut come before LoadHTMLGlob
+	router.SetFuncMap(template.FuncMap{
+		"hasSuffix": strings.HasSuffix,
+	})
+	router.LoadHTMLGlob("./static/templates/*")
+	router.Use(static.Serve("/stylesheets", static.LocalFile("./static/stylesheets", true)))
+	router.Use(static.Serve("/images", static.LocalFile("./static/images", true)))
 
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by node/vite and it proxies all requests to the API to the routes above

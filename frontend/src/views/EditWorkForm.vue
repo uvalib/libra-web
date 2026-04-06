@@ -191,10 +191,7 @@
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
-            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked">
-               <span v-if="!etdRepo.publishedAt">Preview</span>
-               <span v-else>Public View</span>
-            </Button>
+            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Preview" />
          </span>
       </div>
    </div>
@@ -357,7 +354,7 @@ const saveClicked = ((postSaveAct) => {
 })
 
 const previewClicked = (() => {
-    router.push(`/public_view/${etdRepo.work.id}`)
+    router.push(`/preview/${etdRepo.work.id}`)
 })
 
 const exitClicked = (() => {
