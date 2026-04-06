@@ -63,8 +63,10 @@
                <Column header="Actions">
                   <template #body="slotProps">
                      <div  class="acts">
-                        <!-- <RouterLink v-if="slotProps.data.published" :to="`/zzz/${slotProps.data.id}`">Public View</RouterLink> -->
-                         <a v-if="slotProps.data.published" :href="`./zzz/${slotProps.data.id}`">Public View</a>
+                         <a v-if="slotProps.data.published" target="_blank" 
+                           :href="`http://localhost:8080/public_view/${slotProps.data.id}`">
+                           <span>Public View</span>
+                        </a>
                         <RouterLink v-else :to="`/etd/${slotProps.data.id}`">Edit Thesis</RouterLink>
                      </div>
                   </template>

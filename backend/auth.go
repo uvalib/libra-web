@@ -130,7 +130,7 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 
 	// Set auth info in a cookie the client can read and pass along in future requests
 	expirationTime := 8 * time.Hour
-	c.SetCookie("libra_etd", signedStr, int(expirationTime.Seconds()), "/zzz", "", false, true)
+	c.SetCookie("libra_etd", signedStr, int(expirationTime.Seconds()), "/public_view", "", false, true)
 	c.SetCookie("libra3_jwt", signedStr, 5, "/", "", false, false)
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.Redirect(http.StatusFound, "/signedin")
@@ -154,7 +154,7 @@ func (svc *serviceContext) signout(c *gin.Context) {
 }
 
 func (svc *serviceContext) publicMiddleware(c *gin.Context) {
-	log.Printf("INFO: public authorization check unsin libra_etd cookie")
+	log.Printf("INFO: public authorization check using libra_etd cookie")
 	jwtCookie, err := c.Cookie("libra_etd")
 	if err != nil {
 		log.Printf("INFO: optional auth for public view is not present")

@@ -44,7 +44,7 @@ export default defineConfig({
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
-         '/zzz': {
+         '/public_view': {
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },

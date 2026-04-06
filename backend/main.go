@@ -38,7 +38,8 @@ func main() {
 	router.GET("/sitemap.xml", svc.getSitemap)
 	router.GET("/robots.txt", svc.getRobotsTxt)
 
-	router.GET("/zzz/:id", svc.publicMiddleware, svc.getStaticPage)
+	// render a work as a static page using HTML templates
+	router.GET("/public_view/:id", svc.publicMiddleware, svc.getStaticPage)
 
 	api := router.Group("/api", svc.userMiddleware)
 	{
