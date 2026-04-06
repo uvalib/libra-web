@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
@@ -142,15 +141,11 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		etdWork.Title, etdWork.Author.Institution, etdWork.Program, etdWork.Degree,
 		viewData.PublishedDate, viewData.PersistentLink)
 
+	// add files to the work data
 	for _, f := range etdWork.Files {
 		viewData.Files = append(viewData.Files, workFile{FileName: f.Name, Downloads: f.Downloads})
 	}
 
-	var rendered bytes.Buffer
-	if err := svc.ViewTemplates.Execute(&rendered, viewData); err != nil {
-		log.Printf("ERROR: unable to generate public view for %s: %s", workID, err.Error())
-	}
-
-	c.Header("Content-Type", "text/html")
-	c.String(http.StatusOK, rendered.String())
+	// render template as html using the data set up above
+	c.HTML(http.StatusOK, "view.html", viewData)
 }

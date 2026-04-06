@@ -79,7 +79,10 @@ func main() {
 		}
 	}
 
-	// serve content for staticly rendered public view page
+	// Load all templates into gin engine and setup static routes to serve images and stylesheets
+	// Once loaded, templates are rendered in handlers like c.HTML(http.StatusOK, "view.html", viewData)
+	// where "view.html" is the template filename of the target page
+	router.LoadHTMLGlob("./static/templates/*")
 	router.Use(static.Serve("/stylesheets", static.LocalFile("./static/stylesheets", true)))
 	router.Use(static.Serve("/images", static.LocalFile("./static/images", true)))
 

@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -69,7 +67,6 @@ func (ps *protectedServices) refreshJWT(key string) error {
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version         string
-	ViewTemplates   *template.Template
 	EtdURL          string
 	TimeFormat      string
 	HTTPClient      *http.Client
@@ -175,13 +172,6 @@ func initializeService(version string, cfg *configData) *serviceContext {
 			ctx.UVAWhiteList = append(ctx.UVAWhiteList, ipnet)
 		}
 	}
-
-	log.Printf("INFO: load public view template...")
-	work, err := template.ParseFiles("./static/templates/public_view.html", "./static/templates/files.html", "./static/templates/footer.html", "./static/templates/header.html")
-	if err != nil {
-		log.Fatalf("unable to load work template: %s", err.Error())
-	}
-	ctx.ViewTemplates = work
 
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{
@@ -602,7 +592,7 @@ func handleAPIResponse(logURL string, resp *http.Response, err error) ([]byte, *
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	bodyBytes, _ := io.ReadAll(resp.Body)
 	return bodyBytes, nil
 }
 
