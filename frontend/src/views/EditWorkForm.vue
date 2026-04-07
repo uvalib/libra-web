@@ -207,7 +207,6 @@ import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import axios from 'axios'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-import {useHead} from '@unhead/vue'
 
 import { Form } from '@primevue/forms'
 import ProgramPanel from '@/components/ProgramPanel.vue'
@@ -237,10 +236,6 @@ const programChanged = ref(false)
 const embargoChanged = ref(false)
 const metadataComplete = ref(false)
 const advisorLookup = ref([])
-
-useHead({
-   title: 'Edit Libra ETD Work'
-})
 
 onBeforeMount( async () => {
    if ( user.isSignedIn == false) {

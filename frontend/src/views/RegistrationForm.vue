@@ -43,7 +43,6 @@
 import { ref, computed } from 'vue'
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
-import { useHead } from '@unhead/vue'
 import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
 import TextArea from 'primevue/textarea'
@@ -60,10 +59,6 @@ const userErrors = ref([])
 const users = ref([])
 const working = ref(false)
 const added = ref(false)
-
-useHead({
-   title: 'Libra Deposit Registration'
-})
 
 const submitDisabled = computed( () => {
    return program.value == "" || degree.value == "" || users.value.length == 0

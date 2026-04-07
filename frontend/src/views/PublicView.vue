@@ -105,7 +105,6 @@ import WaitSpinner from "@/components/WaitSpinner.vue"
 import ThesisFiles from "@/components/publicview/ThesisFiles.vue"
 import SubmitPanel from "@/components/publicview/SubmitPanel.vue"
 import { useClipboard, usePermission } from '@vueuse/core'
-import { useSeoMeta } from '@unhead/vue'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc)
@@ -119,20 +118,6 @@ const { copy, copied } = useClipboard()
 
 onBeforeMount( async () => {
    await etdRepo.getWork( route.params.id, "view" )
-})
-
-useSeoMeta({
-   title: () => etdRepo.work.title,
-   citation_title: ()=> etdRepo.work.title,
-   citation_author: ()=> etdRepo.work.author ? `${etdRepo.work.author.lastName}, ${etdRepo.work.author.firstName}` : null,
-   citation_publication_date: ()=> etdRepo.publishedAt ? dayjs(etdRepo.publishedAt).utc().format("YYYY-MM-DD") : null,
-   citation_dissertation_institution: ()=> etdRepo.work.author.institution,
-   citation_pdf_url: null, // TODO
-   citation_publisher: 'University of Virginia',
-   citation_doi: ()=> etdRepo.work.doi,
-   citation_keywords: ()=> etdRepo.work.keywords ? etdRepo.work.keywords.filter((value) => value != null && value != "").join('; ') : null,
-   citation_dissertation_institution: ()=> etdRepo.work.author ? [etdRepo.work.author.institution, etdRepo.work.program].filter((value) => value != null && value != "").join(", ") : null,
-   citation_dissertation_name: ()=> etdRepo.work.degree,
 })
 
 const authorDisplay = ((a) => {

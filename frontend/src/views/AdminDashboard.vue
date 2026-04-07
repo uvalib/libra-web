@@ -130,7 +130,6 @@ import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import AuditsPanel from '@/components/AuditsPanel.vue'
-import { useHead } from '@unhead/vue'
 
 const admin = useAdminStore()
 const fromDate = ref()
@@ -141,10 +140,6 @@ const publishOpts = computed(() => {
 })
 const sourceOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "SIS", value: "sis"}, {label: "Optional", value: "optional"} ]
-})
-
-useHead({
-   title: 'Libra Admin Dashboard'
 })
 
 onMounted( () => {
