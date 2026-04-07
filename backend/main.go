@@ -31,6 +31,7 @@ func main() {
 
 	// Set routes and start serve
 	router.GET("/authenticate", svc.authenticate)
+	router.POST("/signout", svc.signout)
 	router.GET("/authcheck", svc.checkAuthToken)
 	router.GET("/config", svc.getConfig)
 	router.GET("/healthcheck", svc.healthCheck)
@@ -44,7 +45,6 @@ func main() {
 	api := router.Group("/api", svc.userMiddleware)
 	{
 		api.POST("/error", svc.logClientError)
-		api.POST("/signout", svc.signout)
 
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)

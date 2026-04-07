@@ -28,6 +28,10 @@ export default defineConfig({
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
+         '/signout': {
+            target: process.env.LIBRA_SRV,
+            changeOrigin: true
+         },
          '/authcheck': {
             target: process.env.LIBRA_SRV,
             changeOrigin: true
