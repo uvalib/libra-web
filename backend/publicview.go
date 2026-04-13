@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/uvalib/easystore/uvaeasystore"
+	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
 func (svc *serviceContext) getStaticPage(c *gin.Context) {
@@ -150,4 +152,61 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 
 	// render template as html using the data set up above
 	c.HTML(http.StatusOK, "view.html", viewData)
+}
+
+func (svc *serviceContext) downloadPublishedFile(c *gin.Context) {
+	workID := c.Param("id")
+	tgtFile := c.Query("file")
+	log.Printf("INFO: request to download file %s from published work %s", tgtFile, workID)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	if err != nil {
+		log.Printf("ERROR: get %s work %s for download failed: %s", svc.Namespace, workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	log.Printf("INFO: check access to download files for work %s", workID)
+	access := svc.canAccessWork(c, tgtObj)
+	if access.files == false {
+		log.Printf("INFO: invalid request to dowload file %s from work %s", tgtFile, workID)
+		c.String(http.StatusForbidden, fmt.Sprintf("invalid request to download %s", tgtFile))
+		return
+	}
+
+	var dlFile uvaeasystore.EasyStoreBlob
+	for _, oaFile := range tgtObj.Files() {
+		if oaFile.Name() == tgtFile {
+			dlFile = oaFile
+		}
+	}
+
+	if dlFile == nil {
+		log.Printf("INFO: file %s not found in %s work %s", tgtFile, svc.Namespace, workID)
+		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", tgtFile))
+		return
+	}
+
+	// publish download event for public views of works that are not draft
+	log.Printf("INFO: download requested from a public view; track it")
+	dlDetail := getPublicRequestEventDetails(c, tgtFile)
+	evt := uvalibrabus.UvaBusEvent{
+		EventName:  uvalibrabus.EventContentDownload,
+		Namespace:  tgtObj.Namespace(),
+		Identifier: tgtObj.Id(),
+		Detail:     dlDetail,
+	}
+	log.Printf("INFO: publish download event %s", dlDetail)
+	if svc.Events.DevMode {
+		log.Printf("INFO: dev mode work %s send download event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
+	} else {
+		err := svc.Events.Bus.PublishEvent(&evt)
+		if err != nil {
+			log.Printf("ERROR: unable to publish download event %+v : %s", evt, err.Error())
+		}
+	}
+
+	// redirect to the newly generated url so the client automatically does the download
+	// with no additional JS logic needed
+	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
+	c.Redirect(http.StatusTemporaryRedirect, dlFile.Url())
 }

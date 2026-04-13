@@ -15,7 +15,7 @@
    <div class="file">
       <div class="name">{{$file.FileName}}</div>
       <div class="file-stat">Downloads: {{$file.Downloads}}</div>
-      <a class="download-link" href="/api/works/{{ $workID }}/files/{{ $file.FileName }}?for=view"><i class="fa-solid fa-cloud-arrow-down"></i>Download</a>
+      <a class="download-link" href="/public_view/{{ $workID }}/download?file={{ $file.FileName }}"><i class="fa-solid fa-cloud-arrow-down"></i>Download</a>
    </div>
    {{end}}
 </div>

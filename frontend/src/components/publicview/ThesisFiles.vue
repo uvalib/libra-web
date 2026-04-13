@@ -12,7 +12,7 @@
          <div class="file-stat">Downloads: {{ file.downloads }}</div>
          <Button as="a" label="Download" icon="pi pi-cloud-download" severity="secondary"
             :ariaLabel="`download file ${file.name}`"
-            :href="`/api/works/${etdRepo.work.id}/files/${file.name}?for=view`"
+            :href="`/public_view/${etdRepo.work.id}/download?file=${file.name}`"
          />
       </div>
    </div>

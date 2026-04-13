@@ -437,11 +437,10 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 	c.String(http.StatusOK, renameReq.NewName)
 }
 
-func (svc *serviceContext) downloadFile(c *gin.Context) {
+func (svc *serviceContext) downloadDraftFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
-	downloadFor := c.Query("for")
-	log.Printf("INFO: request to download file %s from work %s", tgtFile, workID)
+	log.Printf("INFO: request to download file %s from draft work %s", tgtFile, workID)
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
 		log.Printf("ERROR: get %s work %s for download failed: %s", svc.Namespace, workID, err.Error())
@@ -461,37 +460,7 @@ func (svc *serviceContext) downloadFile(c *gin.Context) {
 		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", tgtFile))
 		return
 	}
-
-	esWork, _ := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Fields)
-	fields := esWork.Fields()
-	isDraft, _ := strconv.ParseBool(fields["draft"])
-	publishedAt := fields["publish-date"]
-	if downloadFor == "view" && isDraft == false && publishedAt != "" {
-		log.Printf("INFO: download requested from a public view; track it")
-
-		// publish download event for public views of works that are not draft
-		dlDetail := getPublicRequestEventDetails(c, tgtFile)
-		evt := uvalibrabus.UvaBusEvent{
-			EventName:  uvalibrabus.EventContentDownload,
-			Namespace:  tgtObj.Namespace(),
-			Identifier: tgtObj.Id(),
-			Detail:     dlDetail,
-		}
-		log.Printf("INFO: publish download event %s", dlDetail)
-		if svc.Events.DevMode {
-			log.Printf("INFO: dev mode work %s send download event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
-		} else {
-			err := svc.Events.Bus.PublishEvent(&evt)
-			if err != nil {
-				log.Printf("ERROR: unable to publish download event %+v : %s", evt, err.Error())
-			}
-		}
-	}
-
-	// redirect to the newwly generated url so the client automatically does the download
-	// with no additional JS logic needed
-	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
-	c.Redirect(http.StatusTemporaryRedirect, dlFile.Url())
+	c.String(http.StatusOK, dlFile.Url())
 }
 
 func getPublicRequestEventDetails(c *gin.Context, targetID string) []byte {

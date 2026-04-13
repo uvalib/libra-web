@@ -41,6 +41,7 @@ func main() {
 
 	// render a work as a static page using HTML templates
 	router.GET("/public_view/:id", svc.publicMiddleware, svc.getStaticPage)
+	router.GET("/public_view/:id/download", svc.publicMiddleware, svc.downloadPublishedFile)
 
 	api := router.Group("/api", svc.userMiddleware)
 	{
@@ -59,7 +60,7 @@ func main() {
 		// After initial submission, the work is referenced by the permanent ID
 		api.GET("/works/:id", svc.getWorkHandler)
 		api.PUT("/works/:id/files/rename", svc.renameFile)
-		api.GET("/works/:id/files/:name", svc.downloadFile)
+		api.GET("/works/:id/files/:name", svc.downloadDraftFile)
 		api.PUT("/works/:id", svc.updateWork)
 		api.POST("/works/:id/publish", svc.publishWork)
 
