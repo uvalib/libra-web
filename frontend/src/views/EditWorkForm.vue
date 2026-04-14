@@ -113,72 +113,10 @@
                </span>
             </template>
          </Panel>
-
-         <Panel header="Files" toggleable pt:title:id="files-panel" pt:contentContainer:aria-labelledby="files-panel">
-            <FilesPanel />
-            <template #icons>
-               <span v-if="etdRepo.hasFiles" class="complete">
-                  <i class="pi pi-check-circle"></i>
-                  <span>Complete</span>
-               </span>
-               <span v-else class="incomplete">
-                  <i class="pi pi-exclamation-circle"></i>
-                  <span>Incomplete</span>
-               </span>
-            </template>
-         </Panel>
-
-         <Panel header="Access and Visibility" toggleable pt:title:id="visibilty-panel" pt:contentContainer:aria-labelledby="visibilty-panel">
-            <div class="license">
-               <div class="note">
-                  For more information, see the
-                  <a href="https://uvapolicy.virginia.edu/policy/PROV-014" target="_blank" aria-describedby="new-window">Provost Policy on Access Levels for Libra ETD deposits</a>.
-               </div>
-
-               <div v-if="etdRepo.visibility == 'embargo' && user.isAdmin == false" class="embargo">
-                  <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
-                  <div>This work is under embargo.</div>
-                  <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
-                  <div>After that, files will be be available worldwide.</div>
-               </div>
-               <template v-else>
-                  <fieldset>
-                     <legend>Access and Visibility</legend>
-                     <div v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
-                        <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
-                        <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
-                     </div>
-                  </fieldset>
-                  <div v-if="etdRepo.visibility == 'uva' || (user.isAdmin && etdRepo.visibility == 'embargo')" class="visibility-info">
-                     <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
-                     <div v-else>Files unavailable to anyone until:</div>
-                     <div class="embargo-date">
-                        <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
-                        <span v-else>Never</span>
-                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="user.isAdmin"
-                           :visibility="etdRepo.visibility" @picked="endDatePicked"
-                           :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
-                     </div>
-                     <div>After that, files will be be available worldwide.</div>
-                  </div>
-                  <div v-else class="visibility-info">
-                     All files will be available worldwide.
-                  </div>
-               </template>
-               <Message v-if="$form.visibility?.invalid" severity="error" size="small" variant="simple">{{ $form.visibility.error.message }}</Message>
-            </div>
-
-            <template #icons>
-               <span v-if="etdRepo.visibility != ''" class="complete">
-                  <i class="pi pi-check-circle"></i>
-                  <span>Complete</span>
-               </span>
-               <span v-else class="incomplete">
-                  <i class="pi pi-exclamation-circle"></i>
-                  <span>Incomplete</span>
-               </span>
-            </template>
-         </Panel>
+         
+         <FilesPanel />
+         <VisibilityPanel :error="visibilityError($form)" @embargo-changed="embargoChanged = true"/>
+         
       </Form>
       <div class="toolbar" v-if="!etdRepo.error && !etdRepo.working">
          <span class="group">
@@ -215,9 +153,8 @@ import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
 import LabeledInput from '@/components/editform/LabeledInput.vue'
 import RepeatField from '@/components/editform/RepeatField.vue'
-import DatePickerDialog from "@/components/editform/DatePickerDialog.vue"
 import FilesPanel from '@/components/editform/FilesPanel.vue'
-import RadioButton from 'primevue/radiobutton'
+import VisibilityPanel from '@/components/editform/VisibilityPanel.vue'
 import { useConfirm } from "primevue/useconfirm"
 
 const confirm = useConfirm()
@@ -255,13 +192,19 @@ onBeforeRouteLeave(() => {
    }
 })
 
+const visibilityError = ( (form) => {
+   if (form.visibility?.invalid) {
+      return form.visibility.error.message
+   } 
+   return ""
+})
+
 const previewDisabled = computed( () => {
    if (needsSave.value == true || metadataComplete.value ==false || etdRepo.hasFiles==false || etdRepo.visibility == "") {
       return true
    }
    return false
 })
-
 
 const addAdvisorDisabled = computed(() => {
    if ( etdRepo.work.advisors.length == 0) return false
@@ -423,7 +366,6 @@ const clearEdits = (() => {
    programChanged.value = false
    advisorsChanged.value = false
    embargoChanged.value = false
-
 })
 
 const saveChanges = ( async (data) => {
@@ -444,13 +386,6 @@ const saveChanges = ( async (data) => {
          return
       }
    }
-})
-
-const visibilityOpts = computed( () => {
-   if (user.isAdmin) {
-      return system.visibility
-   }
-   return system.userVisibility
 })
 
 const addAdvisor = ( () => {
@@ -492,20 +427,6 @@ const checkAdvisorID = ((idx) => {
    }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
-})
-
-const visibilityUpdated = (() => {
-   if (etdRepo.visibility == "embargo" || etdRepo.visibility == "uva") {
-      etdRepo.embargoReleaseVisibility = "open"
-      let endDate = new Date()
-      endDate.setMonth( endDate.getMonth() + 6)
-      etdRepo.embargoReleaseDate = endDate.toJSON()
-   }
-})
-
-const endDatePicked = ( (newDate) => {
-   etdRepo.embargoReleaseDate = newDate
-   embargoChanged.value = true
 })
 </script>
 
@@ -579,33 +500,6 @@ div.error {
       }
    }
 
-   .complete {
-      color: $uva-green-A;
-      border: 1px solid $uva-grey-50;
-      padding: 8px;
-      border-radius: 20px;
-      background: white;
-      display: inline-flex;
-      gap: 5px;
-      span {
-         color: $uva-text-color-dark;
-         font-size: 0.9em;
-      }
-   }
-   .incomplete {
-      color: $uva-red-A;
-      border: 1px solid $uva-grey-50;
-      padding: 8px;
-      border-radius: 20px;
-      background: white;
-      display: inline-flex;
-      gap: 5px;
-      span {
-         color: $uva-text-color-dark;
-         font-size: 0.9em;
-      }
-   }
-
    .sections {
       display: flex;
       flex-direction: column;
@@ -621,44 +515,6 @@ div.error {
                padding: 0px 0 10px;
                border-bottom: 1px solid $uva-grey-100;
                margin-bottom: 10px;
-            }
-         }
-      }
-
-      .license {
-         display: flex;
-         flex-direction: column;
-         gap: 10px;
-         fieldset {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            border: none;
-            outline: none;
-            legend {
-               display: none;
-            }
-         }
-
-         .visibility-opt {
-            display: flex;
-            flex-flow: row nowrap;
-            gap: 15px;
-            align-items: center;
-            .visibility {
-               width: 200px;
-            }
-         }
-         .visibility-info {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-            margin-top: 15px;
-            .embargo-date {
-               span {
-                  margin-right: 20px;
-               }
             }
          }
       }

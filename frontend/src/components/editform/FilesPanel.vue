@@ -1,68 +1,82 @@
 <template>
-   <div class="files">
-      <div class="section" v-if="etdRepo.work.files.length > 0">
-         <div>Previously Uploaded Files</div>
-         <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
-               stripedRows showGridlines size="small"
-               :lazy="false" :paginator="true" :alwaysShowPaginator="false"
-               :rows="30" :totalRecords="etdRepo.work.files.length"
-               paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-               :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
-               currentPageReportTemplate="{first} - {last} of {totalRecords}"
-            >
-            <Column field="name" header="Name" />
-            <Column field="createdAt" header="Uploaded" >
-               <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
-            </Column>
-            <Column  header="Actions" >
-               <template #body="slotProps">
-                  <div class="acts" v-if="rename != slotProps.data.name">
-                     <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
-                     <Button class="action"icon="pi pi-cloud-download"  label="Download" severity="secondary" size="small"
-                        @click="etdRepo.downloadFile(slotProps.data.name)" :loading="etdRepo.downloading == slotProps.data.name"
-                     />
-                     <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
-                  </div>
-                  <div class="rename" v-else>
-                     <span class="rename-entry">
-                        <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" v-keyfilter="/([0-9])|([a-z])|([A-Z])|_|-/"/>
-                        <span v-if="newNameExt">.{{ newNameExt }}</span>
-                     </span>
-                     <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>
-                     <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="doRename()" :disabled="newName.length < 3"/>
-                  </div>
-               </template>
-            </Column>
-         </DataTable>
-      </div>
+   <Panel header="Files" toggleable pt:title:id="files-panel" pt:contentContainer:aria-labelledby="files-panel">
+      <template #icons>
+         <span v-if="etdRepo.hasFiles" class="complete">
+            <i class="pi pi-check-circle"></i>
+            <span>Complete</span>
+         </span>
+         <span v-else class="incomplete">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>Incomplete</span>
+         </span>
+      </template>
 
-      <div class="section">
-         <label class="libra-form-label">
-            <FileUpload name="file" chooseLabel="Select a file to upload"
-               :customUpload="true" mode="basic"
-               @uploader="startUpload($event)"
-               :withCredentials="true" :auto="true"
-               :showUploadButton="false" :showCancelButton="false"
-               :accept="fileTypesAccepted"
-            />
-         </label>
-      </div>
+      <div class="files">
+         <div class="section" v-if="etdRepo.work.files.length > 0">
+            <div>Previously Uploaded Files</div>
+            <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
+                  stripedRows showGridlines size="small"
+                  :lazy="false" :paginator="true" :alwaysShowPaginator="false"
+                  :rows="30" :totalRecords="etdRepo.work.files.length"
+                  paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
+                  :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
+                  currentPageReportTemplate="{first} - {last} of {totalRecords}"
+               >
+               <Column field="name" header="Name" />
+               <Column field="createdAt" header="Uploaded" >
+                  <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
+               </Column>
+               <Column  header="Actions" >
+                  <template #body="slotProps">
+                     <div class="acts" v-if="rename != slotProps.data.name">
+                        <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
+                        <Button class="action"icon="pi pi-cloud-download"  label="Download" severity="secondary" size="small"
+                           @click="etdRepo.downloadFile(slotProps.data.name)" :loading="etdRepo.downloading == slotProps.data.name"
+                        />
+                        <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
+                     </div>
+                     <div class="rename" v-else>
+                        <span class="rename-entry">
+                           <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" v-keyfilter="/([0-9])|([a-z])|([A-Z])|_|-/"/>
+                           <span v-if="newNameExt">.{{ newNameExt }}</span>
+                        </span>
+                        <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>
+                        <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="doRename()" :disabled="newName.length < 3"/>
+                     </div>
+                  </template>
+               </Column>
+            </DataTable>
+         </div>
 
-      <div class="section" v-if="etdRepo.pendingFileAdd.length > 0">
-         <div>Pending Uploads</div>
-         <ul class="pending">
-            <li v-for="fn in etdRepo.pendingFileAdd" class="pending-file">
-               <span class="filename">{{ fn }}</span>
-               <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small"  @click="etdRepo.removeFile( fn )"/>
-            </li>
-         </ul>
-         <div>These files will be added to your thesis when it is saved.</div>
+         <div class="section">
+            <label class="libra-form-label">
+               <FileUpload name="file" chooseLabel="Select a file to upload"
+                  :customUpload="true" mode="basic"
+                  @uploader="startUpload($event)"
+                  :withCredentials="true" :auto="true"
+                  :showUploadButton="false" :showCancelButton="false"
+                  :accept="fileTypesAccepted"
+               />
+            </label>
+         </div>
+
+         <div class="section" v-if="etdRepo.pendingFileAdd.length > 0">
+            <div>Pending Uploads</div>
+            <ul class="pending">
+               <li v-for="fn in etdRepo.pendingFileAdd" class="pending-file">
+                  <span class="filename">{{ fn }}</span>
+                  <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small"  @click="etdRepo.removeFile( fn )"/>
+               </li>
+            </ul>
+            <div>These files will be added to your thesis when it is saved.</div>
+         </div>
       </div>
-   </div>
+   </Panel>
 </template>
 
 <script setup>
 import FileUpload from 'primevue/fileupload'
+import Panel from 'primevue/panel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'

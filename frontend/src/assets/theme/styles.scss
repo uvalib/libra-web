@@ -34,3 +34,30 @@
 .nowrap {
     white-space: nowrap;
 }
+
+.complete {
+   color: $uva-green-A;
+   border: 1px solid $uva-grey-50;
+   padding: 8px;
+   border-radius: 20px;
+   background: white;
+   display: inline-flex;
+   gap: 5px;
+   span {
+      color: $uva-text-color-dark;
+      font-size: 0.9em;
+   }
+}
+.incomplete {
+   color: $uva-red-A;
+   border: 1px solid $uva-grey-50;
+   padding: 8px;
+   border-radius: 20px;
+   background: white;
+   display: inline-flex;
+   gap: 5px;
+   span {
+      color: $uva-text-color-dark;
+      font-size: 0.9em;
+   }
+}
