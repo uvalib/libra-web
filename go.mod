@@ -8,7 +8,7 @@ require (
 	github.com/gin-gonic/contrib v0.0.0-20260101091603-d12f07a9136b
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
-	github.com/uvalib/easystore/uvaeasystore v0.0.0-20260406122410-049755e28072
+	github.com/uvalib/easystore/uvaeasystore v0.0.0-20260413184000-ac1e96bfa2b7
 	github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20260406142030-486f51674d88
 )
