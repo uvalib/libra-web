@@ -97,12 +97,14 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	}
 	viewData.Program = etdWork.Program
 	for _, adv := range etdWork.Advisors {
-		viewData.Advisors = append(viewData.Advisors, contributor{
-			LastName:    adv.LastName,
-			FirstName:   adv.FirstName,
-			Department:  adv.Department,
-			Institution: adv.Institution,
-		})
+		if adv.LastName != "" && adv.FirstName != "" {
+			viewData.Advisors = append(viewData.Advisors, contributor{
+				LastName:    adv.LastName,
+				FirstName:   adv.FirstName,
+				Department:  adv.Department,
+				Institution: adv.Institution,
+			})
+		}
 	}
 	viewData.Abstract = etdWork.Abstract
 	viewData.Degree = etdWork.Degree
