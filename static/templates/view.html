@@ -13,12 +13,14 @@
    {{ if ne .Keywords ""}}
    <meta name="citation_keywords" content="{{ .Keywords }}">
    {{ end }}
+    {{if eq .Visibility "open"}}
    {{- $workID := .WorkID -}}
    {{- $baseURL := .BaseURL }}
    {{ range $file := .Files }}
    {{ if hasSuffix $file.FileName ".pdf" }}
    <meta name="citation_pdf_url" content="{{ $baseURL }}/api/works/{{ $workID }}/files/{{ $file.FileName }}?for=view">
    {{ end}}
+   {{ end }}
    {{ end }}
 </head>
 <body>
