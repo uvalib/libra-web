@@ -35,6 +35,10 @@
     white-space: nowrap;
 }
 
+.p-select-label {
+   white-space: break-spaces !important;
+}
+
 .complete {
    color: $uva-green-A;
    border: 1px solid $uva-grey-50;
@@ -59,5 +63,16 @@
    span {
       color: $uva-text-color-dark;
       font-size: 0.9em;
+   }
+}
+
+.two-col {
+   display: flex;
+   flex-flow: row wrap;
+   justify-content: space-between;
+   align-items: flex-start;
+   gap: 25px;
+   .field {
+      flex-grow: 1;
    }
 }

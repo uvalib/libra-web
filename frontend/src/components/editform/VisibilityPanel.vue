@@ -36,7 +36,7 @@
                All files will be available worldwide.
             </div>
          </template>
-         <Message v-if="props.error" severity="error" size="small" variant="simple">{{ props.error }}</Message>
+         <Message v-if="props.form.visibility?.invalid" severity="error" size="small" variant="simple">{{ props.form.visibility.error.message }}</Message>
       </div>
 
       <template #icons>
@@ -69,9 +69,9 @@ const system = useSystemStore()
 const emit = defineEmits( ['embargo-changed'])
 
 const props = defineProps({
-   error: {
-      type: String,
-      default: ""  
+   form: {
+      type: Object,
+      required: true 
    }
 })
 
@@ -98,6 +98,11 @@ const endDatePicked = ( (newDate) => {
 </script>
 
 <style lang="scss" scoped>
+@media only screen and (min-width: 768px) {
+   .visibility-panel {
+      min-width: 375px;
+   }
+}
 .license {
    display: flex;
    flex-direction: column;

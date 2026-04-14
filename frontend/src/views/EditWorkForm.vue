@@ -37,44 +37,7 @@
                   </div>
                </Fieldset>
 
-               <Fieldset class="advisors" pt:contentContainer:aria-labelledby="">
-                  <template #legend>
-                     <span>Advisors</span><span class="required" v-if="user.isAdmin==false"><span class="star">*</span>(required)</span>
-                  </template>
-                  <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
-                     <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
-                     <div class="id-field">
-                        <label :for="`work.advisors[${index}].computeID`">Computing ID</label>
-                        <div class="control-group">
-                           <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" :id="`work.advisors[${index}].computeID`"/>
-                           <Button class="check" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
-                           <Button v-if="etdRepo.work.advisors.length > 1 || user.isAdmin" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="removeAdvisor(index)"/>
-                        </div>
-                     </div>
-                     <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
-                     <div class="two-col">
-                        <div class="field" >
-                           <LabeledInput label="First Name" :name="`work.advisors[${index}].firstName`" :required="true" v-model="item.firstName"/>
-                           <Message v-if="$form.work?.advisors?.[index]?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.advisors[index].firstName.error.message }}</Message>
-                        </div>
-                        <div class="field" >
-                           <LabeledInput label="Last Name" :name="`work.advisors[${index}].lastName`" :required="true" v-model="item.lastName"/>
-                           <Message v-if="$form.work?.advisors?.[index]?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.advisors[index].lastName.error.message }}</Message>
-                        </div>
-                     </div>
-                     <div class="two-col">
-                        <div class="field" >
-                           <LabeledInput label="Department" :name="`work.advisors[${index}].department`" v-model="item.department"/>
-                        </div>
-                        <div class="field" >
-                           <LabeledInput label="Institution" :name="`work.advisors[${index}].institution`" v-model="item.institution"/>
-                        </div>
-                     </div>
-                  </div>
-                  <div class="acts">
-                     <Button label="Add Advisor" @click="addAdvisor" :disabled="addAdvisorDisabled"/>
-                  </div>
-               </Fieldset>
+               <AdvisorsPanel :form="$form" @add-advisor="addAdvisor" @remove-advisor="removeAdvisor" @set-advisor="setAdvisor" />
 
                <div class="field" >
                   <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
@@ -115,7 +78,7 @@
          </Panel>
          
          <FilesPanel />
-         <VisibilityPanel :error="visibilityError($form)" @embargo-changed="embargoChanged = true"/>
+         <VisibilityPanel :form="$form" @embargo-changed="embargoChanged = true"/> 
          
       </Form>
       <div class="toolbar" v-if="!etdRepo.error && !etdRepo.working">
@@ -143,12 +106,10 @@ import { useETDStore } from "@/stores/etd"
 import { useAdminStore } from "@/stores/admin"
 import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
-import axios from 'axios'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 
 import { Form } from '@primevue/forms'
 import ProgramPanel from '@/components/ProgramPanel.vue'
-import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
 import LabeledInput from '@/components/editform/LabeledInput.vue'
@@ -156,6 +117,7 @@ import RepeatField from '@/components/editform/RepeatField.vue'
 import FilesPanel from '@/components/editform/FilesPanel.vue'
 import VisibilityPanel from '@/components/editform/VisibilityPanel.vue'
 import { useConfirm } from "primevue/useconfirm"
+import AdvisorsPanel from '@/components/editform/AdvisorsPanel.vue'
 
 const confirm = useConfirm()
 const router = useRouter()
@@ -172,7 +134,6 @@ const advisorsChanged = ref(false)
 const programChanged = ref(false)
 const embargoChanged = ref(false)
 const metadataComplete = ref(false)
-const advisorLookup = ref([])
 
 onBeforeMount( async () => {
    if ( user.isSignedIn == false) {
@@ -180,9 +141,6 @@ onBeforeMount( async () => {
       return
    }
    await etdRepo.getWork( route.params.id, "edit" )
-   etdRepo.work.advisors.forEach( a => {
-      advisorLookup.value.push( a.computeID )
-   })
 })
 
 onBeforeRouteLeave(() => {
@@ -192,24 +150,11 @@ onBeforeRouteLeave(() => {
    }
 })
 
-const visibilityError = ( (form) => {
-   if (form.visibility?.invalid) {
-      return form.visibility.error.message
-   } 
-   return ""
-})
-
 const previewDisabled = computed( () => {
    if (needsSave.value == true || metadataComplete.value ==false || etdRepo.hasFiles==false || etdRepo.visibility == "") {
       return true
    }
    return false
-})
-
-const addAdvisorDisabled = computed(() => {
-   if ( etdRepo.work.advisors.length == 0) return false
-   let lastIdx = etdRepo.work.advisors.length -1
-   return etdRepo.work.advisors[lastIdx].lastName == ""
 })
 
 const needsSave  = computed( () => {
@@ -278,13 +223,6 @@ const resolver = ({ values }) => {
 
    return { values, errors }
 }
-
-const removeAdvisorLabel = ( (index) => {
-   if ( etdRepo.work.advisors[index].computeID != "" ) {
-      return `Remove ${etdRepo.work.advisors[index].computeID}`
-   }
-   return "Remove Advisor"
-})
 
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
@@ -394,39 +332,19 @@ const addAdvisor = ( () => {
    etdForm.value.validate()
 })
 
+const setAdvisor = ( (adv) => {
+   const idx = adv.index 
+   delete adv.index
+   etdRepo.work.advisors.splice(idx,1, adv)
+   // set firs/last name in the form state data so validation works
+   etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, adv.firstName)
+   etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, adv.lastName)
+})
+
 const removeAdvisor = ((idx)=> {
    etdRepo.work.advisors.splice(idx,1)
    advisorsChanged.value = true
    etdForm.value.validate()
-})
-
-const checkAdvisorID = ((idx) => {
-   etdRepo.work.advisors[idx].msg = ""
-   let cID = advisorLookup.value[idx]
-   axios.get(`/api/users/lookup/${cID}`).then(r => {
-      if ( etdRepo.work.author.computeID == r.data.cid) {
-         etdRepo.work.advisors[idx].msg = cID +" is the author and cannot be an advisor"
-         return
-      }
-
-      let existing = etdRepo.work.advisors.find( a => a.computeID == r.data.cid)
-      if (existing) {
-         etdRepo.work.advisors[idx].msg = cID+" is already an advisor"
-         return
-      }
-
-      let department = ""
-      if ( r.data.department && r.data.department.length > 0 ) {
-         department = r.data.department[0]
-      }
-      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
-      etdRepo.work.advisors.splice(idx,1, auth)
-      // set firs/last name in the form state data so validation works
-      etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
-      etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
-   }).catch( () => {
-      etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
-   })
 })
 </script>
 
@@ -440,12 +358,6 @@ const checkAdvisorID = ((idx) => {
       margin-right: 5%;
       gap: 25px;
    }
-   .visibility-panel {
-      min-width: 375px;
-   }
-   .remove {
-      margin-left: auto;
-   }
 }
 @media only screen and (max-width: 768px) {
     h1, .help {
@@ -455,11 +367,6 @@ const checkAdvisorID = ((idx) => {
       margin-left: 2px;
       margin-right: 2px;
       gap: 15px;
-   }
-   .control-group {
-      button, input {
-         flex-grow: 1;
-      }
    }
 }
 div.error {
@@ -504,21 +411,6 @@ div.error {
       display: flex;
       flex-direction: column;
 
-      .advisors {
-         .advisor {
-            border-bottom: 1px solid $uva-grey-100;
-            padding: 10px 0 20px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            .note {
-               padding: 0px 0 10px;
-               border-bottom: 1px solid $uva-grey-100;
-               margin-bottom: 10px;
-            }
-         }
-      }
-
       .fields {
          display: flex;
          flex-direction: column;
@@ -526,27 +418,13 @@ div.error {
          .field {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-         }
-         .id-field {
-            display: flex;
-            gap: 5px;
-            flex-direction: column;
-            .control-group {
-               display: flex;
-               flex-flow: row wrap;
-               gap: 5px;
-            }
+            gap: 10px;
          }
       }
       .note {
          font-style: italic;
          color: $uva-grey-A;
          margin-top: 0;
-      }
-      .acts {
-         text-align: right;
-         margin-top: 10px;
       }
    }
 
@@ -567,17 +445,6 @@ div.error {
          flex-flow: row wrap;
          gap: 10px;
          justify-content: flex-start;
-      }
-   }
-
-   .two-col {
-      display: flex;
-      flex-flow: row wrap;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 25px;
-      .field {
-         flex-grow: 1;
       }
    }
 }
