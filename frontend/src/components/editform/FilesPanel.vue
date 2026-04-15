@@ -14,38 +14,29 @@
       <div class="files">
          <div class="section" v-if="etdRepo.work.files.length > 0">
             <div>Previously Uploaded Files</div>
-            <DataTable :value="etdRepo.work.files" ref="etdFiles" dataKey="id"
-                  stripedRows showGridlines size="small"
-                  :lazy="false" :paginator="true" :alwaysShowPaginator="false"
-                  :rows="30" :totalRecords="etdRepo.work.files.length"
-                  paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
-                  :rowsPerPageOptions="[30,50,100]" paginatorPosition="top"
-                  currentPageReportTemplate="{first} - {last} of {totalRecords}"
-               >
-               <Column field="name" header="Name" />
-               <Column field="createdAt" header="Uploaded" >
-                  <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt)}}</template>
-               </Column>
-               <Column  header="Actions" >
-                  <template #body="slotProps">
-                     <div class="acts" v-if="rename != slotProps.data.name">
-                        <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small" @click="deleteFileClicked(slotProps.data.name)"/>
-                        <Button class="action"icon="pi pi-cloud-download"  label="Download" severity="secondary" size="small"
-                           @click="etdRepo.downloadFile(slotProps.data.name)" :loading="etdRepo.downloading == slotProps.data.name"
+            <div class="uploaded">
+               <Card v-for="(file) in etdRepo.work.files">
+                  <template #title>{{ file.name }}</template>
+                  <template #subtitle>Uploaded on {{ $formatDateTime(file.createdAt) }}</template>
+                  <template #footer>
+                     <div class="acts" v-if="rename != file.name">
+                        <Button size="small" icon="pi pi-times" label="Delete" severity="danger" @click="deleteFileClicked(file.name)"/>
+                        <Button size="small" icon="pi pi-cloud-download"  label="Download" severity="secondary"
+                           @click="etdRepo.downloadFile(file.name)" :loading="etdRepo.downloading == file.name"
                         />
-                        <Button class="action" icon="pi pi-file-edit" label="Rename" severity="secondary" size="small" @click="renameClicked(slotProps.data.name)"/>
+                        <Button size="small" icon="pi pi-file-edit" label="Rename" severity="secondary" @click="renameClicked(file.name)"/>
                      </div>
                      <div class="rename" v-else>
                         <span class="rename-entry">
                            <InputText v-model="newName" placeholder="New Name" autofocus @keyup.enter="doRename()" v-keyfilter="/([0-9])|([a-z])|([A-Z])|_|-/"/>
                            <span v-if="newNameExt">.{{ newNameExt }}</span>
                         </span>
-                        <Button class="action" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" size="small" @click="rename=false"/>
-                        <Button class="action" icon="pi pi-check" rounded severity="secondary" aria-label="rename" size="small" @click="doRename()" :disabled="newName.length < 3"/>
-                     </div>
+                        <Button size="small" icon="pi pi-times" rounded severity="secondary" aria-label="cancel" @click="rename=false"/>
+                        <Button size="small" icon="pi pi-check" rounded severity="secondary" aria-label="rename" @click="doRename()" :disabled="newName.length < 3"/>
+                     </div>  
                   </template>
-               </Column>
-            </DataTable>
+               </Card>
+            </div>
          </div>
 
          <div class="section">
@@ -59,13 +50,13 @@
                />
             </label>
          </div>
-
          <div class="section" v-if="etdRepo.pendingFileAdd.length > 0">
+            <Divider />
             <div>Pending Uploads</div>
             <ul class="pending">
                <li v-for="fn in etdRepo.pendingFileAdd" class="pending-file">
+                  <Button size="small" rounded icon="pi pi-times" aria-label="Delete" severity="danger" @click="deleteFileClicked( fn )"/>
                   <span class="filename">{{ fn }}</span>
-                  <Button class="action" icon="pi pi-trash" label="Delete" severity="danger" size="small"  @click="etdRepo.removeFile( fn )"/>
                </li>
             </ul>
             <div>These files will be added to your thesis when it is saved.</div>
@@ -77,9 +68,9 @@
 <script setup>
 import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
+import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
+import Divider from 'primevue/divider'
 import { useETDStore } from "@/stores/etd"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
@@ -182,6 +173,11 @@ ul.pending {
    margin: 0 0 15px 0;
    padding: 0 0 0 5px;
    li {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 10px;
+      justify-content: flex-start;
+      align-items: center;
       margin: 10px 0;
    }
    .pending-file {
@@ -197,15 +193,16 @@ ul.pending {
 .section {
    display: flex;
    flex-direction: column;
-   gap: 5px;
+   gap: 10px;
 }
 .files {
    display: flex;
    flex-direction: column;
-   gap: 25px;
-   label {
-      display: block;
-      margin-bottom: 5px;
+   gap: 15px;
+   .uploaded {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
    }
    .acts {
       display: flex;
