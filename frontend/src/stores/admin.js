@@ -100,7 +100,7 @@ export const useAdminStore = defineStore('admin', {
          this.working = true
          this.deposits = []
          this.depositSearchMessage = ""
-         let url = `/api/admin/deposits?q=${query}&type=${searchType}`
+         let url = `/api/deposits?q=${query}&type=${searchType}`
          axios.get(url).then(response => {
             this.deposits = response.data
             this.working = false

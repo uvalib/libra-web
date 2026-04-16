@@ -434,7 +434,7 @@ type depositStatusResponse struct {
 	} `json:"details"`
 }
 
-func (svc *serviceContext) adminDepositStatusSearch(c *gin.Context) {
+func (svc *serviceContext) depositStatusSearch(c *gin.Context) {
 	q := c.Query("q")
 	qType := c.Query("type")
 	log.Printf("INFO: query deposit status %s=%s", qType, q)

@@ -69,12 +69,12 @@ func main() {
 
 		// register users for optional works. only available for admin or registrar users
 		api.POST("/register", svc.registrarMiddleware, svc.submitOptionalRegistrations)
+		api.GET("/deposits", svc.registrarMiddleware, svc.depositStatusSearch)
 
 		admin := api.Group("/admin", svc.adminMiddleware)
 		{
 			admin.POST("/impersonate/:computeID", svc.adminImpersonateUser)
 			admin.GET("/search", svc.adminSearch)
-			admin.GET("/deposits", svc.adminDepositStatusSearch)
 			admin.POST("/export", svc.adminExportReport)
 			admin.DELETE("/works/:id", svc.adminDeleteWork)
 			admin.DELETE("/works/:id/publish", svc.adminUnpublishWork)
