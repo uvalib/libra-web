@@ -1,7 +1,7 @@
 <template>
    <label>
       <div class="text">
-         <span class="label">{{ props.label }}</span>
+         <span>{{ props.label }}</span>
          <span v-if="required && !props.readonly" class="required"><span class="star">*</span>(required)</span>
       </div>
       <InputText v-if="props.type=='text'" v-model="model" :name="props.name" fluid :readonly="props.readonly"/>
@@ -50,8 +50,5 @@ label {
    display: flex;
    flex-direction: column;
    gap: 5px;
-   .label {
-      font-weight: bold;
-   }
 }
 </style>

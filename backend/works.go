@@ -65,46 +65,38 @@ type workMetrics struct {
 	} `json:"files"`
 }
 
-func (svc *serviceContext) getWorkHandler(c *gin.Context) {
+func (svc *serviceContext) getWork(c *gin.Context) {
 	workID := c.Param("id")
 	dataFor := c.Query("for")
 	log.Printf("INFO: get %s work %s for [%s]", svc.Namespace, workID, dataFor)
-	etdWork, err := svc.getWork(c, workID, dataFor)
-	if err != nil {
-		log.Printf("ERROR: get work %s failed: %d - %s", workID, err.StatusCode, err.Message)
-		c.String(err.StatusCode, err.Message)
-		return
-	}
-	c.JSON(http.StatusOK, etdWork)
-}
-
-type workError struct {
-	StatusCode int
-	Message    string
-}
-
-func (svc *serviceContext) getWork(c *gin.Context, workID, reason string) (*workDetails, *workError) {
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
 	if err != nil {
+		log.Printf("ERROR: unable to get %s work %s: %s", svc.Namespace, workID, err.Error())
 		if strings.Contains(err.Error(), "not exist") {
-			return nil, &workError{StatusCode: http.StatusNotFound, Message: fmt.Sprintf("%s was not found", workID)}
+			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
+		} else {
+			c.String(http.StatusInternalServerError, err.Error())
 		}
-		return nil, &workError{StatusCode: http.StatusInternalServerError, Message: err.Error()}
+		return
 	}
 
 	log.Printf("INFO: check access to work %s", workID)
 	access := svc.canAccessWork(c, tgtObj)
 	if access.metadata == false {
-		return nil, &workError{StatusCode: http.StatusForbidden, Message: fmt.Sprintf("access to %s is not authorized", workID)}
+		log.Printf("INFO: access to %s work %s is forbidden", svc.Namespace, workID)
+		c.String(http.StatusForbidden, "access to %s is not authorized", workID)
+		return
 	}
 
 	etdWork, err := svc.parseWork(tgtObj, access.files)
 	if err != nil {
-		return nil, &workError{StatusCode: http.StatusInternalServerError, Message: fmt.Sprintf("unable to parse work %s: %s", workID, err.Error())}
+		log.Printf("ERROR: unable to parse work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	// when requested for public view of a published work, trigger a view event
-	if reason == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
+	if dataFor == "view" && etdWork.IsDraft == false && etdWork.PublishedAt != "" {
 		log.Printf("INFO: track public view for work %s", tgtObj.Id())
 		viewDetail := getPublicRequestEventDetails(c, fmt.Sprintf("public_view/%s", etdWork.ID))
 		evt := uvalibrabus.UvaBusEvent{
@@ -156,7 +148,7 @@ func (svc *serviceContext) getWork(c *gin.Context, workID, reason string) (*work
 		}
 	}
 
-	return etdWork, nil
+	c.JSON(http.StatusOK, etdWork)
 }
 
 func (svc *serviceContext) getPublicViewMetrics(workID string) (*workMetrics, error) {
@@ -437,10 +429,11 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 	c.String(http.StatusOK, renameReq.NewName)
 }
 
-func (svc *serviceContext) downloadDraftFile(c *gin.Context) {
+func (svc *serviceContext) downloadFile(c *gin.Context) {
 	workID := c.Param("id")
 	tgtFile := c.Param("name")
-	log.Printf("INFO: request to download file %s from draft work %s", tgtFile, workID)
+	downloadFor := c.Query("for")
+	log.Printf("INFO: request to download file %s from work %s", tgtFile, workID)
 	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
 		log.Printf("ERROR: get %s work %s for download failed: %s", svc.Namespace, workID, err.Error())
@@ -460,6 +453,34 @@ func (svc *serviceContext) downloadDraftFile(c *gin.Context) {
 		c.String(http.StatusNotFound, fmt.Sprintf("%s not found", tgtFile))
 		return
 	}
+
+	esWork, _ := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Fields)
+	fields := esWork.Fields()
+	isDraft, _ := strconv.ParseBool(fields["draft"])
+	publishedAt := fields["publish-date"]
+	if downloadFor == "view" && isDraft == false && publishedAt != "" {
+		log.Printf("INFO: download requested from a public view; track it")
+
+		// publish download event for public views of works that are not draft
+		dlDetail := getPublicRequestEventDetails(c, tgtFile)
+		evt := uvalibrabus.UvaBusEvent{
+			EventName:  uvalibrabus.EventContentDownload,
+			Namespace:  tgtObj.Namespace(),
+			Identifier: tgtObj.Id(),
+			Detail:     dlDetail,
+		}
+		log.Printf("INFO: publish download event %s", dlDetail)
+		if svc.Events.DevMode {
+			log.Printf("INFO: dev mode work %s send download event to bus [%s] with source [%s]", workID, svc.Events.BusName, svc.Events.EventSource)
+		} else {
+			err := svc.Events.Bus.PublishEvent(&evt)
+			if err != nil {
+				log.Printf("ERROR: unable to publish download event %+v : %s", evt, err.Error())
+			}
+		}
+	}
+
+	log.Printf("INFO: %s download link %s", tgtFile, dlFile.Url())
 	c.String(http.StatusOK, dlFile.Url())
 }
 

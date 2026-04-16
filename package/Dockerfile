@@ -14,7 +14,6 @@ COPY go.mod go.sum Makefile ./
 COPY backend ./backend
 COPY frontend ./frontend
 COPY data ./data
-COPY static ./static
 RUN make linux-full
 
 #
@@ -50,7 +49,6 @@ COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
 COPY --from=builder /build/bin/libra-web.linux $APP_HOME/bin/libra-web
 COPY --from=builder /build/bin/public $APP_HOME/bin/public
 COPY --from=builder /build/bin/data $APP_HOME/bin/data
-COPY --from=builder /build/bin/static $APP_HOME/bin/static
 
 # Ensure permissions are correct
 RUN chown docker:sse /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra-web && chmod 755 /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra-web

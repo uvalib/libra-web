@@ -28,10 +28,6 @@ export default defineConfig({
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },
-         '/signout': {
-            target: process.env.LIBRA_SRV,
-            changeOrigin: true
-         },
          '/authcheck': {
             target: process.env.LIBRA_SRV,
             changeOrigin: true
@@ -45,18 +41,6 @@ export default defineConfig({
             changeOrigin: true
          },
          '/version': {
-            target: process.env.LIBRA_SRV,
-            changeOrigin: true
-         },
-         '/public_view': {
-            target: process.env.LIBRA_SRV,
-            changeOrigin: true
-         },
-         '/stylesheets': {
-            target: process.env.LIBRA_SRV,
-            changeOrigin: true
-         },
-         '/images': {
             target: process.env.LIBRA_SRV,
             changeOrigin: true
          },

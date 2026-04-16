@@ -37,7 +37,44 @@
                   </div>
                </Fieldset>
 
-               <AdvisorsPanel :form="$form" @add-advisor="addAdvisor" @remove-advisor="removeAdvisor" @set-advisor="setAdvisor" />
+               <Fieldset class="advisors" pt:contentContainer:aria-labelledby="">
+                  <template #legend>
+                     <span>Advisors</span><span class="required" v-if="user.isAdmin==false"><span class="star">*</span>(required)</span>
+                  </template>
+                  <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
+                     <div v-if="index==0" class="note">Lookup a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
+                     <div class="id-field">
+                        <label :for="`work.advisors[${index}].computeID`">Computing ID</label>
+                        <div class="control-group">
+                           <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" :id="`work.advisors[${index}].computeID`"/>
+                           <Button class="check" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
+                           <Button v-if="etdRepo.work.advisors.length > 1 || user.isAdmin" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="removeAdvisor(index)"/>
+                        </div>
+                     </div>
+                     <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
+                     <div class="two-col">
+                        <div class="field" >
+                           <LabeledInput label="First Name" :name="`work.advisors[${index}].firstName`" :required="true" v-model="item.firstName"/>
+                           <Message v-if="$form.work?.advisors?.[index]?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.advisors[index].firstName.error.message }}</Message>
+                        </div>
+                        <div class="field" >
+                           <LabeledInput label="Last Name" :name="`work.advisors[${index}].lastName`" :required="true" v-model="item.lastName"/>
+                           <Message v-if="$form.work?.advisors?.[index]?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.advisors[index].lastName.error.message }}</Message>
+                        </div>
+                     </div>
+                     <div class="two-col">
+                        <div class="field" >
+                           <LabeledInput label="Department" :name="`work.advisors[${index}].department`" v-model="item.department"/>
+                        </div>
+                        <div class="field" >
+                           <LabeledInput label="Institution" :name="`work.advisors[${index}].institution`" v-model="item.institution"/>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="acts">
+                     <Button label="Add Advisor" @click="addAdvisor" :disabled="addAdvisorDisabled"/>
+                  </div>
+               </Fieldset>
 
                <div class="field" >
                   <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
@@ -76,10 +113,72 @@
                </span>
             </template>
          </Panel>
-         
-         <FilesPanel />
-         <VisibilityPanel :form="$form" @embargo-changed="embargoChanged = true"/> 
-         
+
+         <Panel header="Files" toggleable pt:title:id="files-panel" pt:contentContainer:aria-labelledby="files-panel">
+            <FilesPanel />
+            <template #icons>
+               <span v-if="etdRepo.hasFiles" class="complete">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Complete</span>
+               </span>
+               <span v-else class="incomplete">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Incomplete</span>
+               </span>
+            </template>
+         </Panel>
+
+         <Panel header="Access and Visibility" toggleable pt:title:id="visibilty-panel" pt:contentContainer:aria-labelledby="visibilty-panel">
+            <div class="license">
+               <div class="note">
+                  For more information, see the
+                  <a href="https://uvapolicy.virginia.edu/policy/PROV-014" target="_blank" aria-describedby="new-window">Provost Policy on Access Levels for Libra ETD deposits</a>.
+               </div>
+
+               <div v-if="etdRepo.visibility == 'embargo' && user.isAdmin == false" class="embargo">
+                  <!-- ETD can only be embargoed by an admin. When this happens, lock out the visibility for the user with a message -->
+                  <div>This work is under embargo.</div>
+                  <div>Files will NOT be available to anyone until {{ $formatDate(etdRepo.embargoReleaseDate) }}.</div>
+                  <div>After that, files will be be available worldwide.</div>
+               </div>
+               <template v-else>
+                  <fieldset>
+                     <legend>Access and Visibility</legend>
+                     <div v-for="v in visibilityOpts" :key="v.value" class="visibility-opt">
+                        <RadioButton v-model="etdRepo.visibility" name="visibility" :inputId="v.value"  :value="v.value" size="large" @update:model-value="visibilityUpdated"/>
+                        <label :for="v.value" class="visibility" :class="v.value">{{ v.label }}</label>
+                     </div>
+                  </fieldset>
+                  <div v-if="etdRepo.visibility == 'uva' || (user.isAdmin && etdRepo.visibility == 'embargo')" class="visibility-info">
+                     <div v-if="etdRepo.visibility == 'uva'">Files available to UVA only until:</div>
+                     <div v-else>Files unavailable to anyone until:</div>
+                     <div class="embargo-date">
+                        <span v-if="etdRepo.embargoReleaseDate">{{ $formatDate(etdRepo.embargoReleaseDate) }}</span>
+                        <span v-else>Never</span>
+                        <DatePickerDialog :endDate="etdRepo.embargoReleaseDate" :admin="user.isAdmin"
+                           :visibility="etdRepo.visibility" @picked="endDatePicked"
+                           :degree="etdRepo.work.degree" :program="etdRepo.work.program" />
+                     </div>
+                     <div>After that, files will be be available worldwide.</div>
+                  </div>
+                  <div v-else class="visibility-info">
+                     All files will be available worldwide.
+                  </div>
+               </template>
+               <Message v-if="$form.visibility?.invalid" severity="error" size="small" variant="simple">{{ $form.visibility.error.message }}</Message>
+            </div>
+
+            <template #icons>
+               <span v-if="etdRepo.visibility != ''" class="complete">
+                  <i class="pi pi-check-circle"></i>
+                  <span>Complete</span>
+               </span>
+               <span v-else class="incomplete">
+                  <i class="pi pi-exclamation-circle"></i>
+                  <span>Incomplete</span>
+               </span>
+            </template>
+         </Panel>
       </Form>
       <div class="toolbar" v-if="!etdRepo.error && !etdRepo.working">
          <span class="group">
@@ -92,7 +191,10 @@
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
-            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Preview" />
+            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked">
+               <span v-if="!etdRepo.publishedAt">Preview</span>
+               <span v-else>Public View</span>
+            </Button>
          </span>
       </div>
    </div>
@@ -106,18 +208,21 @@ import { useETDStore } from "@/stores/etd"
 import { useAdminStore } from "@/stores/admin"
 import Panel from 'primevue/panel'
 import WaitSpinner from "@/components/WaitSpinner.vue"
+import axios from 'axios'
 import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
+import {useHead} from '@unhead/vue'
 
 import { Form } from '@primevue/forms'
 import ProgramPanel from '@/components/ProgramPanel.vue'
+import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
 import LabeledInput from '@/components/editform/LabeledInput.vue'
 import RepeatField from '@/components/editform/RepeatField.vue'
+import DatePickerDialog from "@/components/editform/DatePickerDialog.vue"
 import FilesPanel from '@/components/editform/FilesPanel.vue'
-import VisibilityPanel from '@/components/editform/VisibilityPanel.vue'
+import RadioButton from 'primevue/radiobutton'
 import { useConfirm } from "primevue/useconfirm"
-import AdvisorsPanel from '@/components/editform/AdvisorsPanel.vue'
 
 const confirm = useConfirm()
 const router = useRouter()
@@ -134,6 +239,11 @@ const advisorsChanged = ref(false)
 const programChanged = ref(false)
 const embargoChanged = ref(false)
 const metadataComplete = ref(false)
+const advisorLookup = ref([])
+
+useHead({
+   title: 'Edit Libra ETD Work'
+})
 
 onBeforeMount( async () => {
    if ( user.isSignedIn == false) {
@@ -141,6 +251,9 @@ onBeforeMount( async () => {
       return
    }
    await etdRepo.getWork( route.params.id, "edit" )
+   etdRepo.work.advisors.forEach( a => {
+      advisorLookup.value.push( a.computeID )
+   })
 })
 
 onBeforeRouteLeave(() => {
@@ -155,6 +268,13 @@ const previewDisabled = computed( () => {
       return true
    }
    return false
+})
+
+
+const addAdvisorDisabled = computed(() => {
+   if ( etdRepo.work.advisors.length == 0) return false
+   let lastIdx = etdRepo.work.advisors.length -1
+   return etdRepo.work.advisors[lastIdx].lastName == ""
 })
 
 const needsSave  = computed( () => {
@@ -224,13 +344,20 @@ const resolver = ({ values }) => {
    return { values, errors }
 }
 
+const removeAdvisorLabel = ( (index) => {
+   if ( etdRepo.work.advisors[index].computeID != "" ) {
+      return `Remove ${etdRepo.work.advisors[index].computeID}`
+   }
+   return "Remove Advisor"
+})
+
 const saveClicked = ((postSaveAct) => {
    postSave.value = postSaveAct
    etdForm.value.submit()
 })
 
 const previewClicked = (() => {
-    router.push(`/preview/${etdRepo.work.id}`)
+    router.push(`/public_view/${etdRepo.work.id}`)
 })
 
 const exitClicked = (() => {
@@ -304,6 +431,7 @@ const clearEdits = (() => {
    programChanged.value = false
    advisorsChanged.value = false
    embargoChanged.value = false
+
 })
 
 const saveChanges = ( async (data) => {
@@ -326,25 +454,66 @@ const saveChanges = ( async (data) => {
    }
 })
 
+const visibilityOpts = computed( () => {
+   if (user.isAdmin) {
+      return system.visibility
+   }
+   return system.userVisibility
+})
+
 const addAdvisor = ( () => {
    etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
    advisorsChanged.value = true
    etdForm.value.validate()
 })
 
-const setAdvisor = ( (adv) => {
-   const idx = adv.index 
-   delete adv.index
-   etdRepo.work.advisors.splice(idx,1, adv)
-   // set firs/last name in the form state data so validation works
-   etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, adv.firstName)
-   etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, adv.lastName)
-})
-
 const removeAdvisor = ((idx)=> {
    etdRepo.work.advisors.splice(idx,1)
    advisorsChanged.value = true
    etdForm.value.validate()
+})
+
+const checkAdvisorID = ((idx) => {
+   etdRepo.work.advisors[idx].msg = ""
+   let cID = advisorLookup.value[idx]
+   axios.get(`/api/users/lookup/${cID}`).then(r => {
+      if ( etdRepo.work.author.computeID == r.data.cid) {
+         etdRepo.work.advisors[idx].msg = cID +" is the author and cannot be an advisor"
+         return
+      }
+
+      let existing = etdRepo.work.advisors.find( a => a.computeID == r.data.cid)
+      if (existing) {
+         etdRepo.work.advisors[idx].msg = cID+" is already an advisor"
+         return
+      }
+
+      let department = ""
+      if ( r.data.department && r.data.department.length > 0 ) {
+         department = r.data.department[0]
+      }
+      let auth = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
+      etdRepo.work.advisors.splice(idx,1, auth)
+      // set firs/last name in the form state data so validation works
+      etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, r.data.first_name)
+      etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, r.data.last_name)
+   }).catch( () => {
+      etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
+   })
+})
+
+const visibilityUpdated = (() => {
+   if (etdRepo.visibility == "embargo" || etdRepo.visibility == "uva") {
+      etdRepo.embargoReleaseVisibility = "open"
+      let endDate = new Date()
+      endDate.setMonth( endDate.getMonth() + 6)
+      etdRepo.embargoReleaseDate = endDate.toJSON()
+   }
+})
+
+const endDatePicked = ( (newDate) => {
+   etdRepo.embargoReleaseDate = newDate
+   embargoChanged.value = true
 })
 </script>
 
@@ -358,6 +527,12 @@ const removeAdvisor = ((idx)=> {
       margin-right: 5%;
       gap: 25px;
    }
+   .visibility-panel {
+      min-width: 375px;
+   }
+   .remove {
+      margin-left: auto;
+   }
 }
 @media only screen and (max-width: 768px) {
     h1, .help {
@@ -367,6 +542,11 @@ const removeAdvisor = ((idx)=> {
       margin-left: 2px;
       margin-right: 2px;
       gap: 15px;
+   }
+   .control-group {
+      button, input {
+         flex-grow: 1;
+      }
    }
 }
 div.error {
@@ -407,9 +587,89 @@ div.error {
       }
    }
 
+   .complete {
+      color: $uva-green-A;
+      border: 1px solid $uva-grey-50;
+      padding: 8px;
+      border-radius: 20px;
+      background: white;
+      display: inline-flex;
+      gap: 5px;
+      span {
+         color: $uva-text-color-dark;
+         font-size: 0.9em;
+      }
+   }
+   .incomplete {
+      color: $uva-red-A;
+      border: 1px solid $uva-grey-50;
+      padding: 8px;
+      border-radius: 20px;
+      background: white;
+      display: inline-flex;
+      gap: 5px;
+      span {
+         color: $uva-text-color-dark;
+         font-size: 0.9em;
+      }
+   }
+
    .sections {
       display: flex;
       flex-direction: column;
+
+      .advisors {
+         .advisor {
+            border-bottom: 1px solid $uva-grey-100;
+            padding: 10px 0 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            .note {
+               padding: 0px 0 10px;
+               border-bottom: 1px solid $uva-grey-100;
+               margin-bottom: 10px;
+            }
+         }
+      }
+
+      .license {
+         display: flex;
+         flex-direction: column;
+         gap: 10px;
+         fieldset {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: none;
+            outline: none;
+            legend {
+               display: none;
+            }
+         }
+
+         .visibility-opt {
+            display: flex;
+            flex-flow: row nowrap;
+            gap: 15px;
+            align-items: center;
+            .visibility {
+               width: 200px;
+            }
+         }
+         .visibility-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 15px;
+            .embargo-date {
+               span {
+                  margin-right: 20px;
+               }
+            }
+         }
+      }
 
       .fields {
          display: flex;
@@ -418,13 +678,27 @@ div.error {
          .field {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 5px;
+         }
+         .id-field {
+            display: flex;
+            gap: 5px;
+            flex-direction: column;
+            .control-group {
+               display: flex;
+               flex-flow: row wrap;
+               gap: 5px;
+            }
          }
       }
       .note {
          font-style: italic;
          color: $uva-grey-A;
          margin-top: 0;
+      }
+      .acts {
+         text-align: right;
+         margin-top: 10px;
       }
    }
 
@@ -445,6 +719,17 @@ div.error {
          flex-flow: row wrap;
          gap: 10px;
          justify-content: flex-start;
+      }
+   }
+
+   .two-col {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 25px;
+      .field {
+         flex-grow: 1;
       }
    }
 }

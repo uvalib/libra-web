@@ -104,15 +104,15 @@
                         Edit Work
                      </RouterLink>
                   </Button>
+                  <Button v-if="slotProps.data.published" asChild v-slot="btnProps" severity="secondary" size="small">
+                     <RouterLink :to="`/public_view/${slotProps.data.id}`" :class="btnProps.class" :aria-describedby="slotProps.data.id">
+                        <span>Public View</span>
+                     </RouterLink>
+                  </Button>
                   <AuditsPanel :workID="slotProps.data.id" :workTitle="slotProps.data.title"/>
                   <Button v-if="slotProps.data.author.computeID" :label="`Become User ${slotProps.data.author.computeID}`" severity="secondary"
                      size="small" @click="becomeUser(slotProps.data.author.computeID)"
                   />
-                  <a v-if="slotProps.data.published" class="public-view" target="_blank" aria-describedby="new-window"
-                     :href="`./public_view/${slotProps.data.id}`">
-                     <span>Public View</span>
-                     <i class="pi pi-external-link"/>
-                  </a>
                </div>
             </template>
          </Column>
@@ -130,6 +130,7 @@ import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import AuditsPanel from '@/components/AuditsPanel.vue'
+import { useHead } from '@unhead/vue'
 
 const admin = useAdminStore()
 const fromDate = ref()
@@ -140,6 +141,10 @@ const publishOpts = computed(() => {
 })
 const sourceOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "SIS", value: "sis"}, {label: "Optional", value: "optional"} ]
+})
+
+useHead({
+   title: 'Libra Admin Dashboard'
 })
 
 onMounted( () => {
@@ -251,16 +256,6 @@ const becomeUser = ((computeID) => {
    margin: 0 auto 50px;
    min-height: 600px;
    text-align: left;
-   
-   a.public-view {
-      display: flex;
-      flex-flow: row nowrap;
-      gap: 5px;
-      align-items: center;
-      justify-content: center;
-      margin-top: 10px;
-   }
-
    .cap-note {
       text-align: center;
       display: flex;

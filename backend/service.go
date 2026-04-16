@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -592,7 +593,7 @@ func handleAPIResponse(logURL string, resp *http.Response, err error) ([]byte, *
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, _ := io.ReadAll(resp.Body)
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
 	return bodyBytes, nil
 }
 
