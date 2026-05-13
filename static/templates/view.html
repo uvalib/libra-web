@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <link rel="stylesheet" type="text/css" href="/stylesheets/view.css" />
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+   <title>{{ .Title }}</title>
+
+   <meta name="citation_title" content="{{ .Title }}">
+   <meta name="citation_author" content="{{ .Author.LastName }}, {{ .Author.FirstName }}">
+   <meta name="citation_publisher" content="University of Virginia">
+   <meta name="citation_dissertation_name" content="{{ .Degree }}">
+   <meta name="citation_publication_date" content="{{ .PublishedDate }}">
+   {{ if ne .Keywords ""}}
+   <meta name="citation_keywords" content="{{ .Keywords }}">
+   {{ end }}
+    {{if eq .Visibility "open"}}
+   {{- $workID := .WorkID -}}
+   {{- $baseURL := .BaseURL }}
+   {{ range $file := .Files }}
+   {{ if hasSuffix $file.FileName ".pdf" }}
+   <meta name="citation_pdf_url" content="{{ $baseURL }}/api/works/{{ $workID }}/files/{{ $file.FileName }}?for=view">
+   {{ end}}
+   {{ end }}
+   {{ end }}
+</head>
+<body>
+   {{template "header" .}}
+   <div class="view-content">
+      <div class="work-bkg"></div>
+      <div class="public-work">
+         <div class="details">
+            <div class="metadata">
+               <h1>
+                  <span>{{.Title}}</span>
+                  <span class="view-cnt">{{.Views}} views</span>
+               </h1>   
+               <section>
+                  <h2>Author</h2>  
+                  <div class="content author">
+                     <span>{{.Author.LastName}}, {{.Author.FirstName}}, {{.Program}}, {{.Author.Institution}}</span>
+                     {{if ne .Author.ORCID.URL ""}}
+                     <a class="orcid" href="{{.Author.ORCID.URL}}" target="_blank" aria-describedby="new-window">
+                        <img class="orcid-img" src="/images/orcid_id.svg" aria-hidden="true"/>
+                        <span>{{.Author.ORCID.ID}}</span>
+                     </a>
+                     {{end}}
+                  </div> 
+               </section>
+               {{ if .Advisors }}
+               <section>
+                  <h2>Advisors</h2>
+                  <ul class="unstyled">
+                     {{range .Advisors}}
+                     <li class="advisor">
+                        <span>{{ .LastName }}, {{ .FirstName }}</span>
+                        {{if ne .Department ""}}
+                        <span>,&nbsp;{{.Department}}</span>
+                        {{end}}
+                        {{if ne .Institution ""}}
+                        <span>,&nbsp;{{.Institution}}</span>
+                        {{end}}
+                     </li>
+                     {{end}}
+                  </ul>
+               </section>
+               {{end}}
+               <section>
+                  <h2>Abstract</h2>
+                  <div style="white-space: pre-wrap;">{{ .Abstract }}</div>
+               </section>
+               <section>
+                  <h2>Degree</h2>
+                  <div>{{ .Degree }}</div>
+               </section>
+               {{ if ne .Keywords ""}}
+               <section>
+                  <h2>Keywords</h2>
+                  <div>{{ .Keywords }}</div>
+               </section>
+               {{ end }}
+               {{ if .Sponsors }}
+               <section>
+                  <h2>Sponsors</h2>
+                  <ul class="unstyled">
+                     {{ range .Sponsors }}
+                     <li>{{ . }}</li>
+                     {{ end }}
+                  </ul>
+               </section>
+               {{ end }}
+               {{ if .RelatedURLs }}
+               <section>
+                  <h2>Related Links</h2>
+                  <ul class="links">
+                     {{ range .RelatedURLs }}
+                     <li>
+                        {{ if .IsURL }}
+                        <a href="{{ .Value }}" aria-describedby="new-window" target="_blank" >{{ .Value }}</a>
+                        {{ else }}
+                        {{ .Value }}
+                        {{ end }}
+                     </li>
+                     {{ end }}
+                  </ul>  
+               </section>
+               {{ end }}
+               {{ if ne .Notes ""}}
+               <section>
+                  <h2>Notes</h2>
+                  <div style="white-space: pre-wrap;">{{ .Notes }}</div>
+               </section>
+               {{ end }}
+               {{ if ne .Language ""}}
+               <section>
+                  <h2>Language</h2>
+                  <div>{{ .Language }}</div>
+               </section>
+               {{ end }}
+               <section>
+                  <h2>Rights</h2>
+                  {{ if ne .License.URL ""}}
+                  <a href="{{ .License.URL }}" target="_blank" aria-describedby="new-window">{{ .License.Name }}</a>
+                  {{ else }}
+                  <div>{{ .License.Name }}</div>
+                  {{ end }}
+               </section>
+               <section>
+                  <h2>Issued Date</h2>
+                  <div>{{ .PublishedDate }}</div>
+               </section>
+               {{ if ne .PersistentLink ""}}
+               <section>
+                  <h2>Persistent Link</h2>
+                  <a target="_blank" aria-describedby="new-window" href="{{ .PersistentLink }}">{{ .PersistentLink }}</a>
+               </section>
+               {{ end }}
+               <section>
+                  <h2>Suggested Citation</h2>
+                  <span>{{ .Citation }}</span>
+               </section>
+            </div>
+         </div>
+         {{ template "files" .}}
+      </div>
+   </div>
+   <span id="new-window" tabindex="-1" class="screen-reader-text">opens in a new window</span>
+   <footer>{{template "footer" .}}</footer>
+</body>
+
+</html>

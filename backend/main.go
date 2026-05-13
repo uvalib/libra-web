@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -13,7 +14,7 @@ import (
 )
 
 // Version of the service
-const Version = "1.2.1"
+const Version = "1.3.0"
 
 func main() {
 	// Load cfg
@@ -30,12 +31,17 @@ func main() {
 
 	// Set routes and start serve
 	router.GET("/authenticate", svc.authenticate)
+	router.POST("/signout", svc.signout)
 	router.GET("/authcheck", svc.checkAuthToken)
 	router.GET("/config", svc.getConfig)
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/version", svc.getVersion)
 	router.GET("/sitemap.xml", svc.getSitemap)
 	router.GET("/robots.txt", svc.getRobotsTxt)
+
+	// render a work as a static page using HTML templates
+	router.GET("/public_view/:id", svc.publicMiddleware, svc.getStaticPage)
+	router.GET("/public_view/:id/download", svc.publicMiddleware, svc.downloadPublishedFile)
 
 	api := router.Group("/api", svc.userMiddleware)
 	{
@@ -52,9 +58,9 @@ func main() {
 		api.GET("/audits/:id", svc.getAudits)
 
 		// After initial submission, the work is referenced by the permanent ID
-		api.GET("/works/:id", svc.getWork)
+		api.GET("/works/:id", svc.getWorkHandler)
 		api.PUT("/works/:id/files/rename", svc.renameFile)
-		api.GET("/works/:id/files/:name", svc.downloadFile)
+		api.GET("/works/:id/files/:name", svc.downloadDraftFile)
 		api.PUT("/works/:id", svc.updateWork)
 		api.POST("/works/:id/publish", svc.publishWork)
 
@@ -75,6 +81,17 @@ func main() {
 			admin.PUT("/works/:id/published", svc.adminUpdatePublishedDate)
 		}
 	}
+
+	// Load all templates into gin engine and setup static routes to serve images and stylesheets
+	// Once loaded, templates are rendered in handlers like c.HTML(http.StatusOK, "view.html", viewData)
+	// where "view.html" is the template filename of the target page.
+	// IMPORTANT: the call to SetFuncMap msut come before LoadHTMLGlob
+	router.SetFuncMap(template.FuncMap{
+		"hasSuffix": strings.HasSuffix,
+	})
+	router.LoadHTMLGlob("./static/templates/*")
+	router.Use(static.Serve("/stylesheets", static.LocalFile("./static/stylesheets", true)))
+	router.Use(static.Serve("/images", static.LocalFile("./static/images", true)))
 
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by node/vite and it proxies all requests to the API to the routes above

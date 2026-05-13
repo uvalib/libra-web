@@ -79,6 +79,8 @@ export const useUserStore = defineStore('user', {
          })
       },
       signOut() {
+         console.log("SIGNOUT USER")
+         axios.post("/signout")
          localStorage.removeItem("libra3_jwt")
          localStorage.removeItem("libra3_impersonate")
          this.$reset()

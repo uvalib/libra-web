@@ -81,7 +81,7 @@ export const useSystemStore = defineStore('system', {
          this.showError = true
          this.working = false
 
-         if (error.status != 406) {
+         if (e.status && e.status != 406) {
             // 406 is returned on jwt mismatch. do not report this as an error
             this.reportError(e)
          }

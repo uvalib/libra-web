@@ -10,9 +10,10 @@
       <div class="file" v-for="file in etdRepo.work.files">
          <div class="name">{{ file.name }}</div>
          <div class="file-stat">Downloads: {{ file.downloads }}</div>
-         <Button label="Download" icon="pi pi-cloud-download" severity="secondary"
+         <Button as="a" label="Download" icon="pi pi-cloud-download" severity="secondary"
             :ariaLabel="`download file ${file.name}`"
-            @click="etdRepo.downloadFile(file.name, 'view')" :loading="etdRepo.downloading==file.name" />
+            :href="`/public_view/${etdRepo.work.id}/download?file=${file.name}`"
+         />
       </div>
    </div>
 </template>

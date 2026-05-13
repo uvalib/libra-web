@@ -31,22 +31,15 @@
    }
 }
 
+div.p-card.p-component {
+   border: 1px solid $uva-grey-100;
+}
+
 div.p-fieldset-content {
    display: flex;
    flex-direction: column;
    gap: 10px;
 }
-
-// div.p-select-overlay.p-component {
-//    background: white;
-//    padding: 0;
-//    border: 1px solid $uva-grey-100;
-//    border-radius: 0.3rem;
-//    .p-select-option.p-select-option-selected, .p-select-option.p-select-option-selected.focus {
-//       background: $uva-blue-alt-300;
-//       color: $uva-text-color-dark;
-//    }
-// }
 
 .p-dialog-mask {
    .p-dialog {

@@ -80,6 +80,24 @@ export const useETDStore = defineStore('etd', {
          })
       },
 
+      async downloadFile(fileName) {
+         this.downloading = name
+         return axios.get(`/api/works/${this.work.id}/files/${fileName}`).then((response) => {
+            const element = document.createElement('a')
+            element.setAttribute('href', response.data)
+            element.setAttribute('download', name)
+            element.style.display = 'none'
+            document.body.appendChild(element)
+            element.click()
+            document.body.removeChild(element)
+            this.downloading = ""
+         }).catch((error) => {
+            this.downloading = ""
+            const system = useSystemStore()
+            system.setError( error)
+         })
+      },
+
       setWorkDetails( data ) {
          this.isDraft = data.isDraft
          delete data.isDraft
@@ -158,24 +176,6 @@ export const useETDStore = defineStore('etd', {
             let tgtFile = this.work.files.find( f => f.name == origName )
             tgtFile.name = newName
          }).catch((error) => {
-            const system = useSystemStore()
-            system.setError( error)
-         })
-      },
-
-      async downloadFile( name, usage ) {
-         this.downloading = name
-         return axios.get(`/api/works/${this.work.id}/files/${name}?for=${usage}`).then((response) => {
-            const element = document.createElement('a')
-            element.setAttribute('href', response.data)
-            element.setAttribute('download', name)
-            element.style.display = 'none'
-            document.body.appendChild(element)
-            element.click()
-            document.body.removeChild(element)
-            this.downloading = ""
-         }).catch((error) => {
-            this.downloading = ""
             const system = useSystemStore()
             system.setError( error)
          })

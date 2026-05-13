@@ -22,6 +22,13 @@ deploy-data:
 	rm -rf bin/data
 	mkdir -p bin/data
 	cp ./data/* bin/data
+	mkdir -p bin/static
+	mkdir -p bin/static/images
+	mkdir -p bin/static/stylesheets
+	mkdir -p bin/static/templates
+	cp ./static/images/* bin/static/images
+	cp ./static/stylesheets/* bin/static/stylesheets
+	cp ./static/templates/* bin/static/templates
 
 web:
 	mkdir -p bin/
