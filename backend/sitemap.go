@@ -53,36 +53,56 @@ type documentResp struct {
 }
 
 func generateSitemap(svc *serviceContext, baseURL string) (*urlSet, error) {
-
-	payload := map[string]any{"filter": []string{"fields.draft=false"},
-		"fields": []string{"id", "modified"},
-		"limit":  5000,
-	}
-	url := fmt.Sprintf("%s/indexes/works/documents/fetch", svc.IndexURL)
-	rawResp, respErr := svc.sendPostRequest(url, payload)
-	if respErr != nil {
-		log.Printf("ERROR: Sitemap search for works failed: %s", respErr.Message)
-		return nil, fmt.Errorf("%s", respErr.Message)
-	}
-
-	var jsonResp documentResp
-	err := json.Unmarshal(rawResp, &jsonResp)
-	if err != nil {
-		log.Printf("ERROR: unable to parse response: %s", err.Error())
-		return nil, err
-	}
-
-	// log.Printf("INFO: %+v", jsonResp)
-
+	offset := 0
+	limit := 1000
+	done := false
 	urls := []sitemapURL{}
-	for _, result := range jsonResp.Results {
-		url := sitemapURL{
-			Loc:     fmt.Sprintf("%s/public_view/%s", baseURL, result.ID),
-			LastMod: result.ModifiedAt,
+
+	log.Printf("INFO: generate sitemap by requesting identifiers in batches of %d", limit)
+	for done == false {
+		payload := map[string]any{"filter": []string{"fields.draft=false"},
+			"fields": []string{"id", "modified"},
+			"offset": offset,
+			"limit":  limit,
 		}
-		urls = append(urls, url)
+		url := fmt.Sprintf("%s/indexes/works/documents/fetch", svc.IndexURL)
+		rawResp, respErr := svc.sendPostRequest(url, payload)
+		if respErr != nil {
+			log.Printf("ERROR: Sitemap search for works failed: %s", respErr.Message)
+			return nil, fmt.Errorf("%s", respErr.Message)
+		}
+
+		var jsonResp documentResp
+		err := json.Unmarshal(rawResp, &jsonResp)
+		if err != nil {
+			log.Printf("ERROR: unable to parse response: %s", err.Error())
+			return nil, err
+		}
+
+		for _, result := range jsonResp.Results {
+			url := sitemapURL{
+				Loc:     fmt.Sprintf("%s/public_view/%s", baseURL, result.ID),
+				LastMod: result.ModifiedAt,
+			}
+			urls = append(urls, url)
+			if len(urls) >= 50000 {
+				log.Printf("ERROR: reached 50,000 max item limit for urls in sitemap response; stopping early.")
+				done = true
+			}
+		}
+
+		if done == false {
+			if len(urls) == jsonResp.Total {
+				log.Printf("INFO: gathered %d urls for sitemap; done", jsonResp.Total)
+				done = true
+			} else {
+				log.Printf("INFO: received %d of %d results; requesting %d more", len(urls), jsonResp.Total, limit)
+				offset += limit
+			}
+		}
 	}
 
+	log.Printf("INFO: returning sitemap with %d entries", len(urls))
 	urlSet := urlSet{
 		Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9",
 		URLs:  urls,
