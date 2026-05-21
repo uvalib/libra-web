@@ -216,6 +216,13 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 	tgtObj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReq.Work.MimeType(), pl))
 
+	etdWork, err := librametadata.ETDWorkFromBytes(pl)
+	if err != nil {
+		log.Printf("ERROR: unable parse work %s: %s", workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	// update fields
 	fields := tgtObj.Fields()
 	fields["modify-date"] = time.Now().UTC().Format(svc.TimeFormat)
@@ -234,7 +241,12 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 				return
 			}
 			if etdReq.Visibility == "uva" && claims.isAdmin() == false {
-				maxDate := time.Now().UTC().AddDate(5, 0, 0) // now + 5 years
+				maxYears := 5
+				if etdWork.Program == "Creative Writing" && etdWork.Degree == "MFA (Master of Fine Arts)" {
+					log.Printf("INFO: %s is for MFA in creative writing; allow 10 year limited visibility", workID)
+					maxYears = 10
+				}
+				maxDate := time.Now().UTC().AddDate(maxYears, 0, 0) // now + 5 years
 				maxDate = maxDate.Truncate(24 * time.Hour)
 				truncEndDate := endDate.UTC().Truncate(24 * time.Hour)
 				log.Printf("INFO: truncated release date (yyyy-mm-dd only) comparison: release %s vs 5 years %s", truncEndDate, maxDate)
