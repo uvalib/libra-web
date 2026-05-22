@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"net/url"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	strip "github.com/grokify/html-strip-tags-go"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
@@ -50,7 +52,8 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 		WorkID             string
 		Visibility         string
 		EmbargoReleaseDate string
-		Title              string
+		CleanTitle         string
+		Title              template.HTML
 		Views              int
 		Author             contributor
 		Advisors           []contributor
@@ -85,7 +88,8 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	viewData.WorkID = workID
 	viewData.Visibility = etdWork.Visibility
 	viewData.ThisYear = fmt.Sprintf("%d", time.Now().Year())
-	viewData.Title = etdWork.Title
+	viewData.CleanTitle = strip.StripTags(etdWork.Title)
+	viewData.Title = template.HTML(etdWork.Title)
 	viewData.Views = etdWork.Views
 	viewData.Author.FirstName = etdWork.Author.FirstName
 	viewData.Author.LastName = etdWork.Author.LastName
