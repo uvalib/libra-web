@@ -140,6 +140,7 @@ onBeforeMount( async () => {
       router.push("/forbidden")
       return
    }
+   system.getMimeTypes()
    await etdRepo.getWork( route.params.id, "edit" )
 })
 
