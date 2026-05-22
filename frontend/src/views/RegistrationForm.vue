@@ -13,16 +13,15 @@
          <FieldSet legend="Registrants">
             <div class="lookup">
                <div class="note" id="add-help">
-                  Add one or more computing IDs to register. IDs can be separated by spaces, commas or newlines. Click 'Add'
+                  Add one or more computing IDs to register. IDs can be separated by spaces, commas or newlines. Click 'Validate'
                   to validate the IDs and add them to the registration list.
                </div>
                <div class="user-lookup">
-                  <TextArea v-model="computeID" id="user-input" rows="2" @update:modelValue="idChanged" fluid placeholder="Computing IDs"
+                  <TextArea v-model="computeID" id="user-input" rows="3" @update:modelValue="idChanged" fluid placeholder="Computing IDs"
                      aria-label="Computing IDs" aria-describedby="add-help"
                   />
-                  <Button label="Add" icon="pi pi-user-plus" severity="secondary" @click="lookup" :loading="working" />
+                  <Button label="Validate" severity="secondary" @click="lookup" :loading="working" />
                </div>
-               <Message v-if="added" severity="success" :life="3000" @life-end="added=false" variant="simple">Registrants added</Message>
                <Message severity="error" v-for="err in userErrors" class="err">{{ err }}</Message>
                <div class="users">
                   <div v-for="u in users" class="registrant">
@@ -33,6 +32,8 @@
             </div>
          </FieldSet>
          <div class="controls">
+            <b v-if="users.length == 1">There is {{ users.length }} pending registration</b>
+            <b v-else>There are {{ users.length }} pending registrations</b>
             <Button label="Create Registrations" @click="submitRegistrations" :disabled="submitDisabled"/>
          </div>
       </div>
@@ -41,6 +42,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
 import { useSystemStore } from "@/stores/system"
 import { useAdminStore } from "@/stores/admin"
 import Select from 'primevue/select'
@@ -58,7 +60,13 @@ const computeID = ref("")
 const userErrors = ref([])
 const users = ref([])
 const working = ref(false)
-const added = ref(false)
+
+onBeforeRouteLeave(() => {
+   if (users.value.length > 0) {
+      const exit = window.confirm('You have pending registrations that will be lost if you leave. Are you sure?')
+      if (!exit) return false
+   }
+})
 
 const submitDisabled = computed( () => {
    return program.value == "" || degree.value == "" || users.value.length == 0
@@ -100,7 +108,6 @@ const lookup = ( () => {
                computeID: r.data.cid.toLowerCase(), firstName: r.data.first_name, lastName:
                r.data.last_name, email: r.data.email }
             users.value.push( user )
-            added.value = true
          } else {
             userErrors.value.push(`${computeID} already added`)
          }
@@ -221,8 +228,12 @@ const submitRegistrations = ( async ( ) => {
    .controls {
       display: flex;
       flex-flow: row nowrap;
-      justify-content: flex-end;
+      justify-content: space-between;
       gap: 10px;
+      align-items: baseline;
+      b {
+         font-size: 1.15em;
+      }
    }
 }
 
