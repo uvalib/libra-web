@@ -45,6 +45,7 @@ func main() {
 
 	api := router.Group("/api", svc.userMiddleware)
 	{
+		api.GET("/mimetypes", svc.getMimeTypes)
 		api.POST("/error", svc.logClientError)
 
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
@@ -79,6 +80,7 @@ func main() {
 			admin.DELETE("/works/:id", svc.adminDeleteWork)
 			admin.DELETE("/works/:id/publish", svc.adminUnpublishWork)
 			admin.PUT("/works/:id/published", svc.adminUpdatePublishedDate)
+			admin.POST("/mimetypes", svc.adminUpdateMimeTypes)
 		}
 	}
 

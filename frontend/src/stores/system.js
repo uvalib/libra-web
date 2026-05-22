@@ -16,6 +16,7 @@ export const useSystemStore = defineStore('system', {
       orcidURL: "",
       error: "",
       showError: false,
+      mimeTypes: [],
       toast: {
          error: false,
          summary: "",
@@ -69,6 +70,13 @@ export const useSystemStore = defineStore('system', {
             this.programs = response.data.programs
             this.orcidURL = response.data.orcid
             this.working = false
+         }).catch( err => {
+            this.setError(  err )
+         })
+      },
+      async getMimeTypes() {
+         return axios.get("/api/mimetypes").then(response => {
+            this.mimeTypes = response.data
          }).catch( err => {
             this.setError(  err )
          })

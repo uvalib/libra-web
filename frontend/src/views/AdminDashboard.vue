@@ -1,6 +1,9 @@
 <template>
    <div class="admin">
-      <h1>Admin Dashboard</h1>
+      <h1>
+         <span>Admin Dashboard</span>
+         <Button severity="secondary" size="small" icon="pi pi-pen-to-square" label="Supported Mime Types" @click="editMimeTypesClicked()"/>
+      </h1>
       <div class="search-setup">
          <div class="search">
             <label for="admin-search">Search for works:</label>
@@ -118,11 +121,25 @@
          </Column>
       </DataTable>
    </div>
+   <Dialog v-model:visible="editMime" :modal="true" style="max-width: 450px;" header="Supported Mime Types" @hide="editMime=false">
+      <div class="add-mime">
+         <InputText v-model="newMime" fluid />
+         <Button label="Add" icon="pi pi-plus" @click="addMimeTypeClicked()" />
+      </div>
+      <div class="types">
+         <Chip v-for="mime in system.mimeTypes" :label="mime" removable @remove="removeMimeType(mime)"/>
+      </div>
+      <template #footer>
+         <Button label="Cancel" severity="secondary" @click="editMime=false"/>
+         <Button label="Update" autofocus  @click="updateMimeTypes()"/>
+      </template>
+   </Dialog>
 </template>
 
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useAdminStore } from "@/stores/admin"
+import { useSystemStore } from "@/stores/system"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
@@ -130,10 +147,16 @@ import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import InputMask from 'primevue/inputmask'
 import AuditsPanel from '@/components/AuditsPanel.vue'
+import Dialog from 'primevue/dialog'
+import Chip from 'primevue/chip'
 
 const admin = useAdminStore()
+const system = useSystemStore()
+
+const newMime = ref("")
 const fromDate = ref()
 const toDate = ref()
+const editMime = ref(false)
 
 const publishOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "Draft", value: "draft"}, {label: "Published", value: "published"} ]
@@ -146,6 +169,26 @@ onMounted( () => {
    if (admin.searchCompleted == false) {
       admin.getRecentActivity()
    }
+})
+
+
+const editMimeTypesClicked = (() => {
+   system.getMimeTypes()
+   editMime.value=true
+})
+
+const removeMimeType = ((t)=> {
+    system.mimeTypes =  system.mimeTypes.filter( mt => mt != t) 
+})
+
+const addMimeTypeClicked = (() => {
+   system.mimeTypes.push( newMime.value )
+   newMime.value = ""
+})
+
+const updateMimeTypes = (()=> {
+   admin.updateMimeTypes( system.mimeTypes )
+   editMime.value = false
 })
 
 const onPage = ((event) => {
@@ -251,6 +294,13 @@ const becomeUser = ((computeID) => {
    margin: 0 auto 50px;
    min-height: 600px;
    text-align: left;
+
+   h1 {
+      display: flex;
+      flex-flow: row wrap;
+      justify-content: space-between;
+      gap: 10px;
+   }
    
    a.public-view {
       display: flex;
@@ -290,6 +340,7 @@ const becomeUser = ((computeID) => {
          display: flex;
          flex-flow: row wrap;
          align-items: center;
+         justify-content: flex-start;
          margin-top: 20px;
          .search-input {
             display: flex;
@@ -348,5 +399,16 @@ const becomeUser = ((computeID) => {
       justify-content: flex-start;
       gap: 0.5rem;
    }
+}
+.add-mime {
+   display: flex;
+   flex-flow: row nowrap;
+   gap: 10px;
+   margin-bottom: 15px;
+}
+.types {
+   display: flex;
+   flex-flow: row wrap;
+   gap: 10px;
 }
 </style>

@@ -203,6 +203,12 @@ export const useAdminStore = defineStore('admin', {
             system.setError(  err )
             this.working = false
          })
+      },
+      updateMimeTypes( types ) {
+         axios.post(`/api/admin/mimetypes`, types).catch( err => {
+            const system = useSystemStore()
+            system.setError(  err )
+         })   
       }
    }
 })

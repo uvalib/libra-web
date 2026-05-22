@@ -504,3 +504,15 @@ func (svc *serviceContext) depositStatusSearch(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (svc *serviceContext) adminUpdateMimeTypes(c *gin.Context) {
+	var req []string
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("INFO: invalid request for update mime types: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	svc.MimeTypes = req
+	log.Printf("INFO: new list of supported mime types %v", req)
+	c.JSON(http.StatusOK, req)
+}

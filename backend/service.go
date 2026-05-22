@@ -79,6 +79,7 @@ type serviceContext struct {
 	JWTKey          string
 	Namespace       string
 	UVAWhiteList    []*net.IPNet
+	MimeTypes       []string
 	Dev             devConfig
 }
 
@@ -173,6 +174,13 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		}
 	}
 
+	log.Printf("INFO: initialize supported mime types list")
+	mtBytes, err := os.ReadFile("./data/mimetypes.txt")
+	if err != nil {
+		log.Fatalf("read mimetypes failed: %s", err.Error())
+	}
+	ctx.MimeTypes = strings.Split(string(mtBytes), "\n")
+
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -227,6 +235,10 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	return &ctx
+}
+
+func (svc *serviceContext) getMimeTypes(c *gin.Context) {
+	c.JSON(http.StatusOK, svc.MimeTypes)
 }
 
 func (svc *serviceContext) publishEvent(eventName, namespace, oid string) {
