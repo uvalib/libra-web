@@ -17,6 +17,7 @@ export const useSystemStore = defineStore('system', {
       error: "",
       showError: false,
       mimeTypes: [],
+      maxSearchHits: 2500,
       toast: {
          error: false,
          summary: "",
@@ -69,6 +70,7 @@ export const useSystemStore = defineStore('system', {
             this.degrees = response.data.degrees
             this.programs = response.data.programs
             this.orcidURL = response.data.orcid
+            this.maxSearchHits = response.data.maxSearchHits
             this.working = false
          }).catch( err => {
             this.setError(  err )

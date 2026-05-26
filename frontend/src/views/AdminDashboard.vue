@@ -40,7 +40,7 @@
                   :loading="admin.working" :disabled="admin.working || admin.filterChanged == false"
                />
                <Button severity="secondary" label="Export" @click="exportClicked()"
-                  :disabled="admin.total == 0 || admin.total >= 1000 || admin.working || admin.searchCompleted == false" :loading="admin.working"
+                  :disabled="admin.total == 0 || admin.working || admin.searchCompleted == false" :loading="admin.working"
                />
             </div>
          </div>
@@ -58,13 +58,14 @@
             currentPageReportTemplate="{first} - {last} of {totalRecords}"
             :loading="admin.working" removableSort @sort="onSort($event)"  :sortField="admin.sortField"
       >
-         <template #header v-if="admin.total == 1000">
-            <div class="cap-note"><i class="pi pi-exclamation-triangle"></i>Results are capped at 1000 hits. Please narrow your search.</div>
+         <template #header v-if="admin.total == system.maxSearchHits">
+            <div class="cap-note"><i class="pi pi-exclamation-triangle"></i>Results are capped at {{ system.maxSearchHits }} hits. Please narrow your search.</div>
          </template>
          <template #empty>
             <div v-if="admin.searchCompleted" class="none">No matching works found for {{ admin.query }}</div>
             <div v-else class="none">Enter a search query to see matching works</div>
          </template>
+         <template #loading>Loading works. Please wait. </template>
          <Column field="source" header="Source">
             <template #body="slotProps">
                <div v-if="slotProps.data.source=='sis'" style="text-transform: uppercase;">{{ slotProps.data.source }}</div>
@@ -73,16 +74,16 @@
             </template>
          </Column>
          <Column field="id" header="ID" class="nowrap"/>
-         <Column field="created" header="Created" :sortable="admin.searchCompleted" class="nowrap">
+         <Column field="created" header="Created" dataType="date" sortable class="nowrap">
             <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
          </Column>
-         <Column field="modified" header="Modified" :sortable="admin.searchCompleted" class="nowrap">
+         <Column field="modified" header="Modified" sortable class="nowrap">
             <template #body="slotProps">
                <div v-if="slotProps.data.modified">{{ $formatDateTime(slotProps.data.modified) }}</div>
                <div v-else class="na">N/A</div>
             </template>
          </Column>
-         <Column field="published" header="Published" :sortable="admin.searchCompleted" class="nowrap">
+         <Column field="published" header="Published" sortable class="nowrap">
             <template #body="slotProps">
                <div v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published) }}</div>
                <div v-else class="na">N/A</div>

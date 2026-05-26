@@ -137,7 +137,11 @@ type configResponse struct {
 	Programs       []etdProgram   `json:"programs"`
 	Degrees        []etdDegree    `json:"degrees"`
 	ORCIDClientURL string         `json:"orcid"`
+	MaxSearchHits  int            `json:"maxSearchHits"`
 }
+
+// max hits returned from the search index
+const targetMaxHits = 2500
 
 // InitializeService sets up the service context for all API handlers
 func initializeService(version string, cfg *configData) *serviceContext {
@@ -234,7 +238,47 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		ctx.Events.Bus = bus
 	}
 
+	if err := ctx.configSearchIndex(); err != nil {
+		log.Fatalf("unable to configure search index: %s", err.Error())
+	}
+
 	return &ctx
+}
+
+func (svc *serviceContext) configSearchIndex() error {
+	log.Printf("INFO: check index configuration...")
+	url := fmt.Sprintf("%s/indexes/works/settings", svc.IndexURL)
+	out, err := svc.sendGetRequest(url)
+	if err != nil {
+		log.Fatal(err.Message)
+	}
+
+	var cfgResp struct {
+		Pagination struct {
+			MaxTotalHits int `json:"maxTotalHits"`
+		} `json:"pagination"`
+	}
+	if err := json.Unmarshal(out, &cfgResp); err != nil {
+		return err
+	}
+	log.Printf("INFO: index max hits configuration: %d", cfgResp.Pagination.MaxTotalHits)
+	if cfgResp.Pagination.MaxTotalHits < targetMaxHits {
+		log.Printf("WARNING: max hits setting is less than required %d threshold; increasing", targetMaxHits)
+		url := fmt.Sprintf("%s/indexes/works/settings/pagination", svc.IndexURL)
+		pl := struct {
+			MaxTotalHits int `json:"maxTotalHits"`
+		}{
+			MaxTotalHits: targetMaxHits,
+		}
+		_, err := svc.sendPatchRequest(url, pl)
+		if err != nil {
+			return fmt.Errorf("status %d - %s", err.StatusCode, err.Message)
+		}
+		log.Printf("INFO: index search limit increased to %d", targetMaxHits)
+	} else {
+		log.Printf("INFO: no config update needed")
+	}
+	return nil
 }
 
 func (svc *serviceContext) getMimeTypes(c *gin.Context) {
@@ -272,6 +316,7 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 			Label:     "LibraETD",
 			Namespace: svc.Namespace},
 		ORCIDClientURL: svc.Protected.ORCID.clientURL,
+		MaxSearchHits:  targetMaxHits,
 	}
 
 	err := loadETDConfig(&resp)
@@ -551,6 +596,10 @@ func (svc *serviceContext) sendPostRequest(url string, payload any) ([]byte, *Re
 	return svc.sendRequest("POST", url, payload)
 }
 
+func (svc *serviceContext) sendPatchRequest(url string, payload any) ([]byte, *RequestError) {
+	return svc.sendRequest("PATCH", url, payload)
+}
+
 func (svc *serviceContext) sendRequest(verb string, url string, payload any) ([]byte, *RequestError) {
 	log.Printf("INFO: %s request: %s", verb, url)
 	startTime := time.Now()
@@ -559,6 +608,11 @@ func (svc *serviceContext) sendRequest(verb string, url string, payload any) ([]
 	if verb == "POST" && payload != nil {
 		b, _ := json.Marshal(payload)
 		req, _ = http.NewRequest("POST", url, bytes.NewBuffer(b))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Accept", "application/json")
+	} else if verb == "PATCH" && payload != nil {
+		b, _ := json.Marshal(payload)
+		req, _ = http.NewRequest("PATCH", url, bytes.NewBuffer(b))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Accept", "application/json")
 	} else {
@@ -571,13 +625,16 @@ func (svc *serviceContext) sendRequest(verb string, url string, payload any) ([]
 	elapsedNanoSec := time.Since(startTime)
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
 
-	if err != nil {
+	if err != nil && err.StatusCode != 202 {
 		if err.StatusCode == 404 {
 			log.Printf("INFO: 404 response from %s %s. Elapsed Time: %d (ms)", verb, url, elapsedMS)
 		} else {
 			log.Printf("ERROR: Failed response from %s %s - %d:%s. Elapsed Time: %d (ms)", verb, url, err.StatusCode, err.Message, elapsedMS)
 		}
 	} else {
+		if err != nil && err.StatusCode == 202 {
+			err = nil
+		}
 		log.Printf("INFO: Successful response from %s %s. Elapsed Time: %d (ms)", verb, url, elapsedMS)
 	}
 	return resp, err
