@@ -109,7 +109,7 @@ const showReplace = ref(false)
 
 const fileTypesAccepted = computed( () => {
    if (!user.isAdmin) {
-      return system.mimeTypes
+      return system.mimeTypes.join(",")
    }
    return null
 })
