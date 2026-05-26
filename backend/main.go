@@ -52,7 +52,7 @@ func main() {
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
 
 		// manage uploaded files before they are attached to a work
-		api.POST("/upload/:work", svc.uploadSubmissionFiles)
+		api.POST("/upload/:work", svc.uploadSubmissionFile)
 		api.DELETE("/:work/:filename", svc.removeSubmissionFile)
 		api.POST("/cancel/:work", svc.cancelSubmission)
 
@@ -79,6 +79,7 @@ func main() {
 			admin.POST("/export", svc.adminExportReport)
 			admin.DELETE("/works/:id", svc.adminDeleteWork)
 			admin.DELETE("/works/:id/publish", svc.adminUnpublishWork)
+			admin.POST("/works/:id/files/:name/replace", svc.replaceFile)
 			admin.PUT("/works/:id/published", svc.adminUpdatePublishedDate)
 			admin.POST("/mimetypes", svc.adminUpdateMimeTypes)
 		}

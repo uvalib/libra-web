@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -515,4 +516,41 @@ func (svc *serviceContext) adminUpdateMimeTypes(c *gin.Context) {
 	svc.MimeTypes = req
 	log.Printf("INFO: new list of supported mime types %v", req)
 	c.JSON(http.StatusOK, req)
+}
+
+func (svc *serviceContext) replaceFile(c *gin.Context) {
+	workID := c.Param("id")
+	fileName := c.Param("name")
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Printf("INFO: unable to get multipart form for file replace %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
+	formFile := form.File["file"][0]
+	log.Printf("INFO: received request to replace file %s from work %s", fileName, workID)
+
+	src, err := formFile.Open()
+	if err != nil {
+		log.Printf("ERROR: unable to open uploaded file: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer src.Close()
+
+	fileBytes, err := io.ReadAll(src)
+	if err != nil {
+		log.Printf("ERROR: unable to read upload file %s: %s", formFile.Filename, err.Error())
+		return
+	}
+
+	mimeType := http.DetectContentType(fileBytes)
+	esBlob := uvaeasystore.NewEasyStoreBlob(fileName, mimeType, fileBytes)
+	if err := svc.EasyStore.FileUpdate(svc.Namespace, workID, esBlob); err != nil {
+		log.Printf("ERROR: unable to update file  %s: %s", fileName, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.String(http.StatusOK, "replaced")
 }

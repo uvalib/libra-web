@@ -82,26 +82,25 @@ func (svc *serviceContext) removeSubmissionFile(c *gin.Context) {
 	c.String(http.StatusOK, "removed")
 }
 
-func (svc *serviceContext) uploadSubmissionFiles(c *gin.Context) {
-	log.Printf("INFO: file upload request received")
+func (svc *serviceContext) uploadSubmissionFile(c *gin.Context) {
 	workID := c.Param("work")
+	log.Printf("INFO: file upload request received for work %s", workID)
+
 	files, err := c.MultipartForm()
 	if err != nil {
-		log.Printf("ERROR: unable to get upload images: %s", err.Error())
+		log.Printf("INFO: unable to get multipart form for file upload: %s", err.Error())
 		c.String(http.StatusBadRequest, fmt.Sprintf("unable to get files: %s", err.Error()))
 		return
 	}
 
 	uploadDir := path.Join("/tmp", workID)
-	for _, sf := range files.File["file"] {
-		destFile := path.Join(uploadDir, sf.Filename)
-		log.Printf("INFO: receive submission to %s", destFile)
-		err = c.SaveUploadedFile(sf, destFile)
-		if err != nil {
-			log.Printf("ERROR: unable to save %s: %s", sf.Filename, err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
+	sf := files.File["file"][0]
+	destFile := path.Join(uploadDir, sf.Filename)
+	log.Printf("INFO: receive submission to %s", destFile)
+	if err := c.SaveUploadedFile(sf, destFile); err != nil {
+		log.Printf("ERROR: unable to save %s: %s", sf.Filename, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
 	}
 
 	c.String(http.StatusOK, "ok")

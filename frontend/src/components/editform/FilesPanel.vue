@@ -25,6 +25,7 @@
                            @click="etdRepo.downloadFile(file.name)" :loading="etdRepo.downloading == file.name"
                         />
                         <Button size="small" icon="pi pi-file-edit" label="Rename" severity="secondary" @click="renameClicked(file.name)"/>
+                        <Button v-if="user.isAdmin" size="small" icon="pi pi-refresh" label="Replace" severity="secondary" @click="replaceClicked(file.name)"/>
                      </div>
                      <div class="rename" v-else>
                         <span class="rename-entry">
@@ -63,6 +64,21 @@
          </div>
       </div>
    </Panel>
+   
+   <Dialog v-model:visible="showReplace" :modal="true" :header="`Replace ${replaceFile}`" @hide="showReplace=false">
+      <FileUpload ref="replace" name="replacment" chooseLabel="Select a replacement file"
+         :customUpload="true" mode="basic"
+         @uploader="startReplacementUpload($event)"
+         :withCredentials="true" :auto="false"
+         :showUploadButton="false" :showCancelButton="false"
+         :accept="fileTypesAccepted"
+      />
+      <template #footer>
+         <Button label="Cancel" severity="secondary" @click="showReplace=false"/>
+         <Button label="Replace" autofocus  @click="doReplace()"/>
+      </template>
+   </Dialog>
+
 </template>
 
 <script setup>
@@ -71,6 +87,7 @@ import Panel from 'primevue/panel'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Divider from 'primevue/divider'
+import Dialog from 'primevue/dialog'
 import { useETDStore } from "@/stores/etd"
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
@@ -86,11 +103,40 @@ const rename = ref("")
 const newName = ref("")
 const newNameExt = ref("")
 
+const replace = ref()
+const replaceFile = ref("")
+const showReplace = ref(false)
+
 const fileTypesAccepted = computed( () => {
    if (!user.isAdmin) {
       return system.mimeTypes
    }
    return null
+})
+
+const replaceClicked = (( origFileName ) => {
+   replaceFile.value = origFileName
+   showReplace.value = true
+})
+
+const doReplace = (() => {
+   replace.value.upload()
+})
+
+const startReplacementUpload = (( event ) => {
+   const file = event.files[0]
+   let formData = new FormData()
+   formData.append('file', file, replaceFile.value)
+   axios.post(`/api/admin/works/${etdRepo.work.id}/files/${replaceFile.value}/replace`, formData, {
+      headers: {
+         'Content-Type': 'multipart/form-data',
+      }
+   }).then(() => {
+      showReplace.value = false
+      replaceFile.value = ""
+   }).catch((error) => {
+      system.toastError("Upload failed", error)
+   })
 })
 
 const startUpload = ( (event) => {
