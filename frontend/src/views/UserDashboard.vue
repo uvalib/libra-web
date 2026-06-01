@@ -64,7 +64,7 @@
                   <template #body="slotProps">
                      <div  class="acts">
                          <a v-if="slotProps.data.published" target="_blank" 
-                           :href="`http://localhost:8080/public_view/${slotProps.data.id}`">
+                           :href="`./public_view/${slotProps.data.id}`">
                            <span>Public View</span>
                         </a>
                         <RouterLink v-else :to="`/etd/${slotProps.data.id}`">Edit Thesis</RouterLink>
