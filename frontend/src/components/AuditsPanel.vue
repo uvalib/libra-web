@@ -3,18 +3,14 @@
       :aria-describedby="props.workID"
    />
    <Button v-else @click="show" label="View Audit Log" severity="secondary" fluid size="small" />
-   <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log"
-      style="width:95%; height:80%" position="top"
-      :blockScroll="true"
-   >
+   <Dialog v-model:visible="isOpen" :modal="true" header="Audit Log" position="top" :blockScroll="true">
       <div class="loading" v-if="auditStore.working">
          <WaitSpinner :overlay="false" message="Loading Audit History..." />
       </div>
       <div class="audit-panel" v-else>
          <template v-if="auditStore.error">
             <p class="error">
-               The audit log for this work is currently unavailable
-               <span>{{ auditStore.error }}</span>
+               There is no audit log for this work.
             </p>
          </template>
 

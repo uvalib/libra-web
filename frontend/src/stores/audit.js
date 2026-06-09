@@ -4,13 +4,13 @@ import axios from 'axios'
 export const useAuditStore = defineStore('audit', {
    state: () => ({
       working: false,
-      error: null,
+      error: false,
       audits: [],
    }),
 
    actions: {
       getAudits(id) {
-         this.error = null
+         this.error = false
          this.working = true
          axios.get(`/api/audits/${id}`).then(response => {
             this.audits = response.data
@@ -18,7 +18,7 @@ export const useAuditStore = defineStore('audit', {
          }).catch(err => {
             console.log("GET AUDITS FAILED:")
             console.log(err)
-            this.error = err
+            this.error = true
             this.working = false
          })
       },
