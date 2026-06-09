@@ -38,9 +38,6 @@ export const useSystemStore = defineStore('system', {
             return state.licenses.find( oa => oa.value == id)
          }
       },
-      userLicenses: state => {
-         return state.licenses.filter( l =>  l.adminOnly == false)
-      },
       userVisibility: state => {
          return state.visibility.filter( v => v.adminOnly == false)
       },

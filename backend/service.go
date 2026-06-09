@@ -105,10 +105,9 @@ type visibility struct {
 }
 
 type license struct {
-	Value     string `json:"value"`
-	URL       string `json:"url"`
-	Label     string `json:"label"`
-	AdminOnly bool   `json:"adminOnly"`
+	Value string `json:"value"`
+	URL   string `json:"url"`
+	Label string `json:"label"`
 }
 
 type libraNamespace struct {

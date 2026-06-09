@@ -54,8 +54,7 @@
                <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
                <LabeledInput v-if="user.isAdmin" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
                <div class="field" >
-                  <LabeledInput v-if="user.isAdmin" label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.licenses" />
-                  <LabeledInput v-else label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.userLicenses" />
+                  <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.licenses" />
                   <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
                   <div class="note">
                      Libra lets you choose an open license when you post your work, and will prominently display the
