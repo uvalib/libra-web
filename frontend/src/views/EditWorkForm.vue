@@ -92,7 +92,7 @@
          <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
          <span class="group">
             <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
-            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Preview" />
+            <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Review and submit" />
          </span>
       </div>
    </div>
