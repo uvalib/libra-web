@@ -25,7 +25,19 @@
                            @click="etdRepo.downloadFile(file.name)" :loading="etdRepo.downloading == file.name"
                         />
                         <Button size="small" icon="pi pi-file-edit" label="Rename" severity="secondary" @click="renameClicked(file.name)"/>
-                        <Button v-if="user.isAdmin" size="small" icon="pi pi-refresh" label="Replace" severity="secondary" @click="replaceClicked(file.name)"/>
+                        <!-- <Button v-if="user.isAdmin" size="small" icon="pi pi-refresh" label="Replace" severity="secondary" @click="replaceClicked(file.name)"/> -->
+                        <FileUpload  v-if="user.isAdmin"  ref="replace" name="replacment" chooseLabel="Replace" chooseIcon="pi pi-refresh"
+                           :chooseButtonProps="{
+                              severity: 'secondary',
+                              size: 'small'
+                           }"
+                           :customUpload="true" mode="basic"
+                           @select="replaceClicked(file.name)"
+                           @uploader="startReplacementUpload($event)"
+                           :withCredentials="true" :auto="true"
+                           :showUploadButton="false" :showCancelButton="false"
+                           :accept="fileTypesAccepted"
+                        />
                      </div>
                      <div class="rename" v-else>
                         <span class="rename-entry">
@@ -53,21 +65,6 @@
          </div>
       </div>
    </Panel>
-   
-   <Dialog v-model:visible="showReplace" :modal="true" :header="`Replace ${replaceFile}`" @hide="showReplace=false">
-      <FileUpload ref="replace" name="replacment" chooseLabel="Select a replacement file"
-         :customUpload="true" mode="basic"
-         @uploader="startReplacementUpload($event)"
-         :withCredentials="true" :auto="false"
-         :showUploadButton="false" :showCancelButton="false"
-         :accept="fileTypesAccepted"
-      />
-      <template #footer>
-         <Button label="Cancel" severity="secondary" @click="showReplace=false"/>
-         <Button label="Replace" autofocus  @click="doReplace()"/>
-      </template>
-   </Dialog>
-
 </template>
 
 <script setup>
@@ -91,10 +88,7 @@ const confirm = useConfirm()
 const rename = ref("")
 const newName = ref("")
 const newNameExt = ref("")
-
-const replace = ref()
 const replaceFile = ref("")
-const showReplace = ref(false)
 
 const fileTypesAccepted = computed( () => {
    if (!user.isAdmin) {
@@ -105,11 +99,6 @@ const fileTypesAccepted = computed( () => {
 
 const replaceClicked = (( origFileName ) => {
    replaceFile.value = origFileName
-   showReplace.value = true
-})
-
-const doReplace = (() => {
-   replace.value.upload()
 })
 
 const startReplacementUpload = (( event ) => {
@@ -122,10 +111,10 @@ const startReplacementUpload = (( event ) => {
          'Content-Type': 'multipart/form-data',
       }
    }).then(() => {
-      showReplace.value = false
+      system.toastMessage("Replace Success", `'${replaceFile.value}' has been replaced with '${event.files[0].name}'`)
       replaceFile.value = ""
    }).catch((error) => {
-      system.toastError("Upload failed", error)
+      system.toastError("Replace Failed", error)
    }).finally( () => {
       etdRepo.fileChange = false
    })
@@ -260,6 +249,7 @@ ul.pending {
       display: flex;
       flex-flow: row wrap;
       gap: 10px;
+      align-items: self-end;
    }
    .rename {
       display: flex;
