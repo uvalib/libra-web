@@ -113,6 +113,7 @@ const doReplace = (() => {
 })
 
 const startReplacementUpload = (( event ) => {
+   etdRepo.fileChange = true
    const file = event.files[0]
    let formData = new FormData()
    formData.append('file', file, replaceFile.value)
@@ -125,6 +126,8 @@ const startReplacementUpload = (( event ) => {
       replaceFile.value = ""
    }).catch((error) => {
       system.toastError("Upload failed", error)
+   }).finally( () => {
+      etdRepo.fileChange = false
    })
 })
 
@@ -185,10 +188,22 @@ const doRename = ( () => {
    if (newNameExt.value != "" ) {
       fulNewlName += "."+newNameExt.value
    }
-   etdRepo.renameFile(rename.value, fulNewlName)
-   newName.value = ""
-   newNameExt.value = ""
-   rename.value = ""
+
+   let exists = false
+   etdRepo.work.files.some( f => {
+      if (f.name.toLowerCase() == fulNewlName.toLowerCase() ) {
+         exists = true
+      }
+      return exists 
+   })
+   if (exists) {
+      system.setError(`A file with the name ${fulNewlName} already exists.` )
+   } else {
+      etdRepo.renameFile(rename.value, fulNewlName)
+      newName.value = ""
+      newNameExt.value = ""
+      rename.value = ""
+   }
 })
 
 const deleteFileClicked = ( (name) => {

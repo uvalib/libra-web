@@ -113,8 +113,8 @@ func (svc *serviceContext) auditFileAdd(computeID string, tgtObj uvaeasystore.Ea
 	auditEvt := uvalibrabus.UvaAuditEvent{
 		Who:       computeID,
 		FieldName: "files",
-		Before:    strings.Join(orig, ","),
-		After:     strings.Join(updated, ","),
+		Before:    strings.Join(orig, ", "),
+		After:     strings.Join(updated, ", "),
 	}
 	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
 }
@@ -133,8 +133,8 @@ func (svc *serviceContext) auditFileDelete(computeID string, tgtObj uvaeasystore
 	auditEvt := uvalibrabus.UvaAuditEvent{
 		Who:       computeID,
 		FieldName: "files",
-		Before:    strings.Join(orig, ","),
-		After:     strings.Join(updated, ","),
+		Before:    strings.Join(orig, ", "),
+		After:     strings.Join(updated, ", "),
 	}
 	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
 }
@@ -153,7 +153,7 @@ func (svc *serviceContext) auditFileRename(computeID string, tgtObj uvaeasystore
 	auditEvt := uvalibrabus.UvaAuditEvent{
 		Who:       computeID,
 		FieldName: "files",
-		Before:    strings.Join(orig, ","),
+		Before:    strings.Join(orig, ", "),
 		After:     fmt.Sprintf("Rename file %s to %s", origName, newName),
 	}
 	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
@@ -169,7 +169,7 @@ func (svc *serviceContext) auditFileReplace(computeID string, tgtObj uvaeasystor
 	auditEvt := uvalibrabus.UvaAuditEvent{
 		Who:       computeID,
 		FieldName: "files",
-		Before:    strings.Join(orig, ","),
+		Before:    strings.Join(orig, ", "),
 		After:     fmt.Sprintf("Replace file %s", replacedFile),
 	}
 	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)

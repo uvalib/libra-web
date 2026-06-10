@@ -159,6 +159,7 @@ export const useETDStore = defineStore('etd', {
       },
 
       async renameFile(origName, newName) {
+         this.fileChange = true
          let payload = {orignalName: origName, newName: newName}
          axios.put(`/api/works/${this.work.id}/files/rename`, payload).then(() => {
             let tgtFile = this.work.files.find( f => f.name == origName )
@@ -166,6 +167,8 @@ export const useETDStore = defineStore('etd', {
          }).catch((error) => {
             const system = useSystemStore()
             system.setError( error)
+         }).finally( () => {
+             this.fileChange = false
          })
       },
 
