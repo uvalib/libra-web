@@ -6,8 +6,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -179,8 +177,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	workID := c.Param("id")
 	log.Printf("INFO: request to update work %s", workID)
 	var etdReq etdUpdateRequest
-	err := c.ShouldBindJSON(&etdReq)
-	if err != nil {
+	if err := c.ShouldBindJSON(&etdReq); err != nil {
 		log.Printf("ERROR: bad payload in update request: %s", err.Error())
 		c.String(http.StatusBadRequest, err.Error())
 		return
@@ -188,7 +185,7 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 
 	// load the work - including all current files. Thsi list is necessary for audits of the file list
 	log.Printf("INFO: load existing work %s", workID)
-	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Fields|uvaeasystore.Metadata)
 	if err != nil {
 		log.Printf("ERROR: get work %s for update failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
@@ -272,16 +269,6 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 		return
 	}
 
-	// update files if necessary
-	if len(etdReq.AddFiles) != 0 || len(etdReq.DelFiles) != 0 {
-		err := svc.updateWorkFiles(tgtObj, etdReq.AddFiles, etdReq.DelFiles)
-		if err != nil {
-			log.Printf("ERROR: unable to update work files with new add [%v] and delete [%v] %s", etdReq.AddFiles, etdReq.DelFiles, err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
-
 	// reload work to get latest files and vtag
 	log.Printf("INFO: get %s work %s", svc.Namespace, workID)
 	updatedObj, err := svc.EasyStore.ObjectGetByKey(tgtObj.Namespace(), tgtObj.Id(), uvaeasystore.AllComponents)
@@ -292,34 +279,6 @@ func (svc *serviceContext) updateWork(c *gin.Context) {
 	}
 	resp, _ := svc.parseWork(updatedObj, true)
 	c.JSON(http.StatusOK, resp)
-}
-
-func (svc *serviceContext) updateWorkFiles(esObj uvaeasystore.EasyStoreObject, addFiles, delFiles []string) error {
-	for _, delFile := range delFiles {
-		log.Printf("INFO: delete %s from work %s", delFile, esObj.Id())
-		err := svc.EasyStore.FileDelete(esObj.Namespace(), esObj.Id(), delFile)
-		if err != nil {
-			return fmt.Errorf("unable to delete %s: %s", delFile, err.Error())
-		}
-	}
-
-	uploadDir := path.Join("/tmp", esObj.Id())
-	for _, addFile := range addFiles {
-		fullPath := path.Join(uploadDir, addFile)
-		log.Printf("INFO: add %s to work %s", fullPath, esObj.Id())
-		fileBytes, fileErr := os.ReadFile(fullPath)
-		if fileErr != nil {
-			return fmt.Errorf("unable to read %s: %s", fullPath, fileErr.Error())
-		}
-		mimeType := http.DetectContentType(fileBytes)
-		log.Printf("INFO: create easystore file blob for %s with size %d and mime type %s", addFile, len(fileBytes), mimeType)
-		esBlob := uvaeasystore.NewEasyStoreBlob(addFile, mimeType, fileBytes)
-		err := svc.EasyStore.FileCreate(esObj.Namespace(), esObj.Id(), esBlob)
-		if err != nil {
-			return fmt.Errorf("unable to add %s: %s", addFile, err.Error())
-		}
-	}
-	return nil
 }
 
 func (svc *serviceContext) publishWork(c *gin.Context) {

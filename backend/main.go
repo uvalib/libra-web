@@ -51,15 +51,11 @@ func main() {
 		api.GET("/users/lookup/:cid", svc.lookupComputeID)
 		api.GET("/users/orcid/:cid", svc.lookupOrcidID)
 
-		// manage uploaded files before they are attached to a work
-		api.POST("/upload/:work", svc.uploadSubmissionFile)
-		api.DELETE("/:work/:filename", svc.removeSubmissionFile)
-		api.POST("/cancel/:work", svc.cancelSubmission)
-
 		api.GET("/audits/:id", svc.getAudits)
 
-		// After initial submission, the work is referenced by the permanent ID
 		api.GET("/works/:id", svc.getWorkHandler)
+		api.POST("/works/:id/files", svc.uploadFile)
+		api.DELETE("/works/:id/files/:name", svc.deleteFile)
 		api.PUT("/works/:id/files/rename", svc.renameFile)
 		api.GET("/works/:id/files/:name", svc.downloadDraftFile)
 		api.PUT("/works/:id", svc.updateWork)

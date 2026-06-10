@@ -276,10 +276,7 @@ const deleteClicked = ( () => {
 })
 
 const isDirty = ((data) => {
-   let dirty = (
-      etdRepo.pendingFileAdd.length > 0 || etdRepo.pendingFileDel.length > 0 ||
-      listChanged.value || programChanged.value || advisorsChanged.value || embargoChanged.value
-   )
+   let dirty = ( listChanged.value || programChanged.value || advisorsChanged.value || embargoChanged.value )
    if (dirty ) return true
 
    Object.keys(data).some((key) => {
@@ -298,7 +295,6 @@ const isDirty = ((data) => {
 })
 
 const clearEdits = (() => {
-   etdRepo.cancelEdit()
    etdForm.value.reset()
    listChanged.value = false
    programChanged.value = false

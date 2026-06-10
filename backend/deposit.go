@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
-	"os"
-	"path"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/uvalib/easystore/uvaeasystore"
 	librametadata "github.com/uvalib/libra-metadata"
 )
 
@@ -33,11 +34,9 @@ import (
 // "visibility": work visibility, either "open", "uva" or "embargo".
 
 type updateSettings struct {
-	Visibility               string   `json:"visibility"`
-	EmbargoReleaseDate       string   `json:"embargoReleaseDate,omitempty"`
-	EmbargoReleaseVisibility string   `json:"embargoReleaseVisibility,omitempty"`
-	AddFiles                 []string `json:"addFiles"`
-	DelFiles                 []string `json:"delFiles"`
+	Visibility               string `json:"visibility"`
+	EmbargoReleaseDate       string `json:"embargoReleaseDate,omitempty"`
+	EmbargoReleaseVisibility string `json:"embargoReleaseVisibility,omitempty"`
 }
 
 type etdUpdateRequest struct {
@@ -56,59 +55,85 @@ type registrationRequest struct {
 	} `json:"students"`
 }
 
-func (svc *serviceContext) cancelSubmission(c *gin.Context) {
-	workID := c.Param("work")
-	log.Printf("INFO: cancel submited files for work %s", workID)
-	uploadDir := path.Join("/tmp", workID)
-	if pathExists(uploadDir) {
-		err := os.RemoveAll(uploadDir)
-		if err != nil {
-			log.Printf("ERROR: unable to remove submission upload direcroty %s: %s", uploadDir, err.Error())
-		}
-	}
-	log.Printf("INFO: temporary submission file %s have been cleaned up", uploadDir)
-	c.String(http.StatusOK, "cancled")
-}
-
-func (svc *serviceContext) removeSubmissionFile(c *gin.Context) {
-	tgtFile := fmt.Sprintf("/tmp/%s/%s", c.Param("work"), c.Param("filename"))
-	log.Printf("INFO: remove pending submission file %s", tgtFile)
-	err := os.Remove(tgtFile)
-	if err != nil {
-		log.Printf("ERROR: remove %s failed: %s", tgtFile, err.Error())
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-	c.String(http.StatusOK, "removed")
-}
-
-func (svc *serviceContext) uploadSubmissionFile(c *gin.Context) {
-	workID := c.Param("work")
+func (svc *serviceContext) uploadFile(c *gin.Context) {
+	workID := c.Param("id")
 	log.Printf("INFO: file upload request received for work %s", workID)
 
-	files, err := c.MultipartForm()
+	esObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
-		log.Printf("INFO: unable to get multipart form for file upload: %s", err.Error())
-		c.String(http.StatusBadRequest, fmt.Sprintf("unable to get files: %s", err.Error()))
-		return
-	}
-
-	uploadDir := path.Join("/tmp", workID)
-	sf := files.File["file"][0]
-	destFile := path.Join(uploadDir, sf.Filename)
-	log.Printf("INFO: receive submission to %s", destFile)
-	if err := c.SaveUploadedFile(sf, destFile); err != nil {
-		log.Printf("ERROR: unable to save %s: %s", sf.Filename, err.Error())
+		log.Printf("ERROR: get work %s for file add failed: %s", workID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.String(http.StatusOK, "ok")
+	mpForm, err := c.MultipartForm()
+	if err != nil {
+		log.Printf("INFO: unable to get multipart form for file upload: %s", err.Error())
+		c.String(http.StatusBadRequest, fmt.Sprintf("unable to get upload: %s", err.Error()))
+		return
+	}
+
+	// only 1 file can be uploaded at a time
+	formFile := mpForm.File["file"][0]
+	log.Printf("INFO: receive submission %s", formFile.Filename)
+	uploadSrc, err := formFile.Open()
+	if err != nil {
+		log.Printf("INFO: unable to open multipart form for file upload: %s", err.Error())
+		c.String(http.StatusBadRequest, fmt.Sprintf("unable to open %s: %s", formFile.Filename, err.Error()))
+		return
+	}
+	defer uploadSrc.Close()
+	uploadBytes, err := io.ReadAll(uploadSrc)
+	if err != nil {
+		log.Printf("INFO: unable to read %s: %s", formFile.Filename, err.Error())
+		c.String(http.StatusBadRequest, fmt.Sprintf("unable to read %s: %s", formFile.Filename, err.Error()))
+		return
+	}
+
+	mimeType := http.DetectContentType(uploadBytes)
+	log.Printf("INFO: create easystore file blob for %s with size %d and mime type %s",
+		formFile.Filename, len(uploadBytes), mimeType)
+	esBlob := uvaeasystore.NewEasyStoreBlob(formFile.Filename, mimeType, uploadBytes)
+	if err := svc.EasyStore.FileCreate(esObj.Namespace(), esObj.Id(), esBlob); err != nil {
+		log.Printf("ERROR: unable to add %s to easystore: %s", formFile.Filename, err.Error())
+		c.String(http.StatusInternalServerError, fmt.Sprintf("add %s failed: %s", formFile.Filename, err.Error()))
+		return
+	}
+
+	// NOTE: this call has already been thru user or admin middleware, so claims will be present
+	claims := getJWTClaims(c)
+	svc.auditFileAdd(claims.ComputeID, esObj, formFile.Filename)
+
+	resp := librametadata.FileData{
+		Name:      formFile.Filename,
+		MimeType:  mimeType,
+		CreatedAt: time.Now(),
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
-func pathExists(path string) bool {
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false
+func (svc *serviceContext) deleteFile(c *gin.Context) {
+	workID := c.Param("id")
+	delFileName := c.Param("name")
+	log.Printf("INFO: request to delete %s from work %s received", workID, delFileName)
+
+	esObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
+	if err != nil {
+		log.Printf("ERROR: get work %s for file delete failed: %s", workID, err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
 	}
-	return true
+
+	if err := svc.EasyStore.FileDelete(esObj.Namespace(), esObj.Id(), delFileName); err != nil {
+		log.Printf("ERROR: delete %s from %s failed: %s", delFileName, workID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// NOTE: this call has already been thru user or admin middleware, so claims will be present
+	claims := getJWTClaims(c)
+	svc.auditFileDelete(claims.ComputeID, esObj, delFileName)
+
+	c.String(http.StatusOK, "ok")
 }

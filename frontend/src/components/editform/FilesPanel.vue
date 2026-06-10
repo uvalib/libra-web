@@ -1,4 +1,5 @@
 <template>
+   <WaitSpinner v-if="etdRepo.fileChange" :overlay="true" message="<div>Please wait...</div><p>File operation is in progress</p>" />
    <Panel header="Files" toggleable pt:title:id="files-panel" pt:contentContainer:aria-labelledby="files-panel">
       <template #icons>
          <span v-if="etdRepo.hasFiles" class="complete">
@@ -13,7 +14,6 @@
 
       <div class="files">
          <div class="section" v-if="etdRepo.work.files.length > 0">
-            <div>Previously Uploaded Files</div>
             <div class="uploaded">
                <Card v-for="(file) in etdRepo.work.files">
                   <template #title>{{ file.name }}</template>
@@ -42,7 +42,7 @@
 
          <div class="section">
             <label class="libra-form-label">
-               <FileUpload name="file" chooseLabel="Select a file to upload"
+               <FileUpload name="file" chooseLabel="Add a file"
                   :customUpload="true" mode="basic"
                   @uploader="startUpload($event)"
                   :withCredentials="true" :auto="true"
@@ -50,17 +50,6 @@
                   :accept="fileTypesAccepted"
                />
             </label>
-         </div>
-         <div class="section" v-if="etdRepo.pendingFileAdd.length > 0">
-            <Divider />
-            <div>Pending Uploads</div>
-            <ul class="pending">
-               <li v-for="fn in etdRepo.pendingFileAdd" class="pending-file">
-                  <Button size="small" rounded icon="pi pi-times" aria-label="Delete" severity="danger" @click="deleteFileClicked( fn )"/>
-                  <span class="filename">{{ fn }}</span>
-               </li>
-            </ul>
-            <div>These files will be added to your thesis when it is saved.</div>
          </div>
       </div>
    </Panel>
@@ -86,7 +75,6 @@ import FileUpload from 'primevue/fileupload'
 import Panel from 'primevue/panel'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
-import Divider from 'primevue/divider'
 import Dialog from 'primevue/dialog'
 import { useETDStore } from "@/stores/etd"
 import { useUserStore } from "@/stores/user"
@@ -94,6 +82,7 @@ import { useSystemStore } from "@/stores/system"
 import { useConfirm } from "primevue/useconfirm"
 import { computed, ref } from 'vue'
 import axios from 'axios'
+import WaitSpinner from '../WaitSpinner.vue'
 
 const etdRepo = useETDStore()
 const user = useUserStore()
@@ -145,13 +134,14 @@ const startUpload = ( (event) => {
       system.toastError("Filename Error", "An extension is required for any files you upload")
       return
    }
+
+   etdRepo.fileChange = true
    let formData = new FormData()
 
-   // find the highest index prefix on all current, add, del files. Make the
-   // new filename prefix be 1 greater than this numbner
+   // find the highest index prefix on all files. Make the new filename prefix be 1 greater than this numbner
    let fileIdx = 0
-   let fileNames = etdRepo.work.files.map( f => f.name)
-   fileNames.concat(etdRepo.pendingFileAdd, etdRepo.pendingFileDel ).forEach( fn => {
+   let fileNames = etdRepo.work.files.map( f => f.name )
+   fileNames.forEach( fn => {
        let bits = fn.split("_")
        if (bits.length > 0) {
          let id =  parseInt(bits[0],10)
@@ -168,14 +158,16 @@ const startUpload = ( (event) => {
    const ext = file.name.split('.').pop()
    const newFileName = `${fileIdx}_${user.lastName}_${user.firstName}_${year}_${degree}.${ext}`
    formData.append('file', file, newFileName)
-   axios.post(`/api/upload/${etdRepo.work.id}`, formData, {
+   axios.post(`/api/works/${etdRepo.work.id}/files`, formData, {
       headers: {
          'Content-Type': 'multipart/form-data',
       }
-   }).then(() => {
-      etdRepo.addFile( newFileName )
+   }).then(( resp ) => {
+      etdRepo.addFile( resp.data )
    }).catch((error) => {
       system.toastError("Upload failed", error)
+   }).finally( () => {
+      etdRepo.fileChange = false
    })
 })
 

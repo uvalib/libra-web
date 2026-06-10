@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"slices"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -57,8 +56,6 @@ func (svc *serviceContext) auditWorkUpdate(computeID string, etdUpdate etdUpdate
 	}
 
 	svc.auditVisibiliy(auditCtx, origObj.Fields()["default-visibility"], etdUpdate.Visibility)
-	svc.auditFiles(auditCtx, origObj.Files(), etdUpdate.AddFiles, etdUpdate.DelFiles)
-
 	svc.auditWork(auditCtx, *origWork.ETDWork, etdUpdate.Work)
 }
 
@@ -103,30 +100,43 @@ func (svc *serviceContext) auditPublicationChange(computeID string, tgtObj uvaea
 
 }
 
-func (svc *serviceContext) auditFiles(auditCtx auditContext, origFiles []uvaeasystore.EasyStoreBlob, added, deleted []string) {
-	if len(added) == 0 && len(deleted) == 0 {
-		return
-	}
-
-	log.Printf("INFO: audit files; added %v, deleted %v", added, deleted)
+func (svc *serviceContext) auditFileAdd(computeID string, tgtObj uvaeasystore.EasyStoreObject, addFile string) {
+	log.Printf("INFO: audit add file %s from work %s", addFile, tgtObj.Id())
 	orig := make([]string, 0)
 	updated := make([]string, 0)
-	for _, esBlob := range origFiles {
+	for _, esBlob := range tgtObj.Files() {
 		fileName := esBlob.Name()
 		orig = append(orig, fileName)
-		if slices.Contains(deleted, fileName) == false {
-			updated = append(updated, fileName)
-		}
+		updated = append(updated, fileName)
 	}
-
-	updated = append(updated, added...)
+	updated = append(updated, addFile)
 	auditEvt := uvalibrabus.UvaAuditEvent{
-		Who:       auditCtx.computeID,
+		Who:       computeID,
 		FieldName: "files",
 		Before:    strings.Join(orig, ","),
 		After:     strings.Join(updated, ","),
 	}
-	svc.publishAuditEvent(auditCtx.namespace, auditCtx.workID, auditEvt)
+	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
+}
+
+func (svc *serviceContext) auditFileDelete(computeID string, tgtObj uvaeasystore.EasyStoreObject, delFile string) {
+	log.Printf("INFO: audit delete file %s from work %s", delFile, tgtObj.Id())
+	orig := make([]string, 0)
+	updated := make([]string, 0)
+	for _, esBlob := range tgtObj.Files() {
+		fileName := esBlob.Name()
+		orig = append(orig, fileName)
+		if fileName != delFile {
+			updated = append(updated, fileName)
+		}
+	}
+	auditEvt := uvalibrabus.UvaAuditEvent{
+		Who:       computeID,
+		FieldName: "files",
+		Before:    strings.Join(orig, ","),
+		After:     strings.Join(updated, ","),
+	}
+	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
 }
 
 func (svc *serviceContext) auditWork(auditCtx auditContext, origWork librametadata.ETDWork, updatedWork librametadata.ETDWork) {

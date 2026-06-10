@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 export const useETDStore = defineStore('etd', {
    state: () => ({
       working: false,
+      fileChange: false,
       saving: false,
       downloading: "",
       error: "",
@@ -22,8 +23,6 @@ export const useETDStore = defineStore('etd', {
       createdAt: null,
       modifiedAt: null,
       publishedAt: null,
-      pendingFileAdd: [],
-      pendingFileDel: [],
    }),
    getters: {
       hasKeywords: state => {
@@ -39,7 +38,7 @@ export const useETDStore = defineStore('etd', {
          return ( state.work && state.work.sponsors.length > 0)
       },
       hasFiles: state => {
-         return (state.pendingFileAdd.length > 0 || state.work.files.length > 0)
+         return ( state.work.files.length > 0 )
       },
       hasAdvisor: state => {
          if ( state.work.advisors.length == 0) return false
@@ -139,35 +138,24 @@ export const useETDStore = defineStore('etd', {
          }
       },
 
-      cancelEdit() {
-         if ( this.pendingFileAdd.length > 0) {
-            axios.post(`/api/cancel/${this.work.id}`)
-         }
-         this.pendingFileAdd = []
-         this.pendingFileDel = []
-      },
-
       addFile( file ) {
-         this.pendingFileAdd.push( file )
+         this.work.files.push( file )
       },
 
-      removeFile( file) {
-         let pendingIdx = this.pendingFileAdd.findIndex( f => f == file )
-         if ( pendingIdx > -1) {
-            // this file has not been attached to a work in easystore; just remove
-            // if from the pending add list and delete the version that was uploaded to temp storage
-            this.pendingFileAdd.splice(pendingIdx, 1)
-            axios.delete(`/api/${this.work.id}/${file}`)
-         } else {
-            console.log("delete previously added file "+file)
-            // This file has already been submitted. remove it from the files
-            // list. When the update is submitted the files will be replaced with those in the file list
+      removeFile( file ) {
+         console.log("delete file "+file)
+         this.fileChange = true
+         axios.delete(`/api/works/${this.work.id}/files/${file}`).then(() => {
             let idx = this.work.files.findIndex( f => f.name == file)
             if ( idx > -1) {
                this.work.files.splice(idx, 1)
-               this.pendingFileDel.push(file)
             }
-         }
+         }).catch((error) => {
+            const system = useSystemStore()
+            system.setError( error)
+         }).finally( () => {
+             this.fileChange = false
+         })
       },
 
       async renameFile(origName, newName) {
@@ -183,7 +171,7 @@ export const useETDStore = defineStore('etd', {
 
       async update( ) {
          this.saving = true
-         let payload = {work: this.work, addFiles: this.pendingFileAdd, delFiles: this.pendingFileDel, visibility: this.visibility}
+         let payload = {work: this.work, visibility: this.visibility}
          if ( this.visibility == "embargo" || this.visibility == "uva") {
             payload.embargoReleaseDate = this.embargoReleaseDate
             payload.embargoReleaseVisibility = this.embargoReleaseVisibility
@@ -191,8 +179,6 @@ export const useETDStore = defineStore('etd', {
          let url = `/api/works/${this.work.id}`
          return axios.put(url, payload).then(response => {
             this.setWorkDetails( response.data )
-            this.pendingFileAdd = []
-            this.pendingFileDel = []
             this.saving = false
          }).catch( err => {
             const system = useSystemStore()
