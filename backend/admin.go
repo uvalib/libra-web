@@ -530,6 +530,17 @@ func (svc *serviceContext) replaceFile(c *gin.Context) {
 	formFile := form.File["file"][0]
 	log.Printf("INFO: received request to replace file %s from work %s", fileName, workID)
 
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
+	if err != nil {
+		log.Printf("ERROR: unable to get %s work %s for file replace: %s", svc.Namespace, workID, err.Error())
+		if strings.Contains(err.Error(), "not exist") {
+			c.String(http.StatusNotFound, fmt.Sprintf("%s was not found", workID))
+		} else {
+			c.String(http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
 	src, err := formFile.Open()
 	if err != nil {
 		log.Printf("ERROR: unable to open uploaded file: %s", err.Error())
@@ -551,6 +562,10 @@ func (svc *serviceContext) replaceFile(c *gin.Context) {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	// NOTE: this call has already been thru user or admin middleware, so claims will be present
+	claims := getJWTClaims(c)
+	svc.auditFileReplace(claims.ComputeID, tgtObj, fileName)
 
 	c.String(http.StatusOK, "replaced")
 }

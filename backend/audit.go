@@ -139,6 +139,42 @@ func (svc *serviceContext) auditFileDelete(computeID string, tgtObj uvaeasystore
 	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
 }
 
+func (svc *serviceContext) auditFileRename(computeID string, tgtObj uvaeasystore.EasyStoreObject, origName, newName string) {
+	log.Printf("INFO: audit rename file %s from work %s to %s", origName, tgtObj.Id(), newName)
+	orig := make([]string, 0)
+	updated := make([]string, 0)
+	for _, esBlob := range tgtObj.Files() {
+		fileName := esBlob.Name()
+		orig = append(orig, fileName)
+		if fileName == origName {
+			updated = append(updated, newName)
+		}
+	}
+	auditEvt := uvalibrabus.UvaAuditEvent{
+		Who:       computeID,
+		FieldName: "files",
+		Before:    strings.Join(orig, ","),
+		After:     fmt.Sprintf("Rename file %s to %s", origName, newName),
+	}
+	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
+}
+
+func (svc *serviceContext) auditFileReplace(computeID string, tgtObj uvaeasystore.EasyStoreObject, replacedFile string) {
+	log.Printf("INFO: audit replace file %s from work %s", replacedFile, tgtObj.Id())
+	orig := make([]string, 0)
+	for _, esBlob := range tgtObj.Files() {
+		fileName := esBlob.Name()
+		orig = append(orig, fileName)
+	}
+	auditEvt := uvalibrabus.UvaAuditEvent{
+		Who:       computeID,
+		FieldName: "files",
+		Before:    strings.Join(orig, ","),
+		After:     fmt.Sprintf("Replace file %s", replacedFile),
+	}
+	svc.publishAuditEvent(tgtObj.Namespace(), tgtObj.Id(), auditEvt)
+}
+
 func (svc *serviceContext) auditWork(auditCtx auditContext, origWork librametadata.ETDWork, updatedWork librametadata.ETDWork) {
 	updateVal := reflect.ValueOf(&updatedWork).Elem()
 	origVal := reflect.ValueOf(&origWork).Elem()
