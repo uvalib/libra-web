@@ -387,7 +387,7 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 	}
 	log.Printf("INFO: request to rename file %s from work %s to %s", renameReq.OriginalName, workID, renameReq.NewName)
 
-	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.AllComponents)
+	tgtObj, err := svc.EasyStore.ObjectGetByKey(svc.Namespace, workID, uvaeasystore.Files)
 	if err != nil {
 		log.Printf("ERROR: unable to get %s work %s for file rename: %s", svc.Namespace, workID, err.Error())
 		if strings.Contains(err.Error(), "not exist") {
@@ -404,6 +404,10 @@ func (svc *serviceContext) renameFile(c *gin.Context) {
 		c.String(http.StatusInternalServerError, rnErr.Error())
 		return
 	}
+
+	// NOTE: this call has already been thru user or admin middleware, so claims will be present
+	claims := getJWTClaims(c)
+	svc.auditFileRename(claims.ComputeID, tgtObj, renameReq.OriginalName, renameReq.NewName)
 
 	c.String(http.StatusOK, renameReq.NewName)
 }
