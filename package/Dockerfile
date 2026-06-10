@@ -37,8 +37,12 @@ ENV APP_HOME=/libra-web
 WORKDIR $APP_HOME
 
 # Create necessary directories
-RUN mkdir -p $APP_HOME/scripts $APP_HOME/bin
+RUN mkdir -p $APP_HOME/scripts $APP_HOME/bin $APP_HOME/db
 RUN chown -R docker $APP_HOME && chgrp -R sse $APP_HOME
+
+# add the migrate tool
+ENV MIGRATE_VERSION=v4.19.1
+RUN cd $APP_HOME/bin && curl -L https://github.com/golang-migrate/migrate/releases/download/${MIGRATE_VERSION}/migrate.linux-amd64.tar.gz | tar xvz && rm LICENSE README.md
 
 # port and run command
 EXPOSE 8080
@@ -47,13 +51,15 @@ CMD ["scripts/entry.sh"]
 # Move in necessary assets
 COPY package/data/container_bash_profile /home/docker/.profile
 COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
+COPY package/scripts/migrate.sh $APP_HOME/scripts/migrate.sh
+#COPY backend/db/migrations/*.sql $APP_HOME/db/
 COPY --from=builder /build/bin/libra-web.linux $APP_HOME/bin/libra-web
 COPY --from=builder /build/bin/public $APP_HOME/bin/public
 COPY --from=builder /build/bin/data $APP_HOME/bin/data
 COPY --from=builder /build/bin/static $APP_HOME/bin/static
 
 # Ensure permissions are correct
-RUN chown docker:sse /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra-web && chmod 755 /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/bin/libra-web
+RUN chown docker:sse /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/scripts/migrate.sh $APP_HOME/bin/libra-web $APP_HOME/bin/migrate && chmod 755 /home/docker/.profile $APP_HOME/scripts/entry.sh $APP_HOME/scripts/migrate.sh $APP_HOME/bin/libra-web $APP_HOME/bin/migrate 
 
 # Add the build tag
 ARG BUILD_TAG
