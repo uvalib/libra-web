@@ -98,26 +98,32 @@ const fileTypesAccepted = computed( () => {
 })
 
 const replaceClicked = (( origFileName ) => {
+   // called with the replace button is clicked. Track the name of the file
+   // associated with the replace button as that name  will be used to override
+   // the name of the uploaded replacement file
    replaceFile.value = origFileName
 })
 
-const startReplacementUpload = (( event ) => {
-   etdRepo.fileChange = true
+const startReplacementUpload = ( async ( event ) => {  
    const file = event.files[0]
-   let formData = new FormData()
-   formData.append('file', file, replaceFile.value)
-   axios.post(`/api/admin/works/${etdRepo.work.id}/files/${replaceFile.value}/replace`, formData, {
-      headers: {
-         'Content-Type': 'multipart/form-data',
-      }
-   }).then(() => {
-      system.toastMessage("Replace Success", `'${replaceFile.value}' has been replaced with '${event.files[0].name}'`)
+
+   // if extensions are different confirm the replacement
+   if ( replaceFile.value.toLowerCase().split(".").pop() != file.name.toLowerCase().split(".").pop() ) {
+      confirm.require({
+         message: `Replacement file '${file.name}' has a different extension than the orignal file '${replaceFile.value}'. Are you sure?`,
+         header: 'Confirm Replacement',
+         icon: 'pi pi-question-circle',
+         rejectClass: 'p-button-secondary',
+         accept: async (  ) => {
+            await etdRepo.replaceFile(replaceFile.value, file)
+            replaceFile.value = ""
+         },
+      })
+   } else {
+      // same extension; just replace
+      await etdRepo.replaceFile(replaceFile.value, file)
       replaceFile.value = ""
-   }).catch((error) => {
-      system.toastError("Replace Failed", error)
-   }).finally( () => {
-      etdRepo.fileChange = false
-   })
+   }
 })
 
 const startUpload = ( (event) => {

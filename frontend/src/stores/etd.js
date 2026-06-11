@@ -158,6 +158,40 @@ export const useETDStore = defineStore('etd', {
          })
       },
 
+      async replaceFile(tgtFileName, newFile) {
+         this.fileChange = true
+         const system = useSystemStore()
+
+         // see if extension has changed...
+         // If so, first rename the original file to the new extension
+         let replaceTarget = tgtFileName
+         const origNameParts = tgtFileName.split(".")
+         const origExt = origNameParts.pop().toLowerCase() 
+         const newExt = newFile.name.split(".").pop().toLowerCase() 
+         if (origExt != newExt ) {
+            replaceTarget = `${origNameParts[0]}.${newExt}`
+            console.log(`rename ${tgtFileName} to have new extenstion ${replaceTarget}`)
+            await this.renameFile(tgtFileName, replaceTarget)
+            console.log("rename done, now do the replace")
+         }
+
+          // override the name of newFile with thename of the existing file
+         let formData = new FormData()
+         formData.append('file', newFile, replaceTarget)
+
+         await axios.post(`/api/admin/works/${this.work.id}/files/${replaceTarget}/replace`, formData, {
+            headers: {
+               'Content-Type': 'multipart/form-data',
+            }
+         }).then(() => {
+            system.toastMessage("Replace Success", `'${tgtFileName}' has been replaced with '${newFile.name}'`)
+         }).catch((error) => {
+            system.toastError("Replace Failed", error)
+         }).finally( () => {
+            this.fileChange = false
+         })
+      },
+
       async renameFile(origName, newName) {
          this.fileChange = true
          let payload = {orignalName: origName, newName: newName}
