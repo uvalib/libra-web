@@ -25,7 +25,7 @@ phases:
       - DOCKER_ENV="-e DBHOST=$DBHOST -e DBPORT=$DBPORT -e DBNAME=$DBNAME -e DBUSER=$DBUSER -e DBPASS=$DBPASSWD"
       - DOCKER_IMAGE="$CONTAINER_REGISTRY/$CONTAINER_IMAGE:$latest_build"
       - docker pull $DOCKER_IMAGE || docker pull $DOCKER_IMAGE || docker pull $DOCKER_IMAGE
-      - docker run $DOCKER_ENTRY $DOCKER_ENV $DOCKER_IMAGE
+      #- docker run $DOCKER_ENTRY $DOCKER_ENV $DOCKER_IMAGE
 
 #  post_build:
 #    commands:
