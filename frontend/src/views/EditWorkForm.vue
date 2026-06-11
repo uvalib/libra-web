@@ -14,7 +14,7 @@
          <h2>Sorry, a system error has occurred!</h2>
          <div>{{ etdRepo.error }}</div>
       </div>
-      <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" @submit="saveChanges" :validateOnBlur="true" :validateOnMount="true">
+      <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" :validateOnBlur="true" :validateOnMount="true">
          <Panel header="Metadata" toggleable pt:title:id="metadata-panel" pt:contentContainer:aria-labelledby="metadata-panel">
             <ProgramPanel :admin="user.isAdmin" @changed="programChanged = true"/>
             <div class="fields">
@@ -37,7 +37,7 @@
                   </div>
                </Fieldset>
 
-               <AdvisorsPanel :form="$form" @add-advisor="addAdvisor" @remove-advisor="removeAdvisor" @set-advisor="setAdvisor" />
+               <AdvisorsPanel :form="$form" @change="advisorsUpdated" />
 
                <div class="field" >
                   <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
@@ -88,9 +88,8 @@
             </template>
             <Button label="Exit" severity="secondary" @click="exitClicked" />
          </span>
-         <span class="unsaved" v-if="needsSave">UNSAVED EDITS</span>
+         <Message v-if="saved" severity="success" variant="simple" icon="pi pi-save" size="large" :life="3000" @life-end="saved=false">Changes saved</Message>
          <span class="group">
-            <Button label="Save" @click="saveClicked('edit')" :loading="etdRepo.saving" :disabled="needsSave==false"/>
             <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Review and submit" />
          </span>
       </div>
@@ -104,18 +103,19 @@ import { useUserStore } from "@/stores/user"
 import { useETDStore } from "@/stores/etd"
 import { useAdminStore } from "@/stores/admin"
 import Panel from 'primevue/panel'
-import WaitSpinner from "@/components/WaitSpinner.vue"
-import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
-
 import { Form } from '@primevue/forms'
-import ProgramPanel from '@/components/ProgramPanel.vue'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
+import { useConfirm } from "primevue/useconfirm"
+import { useRouter, useRoute } from 'vue-router'
+import { onKeyStroke } from '@vueuse/core'
+import { useIntervalFn } from '@vueuse/core'
+import WaitSpinner from "@/components/WaitSpinner.vue"
+import ProgramPanel from '@/components/ProgramPanel.vue'
 import LabeledInput from '@/components/editform/LabeledInput.vue'
 import RepeatField from '@/components/editform/RepeatField.vue'
 import FilesPanel from '@/components/editform/FilesPanel.vue'
 import VisibilityPanel from '@/components/editform/VisibilityPanel.vue'
-import { useConfirm } from "primevue/useconfirm"
 import AdvisorsPanel from '@/components/editform/AdvisorsPanel.vue'
 
 const confirm = useConfirm()
@@ -127,12 +127,22 @@ const etdRepo = useETDStore()
 const admin = useAdminStore()
 
 const etdForm = ref(null)
-const postSave = ref("edit")
 const listChanged = ref(false)
 const advisorsChanged = ref(false)
 const programChanged = ref(false)
 const embargoChanged = ref(false)
 const metadataComplete = ref(false)
+const lastKeyStrokeAt = ref( new Date().getTime())
+const saved = ref(false)
+
+useIntervalFn(() => {
+   const nowMs = new Date().getTime()
+   const delta = nowMs - lastKeyStrokeAt.value
+   if ( delta > 3000 && needsSave.value ) {
+      // if no recent activity and form is dirty, save it
+      saveChanges()
+   }
+}, 2000)
 
 onBeforeMount( async () => {
    if ( user.isSignedIn == false) {
@@ -141,12 +151,13 @@ onBeforeMount( async () => {
    }
    system.getMimeTypes()
    await etdRepo.getWork( route.params.id, "edit" )
+   setInterval
 })
 
-onBeforeRouteLeave(() => {
-   if (needsSave.value) {
-      const exit = window.confirm('You have unsaved changes that will be lost if you return to the dashboard. Are you sure?')
-      if (!exit) return false
+onKeyStroke((e) => {
+   // watch for any keystroke targeted at form inputs. reset the activity timer
+   if ( e.target.classList.contains("p-textarea") || e.target.classList.contains("p-inputtext") ) {
+      lastKeyStrokeAt.value = new Date().getTime()
    }
 })
 
@@ -158,7 +169,9 @@ const previewDisabled = computed( () => {
 })
 
 const needsSave  = computed( () => {
-   if ( !etdForm.value) return false
+   if ( !etdForm.value) {
+      return false
+   }
    return isDirty(etdForm.value.states)
 })
 
@@ -224,30 +237,15 @@ const resolver = ({ values }) => {
    return { values, errors }
 }
 
-const saveClicked = ((postSaveAct) => {
-   postSave.value = postSaveAct
-   etdForm.value.submit()
-})
-
 const previewClicked = (() => {
     router.push(`/preview/${etdRepo.work.id}`)
 })
 
-const exitClicked = (() => {
-   if ( isDirty(etdForm.value.states) ) {
-      confirm.require({
-         message: "Any unsaved changes will be lost if you exit. Are you sure?",
-         header: 'Confirm Exit',
-         icon: 'pi pi-question-circle',
-         rejectClass: 'p-button-secondary',
-         accept: (  ) => {
-            clearEdits()
-            router.push(user.homePage)
-         },
-      })
-   } else {
-      router.push(user.homePage)
+const exitClicked = (async () => {
+   if ( needsSave.value ) {
+      await saveChanges()
    }
+   router.push(user.homePage)
 })
 
 const unpublishClicked = ( () => {
@@ -276,10 +274,14 @@ const deleteClicked = ( () => {
 })
 
 const isDirty = ((data) => {
+   // these are repeat value items that are not handled by the resolver
    let dirty = ( listChanged.value || programChanged.value || advisorsChanged.value || embargoChanged.value )
-   if (dirty ) return true
+   if ( dirty ) return true
 
    Object.keys(data).some((key) => {
+      // these are input fields on the form for entering repeat values, but are not actully part of the form. Ignore
+      if ( key == "keyword" || key=="agency" || key=="related" || key.includes("computeID")) return false
+      
       if (key == "dirty") {
          if (data[key]) {
             dirty = true
@@ -291,54 +293,33 @@ const isDirty = ((data) => {
          return dirty
       }
    })
+
    return dirty
 })
 
-const clearEdits = (() => {
-   etdForm.value.reset()
-   listChanged.value = false
-   programChanged.value = false
-   advisorsChanged.value = false
-   embargoChanged.value = false
-})
+const saveChanges = ( async () => {
+   console.log("data has been edited; saving")
+   let license = system.licenseDetail(etdRepo.licenseID)
+   if (license) {
+      etdRepo.work.license = license.label
+      etdRepo.work.licenseURL = license.url
+   }
 
-const saveChanges = ( async (data) => {
-   if ( isDirty( data.states ) ) {
-      console.log("data has been edited; saving")
-      let license = system.licenseDetail(etdRepo.licenseID)
-      if (license) {
-         etdRepo.work.license = license.label
-         etdRepo.work.licenseURL = license.url
-      }
-
-      await etdRepo.update( )
-      if ( system.showError == false ) {
-         system.toastMessage("Saved", "All changes have been saved")
-         clearEdits()
-         etdForm.value.validate()
-      } else {
-         return
-      }
+   await etdRepo.update( )
+   if ( system.showError == false ) {
+      saved.value = true
+      etdForm.value.reset()
+      listChanged.value = false
+      programChanged.value = false
+      advisorsChanged.value = false
+      embargoChanged.value = false
+      etdForm.value.validate()
+   } else {
+      return
    }
 })
 
-const addAdvisor = ( () => {
-   etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
-   advisorsChanged.value = true
-   etdForm.value.validate()
-})
-
-const setAdvisor = ( (adv) => {
-   const idx = adv.index 
-   delete adv.index
-   etdRepo.work.advisors.splice(idx,1, adv)
-   // set firs/last name in the form state data so validation works
-   etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, adv.firstName)
-   etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, adv.lastName)
-})
-
-const removeAdvisor = ((idx)=> {
-   etdRepo.work.advisors.splice(idx,1)
+const advisorsUpdated = ( () => {
    advisorsChanged.value = true
    etdForm.value.validate()
 })
@@ -376,14 +357,6 @@ div.error {
       margin-top: 10px;
    }
 
-}
-.unsaved {
-   background: $uva-red-A;
-   padding: 0.5rem 1rem;
-   border-radius: 50px;
-   color: white;
-   border: 1px solid $uva-red-B;
-   font-weight: bold;
 }
 .edit {
    text-align: left;

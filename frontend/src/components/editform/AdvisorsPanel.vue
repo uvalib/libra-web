@@ -3,6 +3,9 @@
       <template #legend>
          <span class="legend">Advisors</span><span class="required" v-if="user.isAdmin==false"><span class="star">*</span>(required)</span>
       </template>
+      <div class="error" v-if="etdRepo.work.advisors.length == 0 && user.isAdmin==false">
+         At least one advisor is required
+      </div>
       <div v-for="(item, index) in etdRepo.work.advisors" class="advisor">
          <div v-if="index==0" class="note">Lookup@ a UVA Computing ID to automatically fill the remaining fields for an advisor.</div>
          <div class="id-field">
@@ -10,7 +13,7 @@
             <div class="control-group">
                <InputText type="text" v-model="advisorLookup[index]" :name="`work.advisors[${index}].computeID`" :id="`work.advisors[${index}].computeID`"/>
                <Button class="check" label="Lookup Advisor"  severity="secondary" @click="checkAdvisorID(index)"/>
-               <Button v-if="etdRepo.work.advisors.length > 1 || user.isAdmin" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="emit('remove-advisor',index)"/>
+               <Button v-if="etdRepo.work.advisors.length > 1 || user.isAdmin" class="remove" severity="danger" :label="removeAdvisorLabel(index)" @click="removeAdvisor(index)"/>
             </div>
          </div>
          <Message v-if="etdRepo.work.advisors[index].msg" severity="error" size="small" variant="simple">{{ etdRepo.work.advisors[index].msg }}</Message>
@@ -38,7 +41,7 @@
          </div>
       </div>
       <div class="acts">
-         <Button label="Add Advisor" @click="emit('add-advisor')" :disabled="addAdvisorDisabled"/>
+         <Button label="Add Advisor" @click="addAdvisor" :disabled="addAdvisorDisabled"/>
       </div>
    </Fieldset>
 </template>
@@ -58,7 +61,7 @@ const user = useUserStore()
 
 const advisorLookup = ref([])
 
-const emit = defineEmits( ['add-advisor', 'remove-advisor', 'set-advisor'])
+const emit = defineEmits( ['change'])
 
 const props = defineProps({
    form: {
@@ -68,10 +71,19 @@ const props = defineProps({
 })
 
 onMounted( async () => {
-   console.log("MOUNT ADVISOR PANEL")
    etdRepo.work.advisors.forEach( a => {
       advisorLookup.value.push( a.computeID )
    })
+})
+
+const  addAdvisor = (() => {
+   etdRepo.work.advisors.push({computeID: "", firstName: "", lastName: "", department: "", institution: ""})
+   emit('change')
+})
+
+const  removeAdvisor = ((index) => {
+   etdRepo.work.advisors.splice(index,1)
+   emit('change')
 })
 
 const addAdvisorDisabled = computed(() => {
@@ -106,8 +118,14 @@ const checkAdvisorID = ((idx) => {
       if ( r.data.department && r.data.department.length > 0 ) {
          department = r.data.department[0]
       }
-      let adv = {index: idx, computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
-      emit("set-advisor", adv)
+      let adv = {computeID: r.data.cid, firstName: r.data.first_name, lastName: r.data.last_name, department: department, institution: "University of Virginia"}
+      etdRepo.work.advisors.splice(idx, 1, adv)
+      // THis is no longer necessary
+      // // set firs/last name in the form state data so validation works
+      // etdForm.value.setFieldValue(`work.advisors[${idx}].firstName`, adv.firstName)
+      // etdForm.value.setFieldValue(`work.advisors[${idx}].lastName`, adv.lastName)
+      
+      emit("change")
      
    }).catch( (e) => {
       console.error(e)
@@ -131,6 +149,9 @@ const checkAdvisorID = ((idx) => {
 }
 .acts {
    text-align: right;
+}
+.error {
+   color: $uva-red-A;
 }
 .advisors {
    .legend {
