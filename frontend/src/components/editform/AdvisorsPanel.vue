@@ -20,15 +20,11 @@
          <div class="two-col">
             <div class="field" >
                <LabeledInput label="First Name" :name="`work.advisors[${index}].firstName`" :required="true" v-model="item.firstName"/>
-               <Message v-if="props.form.work?.advisors?.[index]?.firstName?.invalid" severity="error" size="small" variant="simple">
-                  {{ props.form.work.advisors[index].firstName.error.message }}
-               </Message>
+               <Message v-if="firstNameError(index)" severity="error" size="small" variant="simple">{{ firstNameError(index) }}</Message>
             </div>
             <div class="field" >
                <LabeledInput label="Last Name" :name="`work.advisors[${index}].lastName`" :required="true" v-model="item.lastName"/>
-               <Message v-if="props.form.work?.advisors?.[index]?.lastName?.invalid" severity="error" size="small" variant="simple">
-                  {{ props.form.work.advisors[index].lastName.error.message }}
-               </Message>
+               <Message v-if="lastNameError(index)" severity="error" size="small" variant="simple">{{ lastNameError(index) }}</Message>
             </div>
          </div>
          <div class="two-col">
@@ -64,10 +60,23 @@ const advisorLookup = ref([])
 const emit = defineEmits( ['change'])
 
 const props = defineProps({
-   form: {
-      type: Object,
+   errors: {
+      type: Array,
       required: true 
    }
+})
+
+const firstNameError = ( (idx) => {
+   if (props.errors[idx]) {
+      return props.errors[idx].firstName
+   }
+   return ""
+})
+const lastNameError = ( (idx) => {
+   if (props.errors[idx]) {
+      return props.errors[idx].lastName
+   }
+   return ""
 })
 
 onMounted( async () => {
@@ -127,8 +136,7 @@ const checkAdvisorID = ((idx) => {
       
       emit("change")
      
-   }).catch( (e) => {
-      console.error(e)
+   }).catch( () => {
       etdRepo.work.advisors[idx].msg = cID+" is not a valid computing ID"
    })
 })

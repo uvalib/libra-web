@@ -36,7 +36,7 @@
                All files will be available worldwide.
             </div>
          </template>
-         <Message v-if="props.form.visibility?.invalid" severity="error" size="small" variant="simple">{{ props.form.visibility.error.message }}</Message>
+         <Message v-if="props.error" severity="error" size="small" variant="simple">{{ props.error }}</Message>
       </div>
 
       <template #icons>
@@ -66,12 +66,12 @@ const etdRepo = useETDStore()
 const user = useUserStore()
 const system = useSystemStore()
 
-const emit = defineEmits( ['embargo-changed'])
+const emit = defineEmits( ['change'])
 
 const props = defineProps({
-   form: {
-      type: Object,
-      required: true 
+   error: {
+      type: String,
+      default: "" 
    }
 })
 
@@ -89,11 +89,12 @@ const visibilityUpdated = (() => {
       endDate.setMonth( endDate.getMonth() + 6)
       etdRepo.embargoReleaseDate = endDate.toJSON()
    }
+   emit('change')
 })
 
 const endDatePicked = ( (newDate) => {
    etdRepo.embargoReleaseDate = newDate
-   emit('embargo-changed')
+   emit('change')
 })
 </script>
 

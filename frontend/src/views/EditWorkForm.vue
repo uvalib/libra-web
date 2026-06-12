@@ -14,48 +14,48 @@
          <h2>Sorry, a system error has occurred!</h2>
          <div>{{ etdRepo.error }}</div>
       </div>
-      <Form v-else v-slot="$form" :initialValues="etdRepo" :resolver="resolver" class="sections" ref="etdForm" :validateOnBlur="true" :validateOnMount="true">
+      <div v-else class="sections">
          <Panel header="Metadata" toggleable pt:title:id="metadata-panel" pt:contentContainer:aria-labelledby="metadata-panel">
-            <ProgramPanel :admin="user.isAdmin" @changed="programChanged = true"/>
+            <ProgramPanel :admin="user.isAdmin" @changed="formChanged"/>
             <div class="fields">
                <div class="field" >
-                  <LabeledInput label="Title" name="work.title" :required="true"
+                  <LabeledInput label="Title" name="work.title" :required="true" @change="formChanged"
                      v-model="etdRepo.work.title" :readonly="etdRepo.source == 'sis' && user.isAdmin == false"
                   />
-                  <Message v-if="$form.work?.title?.invalid" severity="error" size="small" variant="simple">{{ $form.work.title.error.message }}</Message>
+                  <Message v-if="errors.title" severity="error" size="small" variant="simple">{{ errors.title }}</Message>
                </div>
                <Fieldset legend="Author">
                   <div class="two-col">
                      <div class="field" >
-                        <LabeledInput label="First Name" name="work.author.firstName" :required="true" v-model="etdRepo.work.author.firstName"/>
-                        <Message v-if="$form.work?.author?.firstName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.author.firstName.error.message }}</Message>
+                        <LabeledInput label="First Name" name="work.author.firstName" :required="true" v-model="etdRepo.work.author.firstName" @change="formChanged"/>
+                        <Message v-if="errors.firstName" severity="error" size="small" variant="simple">{{ errors.firstName }}</Message>
                      </div>
                      <div class="field" >
-                        <LabeledInput label="Last Name" name="work.author.lastName" :required="true" v-model="etdRepo.work.author.lastName"/>
-                        <Message v-if="$form.work?.author?.lastName?.invalid" severity="error" size="small" variant="simple">{{ $form.work.author.lastName.error.message }}</Message>
+                        <LabeledInput label="Last Name" name="work.author.lastName" :required="true" v-model="etdRepo.work.author.lastName" @change="formChanged"/>
+                        <Message v-if="errors.lastName" severity="error" size="small" variant="simple">{{ errors.lastName }}</Message>
                      </div>
                   </div>
                </Fieldset>
 
-               <AdvisorsPanel :form="$form" @change="advisorsUpdated" />
+               <AdvisorsPanel :errors="errors.advisors" @change="formChanged" /> 
 
                <div class="field" >
-                  <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" />
-                  <Message v-if="$form.work?.abstract?.invalid" severity="error" size="small" variant="simple">{{ $form.work.abstract.error.message }}</Message>
+                  <LabeledInput label="Abstract" name="work.abstract" :required="true" v-model="etdRepo.work.abstract" type="textarea" @change="formChanged"/>
+                  <Message v-if="errors.abstract" severity="error" size="small" variant="simple">{{ errors.abstract}}</Message>
                </div>
 
-               <RepeatField title="Keywords" label="Keyword" name="keyword" @change="listChanged=true" help="Add one keyword or keyword phrase per line." v-model="etdRepo.work.keywords" />
-               <LabeledInput label="Language" name="work.language" v-model="etdRepo.work.language" type="select" :options="system.languages" />
-               <RepeatField title="Related Links" label="Link" @change="listChanged=true" name="related"
+               <RepeatField title="Keywords" label="Keyword" name="keyword" @change="formChanged" help="Add one keyword or keyword phrase per line." v-model="etdRepo.work.keywords" />
+               <LabeledInput label="Language" name="work.language" v-model="etdRepo.work.language" type="select" :options="system.languages" @change="formChanged"/>
+               <RepeatField title="Related Links" label="Link" @change="formChanged" name="related"
                   help="A link to a website or other specific content (audio, video, PDF document) related to the work. Add one link per line."
                   v-model="etdRepo.work.relatedURLs"
                />
-               <RepeatField title="Sponsoring Agencies" label="Agency" name="agency" @change="listChanged=true" v-model="etdRepo.work.sponsors" help="Add one agency per line."/>
-               <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" />
-               <LabeledInput v-if="user.isAdmin" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" />
+               <RepeatField title="Sponsoring Agencies" label="Agency" name="agency" @change="formChanged" v-model="etdRepo.work.sponsors" help="Add one agency per line."/>
+               <LabeledInput label="Notes" name="work.notes" v-model="etdRepo.work.notes" type="textarea" @change="formChanged"/>
+               <LabeledInput v-if="user.isAdmin" label="Admin Notes" name="work.adminNotes" v-model="etdRepo.work.adminNotes" type="textarea" @change="formChanged"/>
                <div class="field" >
-                  <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.licenses" />
-                  <Message v-if="$form.licenseID?.invalid" severity="error" size="small" variant="simple">{{ $form.licenseID.error.message }}</Message>
+                  <LabeledInput label="Rights" name="licenseID" :required="true" v-model="etdRepo.licenseID" type="select" :options="system.licenses" @change="formChanged"/>
+                  <Message v-if="errors.licenseID" severity="error" size="small" variant="simple">{{ errors.licenseID }}</Message>
                   <div class="note">
                      Libra lets you choose an open license when you post your work, and will prominently display the
                      license you choose as part of the record for your work. See
@@ -77,9 +77,9 @@
          </Panel>
          
          <FilesPanel />
-         <VisibilityPanel :form="$form" @embargo-changed="embargoChanged = true"/> 
+         <VisibilityPanel :error="errors.visibility" @change="formChanged"/>
          
-      </Form>
+      </div>
       <div class="toolbar" v-if="!etdRepo.error && !etdRepo.working">
          <span class="group">
             <template v-if="user.isAdmin">
@@ -88,7 +88,7 @@
             </template>
             <Button label="Exit" severity="secondary" @click="exitClicked" />
          </span>
-         <Message v-if="saved" severity="success" variant="simple" icon="pi pi-save" size="large" :life="3000" @life-end="saved=false">Changes saved</Message>
+         <Message v-if="saveMessage" severity="success" variant="simple" size="large" :life="5000" @life-end="saveMessage=''">{{ saveMessage }}</Message>
          <span class="group">
             <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Review and submit" />
          </span>
@@ -103,12 +103,10 @@ import { useUserStore } from "@/stores/user"
 import { useETDStore } from "@/stores/etd"
 import { useAdminStore } from "@/stores/admin"
 import Panel from 'primevue/panel'
-import { Form } from '@primevue/forms'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
 import { useConfirm } from "primevue/useconfirm"
 import { useRouter, useRoute } from 'vue-router'
-import { onKeyStroke } from '@vueuse/core'
 import { useIntervalFn } from '@vueuse/core'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import ProgramPanel from '@/components/ProgramPanel.vue'
@@ -126,23 +124,35 @@ const user = useUserStore()
 const etdRepo = useETDStore()
 const admin = useAdminStore()
 
-const etdForm = ref(null)
-const listChanged = ref(false)
-const advisorsChanged = ref(false)
-const programChanged = ref(false)
-const embargoChanged = ref(false)
+const isDirty = ref(false)
 const metadataComplete = ref(false)
-const lastKeyStrokeAt = ref( new Date().getTime())
-const saved = ref(false)
+const lastChangedAt = ref( new Date().getTime() )
+const saveMessage = ref("")
+
+const errors = ref({
+   title: "",
+   firstName: "",
+   lastName: "",
+   abstract: "",
+   licenseID: "",
+   visibility: "",
+   advisors: [] // array will contain { lastName: "", firstName: "" } for each adcisor
+})
 
 useIntervalFn(() => {
    const nowMs = new Date().getTime()
-   const delta = nowMs - lastKeyStrokeAt.value
-   if ( delta > 3000 && needsSave.value ) {
+   const delta = nowMs - lastChangedAt.value
+   if ( delta > 3000 && isDirty.value ) {
       // if no recent activity and form is dirty, save it
       saveChanges()
    }
-}, 2000)
+}, 1000)
+
+const formChanged = (() =>{
+   lastChangedAt.value = new Date().getTime()   
+   isDirty.value = true
+   validate() 
+})
 
 onBeforeMount( async () => {
    if ( user.isSignedIn == false) {
@@ -151,98 +161,77 @@ onBeforeMount( async () => {
    }
    system.getMimeTypes()
    await etdRepo.getWork( route.params.id, "edit" )
-   setInterval
-})
-
-onKeyStroke((e) => {
-   // watch for any keystroke targeted at form inputs. reset the activity timer
-   if ( e.target.classList.contains("p-textarea") || e.target.classList.contains("p-inputtext") ) {
-      lastKeyStrokeAt.value = new Date().getTime()
-   }
+   validate()
 })
 
 const previewDisabled = computed( () => {
-   if (needsSave.value == true || metadataComplete.value ==false || etdRepo.hasFiles==false || etdRepo.visibility == "") {
-      return true
-   }
-   return false
+   return ( isDirty.value || metadataComplete.value ==false || etdRepo.hasFiles==false || etdRepo.visibility == "")
 })
 
-const needsSave  = computed( () => {
-   if ( !etdForm.value) {
-      return false
-   }
-   return isDirty(etdForm.value.states)
-})
-
-const resolver = ({ values }) => {
-   const errors = {
-      work: {
-         title: [],
-         author: { lastName: [], firstName: [] },
-         advisors: [ {advisor: { lastName: [], firstName: [] } } ],
-         abstract: [] },
-      licenseID: [],
-      visibility: [],
-   }
+const validate = (() => {
    metadataComplete.value = true
-
-   if ( values.work.title == "" ) {
+   errors.value.firstName = ""
+   if ( etdRepo.work.author.firstName == "" ) {
       metadataComplete.value = false
-      errors.work.title = [{ message: 'Title is required' }]
-   }
-
-   if (values.work.author.firstName == "") {
+      errors.value.firstName = "First name is required"
+   } 
+   errors.value.lastName = ""
+   if ( etdRepo.work.author.lastName == "" ) {
       metadataComplete.value = false
-      errors.work.author.firstName = [{ message: 'Author first name is required' }]
+      errors.value.lastName = "Last name is required"
    }
-   if (values.work.author.lastName == "") {
+   errors.value.title = ""
+   if ( etdRepo.work.title == "" ) {
       metadataComplete.value = false
-      errors.work.author.lastName = [{ message: 'Author last name is required' }]
-   }
+      errors.value.title = "Title is required"
+   } 
 
-   if ( user.isAdmin == false ) {
-      if ( etdRepo.work.advisors.length == 0) {
+   errors.value.advisors = []
+   if ( etdRepo.work.advisors.length == 0) {
+      if ( user.isAdmin == false ) {
+         // admins can override the advisor requirement
          metadataComplete.value = false
-      } else {
-         etdRepo.work.advisors.forEach( (a,idx) => {
-            errors.work.advisors.push ({ firstName: [], lastName: []})
-            if ( a.firstName == "") {
-               metadataComplete.value = false
-               errors.work.advisors[ idx ].firstName = [{ message: 'Advisor first name is required' }]
-            }
-            if ( a.lastName == "") {
-               metadataComplete.value = false
-               errors.work.advisors[ idx ].lastName = [{ message: 'Advisor last name is required' }]
-            }
-         })
       }
+   } else {
+      etdRepo.work.advisors.forEach( (a) => {
+         let advErr = {firstName: "", lastName: ""}
+         if ( a.firstName == "") {
+            metadataComplete.value = false
+            advErr.firstName = 'Advisor first name is required'
+         }
+         if ( a.lastName == "") {
+            metadataComplete.value = false
+            advErr.lastName = 'Advisor last name is required'
+         }
+         errors.value.advisors.push( advErr )
+      })
    }
 
-   if ( values.work.abstract == "" ) {
+   errors.value.abstract = ""
+   if ( etdRepo.work.abstract == "" ) {
       metadataComplete.value = false
-      errors.work.abstract = [{ message: 'Abstract is required' }]
+      errors.value.abstract = "Abstract is required"
    }
 
-   let licID = parseInt(values.licenseID)
-   if ( !values.licenseID || licID == 0 ) {
+   let licID = parseInt(etdRepo.licenseID)
+   errors.value.licenseID = ""
+   if ( licID == 0 ) {
       metadataComplete.value = false
-      errors.licenseID = [{ message: 'Rights are required' }]
+      errors.value.licenseID = "Rights are required"
    }
 
-   if ( !values.visibility || values.visibility == "") {
-      errors.visibility = [{ message: 'Visibility is required' }]
+   errors.value.visibility = ""
+   if ( !etdRepo.visibility || etdRepo.visibility == "") {
+      errors.value.visibility = "Visibility is required"
    }
-
-   return { values, errors }
-}
+})
 
 const previewClicked = (() => {
     router.push(`/preview/${etdRepo.work.id}`)
 })
 
 const exitClicked = (async () => {
-   if ( needsSave.value ) {
+   if ( isDirty.value ) {
       await saveChanges()
    }
    router.push(user.homePage)
@@ -273,32 +262,8 @@ const deleteClicked = ( () => {
    })
 })
 
-const isDirty = ((data) => {
-   // these are repeat value items that are not handled by the resolver
-   let dirty = ( listChanged.value || programChanged.value || advisorsChanged.value || embargoChanged.value )
-   if ( dirty ) return true
-
-   Object.keys(data).some((key) => {
-      // these are input fields on the form for entering repeat values, but are not actully part of the form. Ignore
-      if ( key == "keyword" || key=="agency" || key=="related" || key.includes("computeID")) return false
-      
-      if (key == "dirty") {
-         if (data[key]) {
-            dirty = true
-         }
-         return dirty
-      }
-      if (data[key] && typeof data[key] === 'object') {
-         dirty = isDirty(data[key])
-         return dirty
-      }
-   })
-
-   return dirty
-})
-
 const saveChanges = ( async () => {
-   console.log("data has been edited; saving")
+   saveMessage.value = "Saving changes..."
    let license = system.licenseDetail(etdRepo.licenseID)
    if (license) {
       etdRepo.work.license = license.label
@@ -307,21 +272,13 @@ const saveChanges = ( async () => {
 
    await etdRepo.update( )
    if ( system.showError == false ) {
-      saved.value = true
-      etdForm.value.reset()
-      listChanged.value = false
-      programChanged.value = false
-      advisorsChanged.value = false
-      embargoChanged.value = false
-      etdForm.value.validate()
+      saveMessage.value = "Save complete"
+      isDirty.value = false
+      lastChangedAt.value = new Date().getTime()   
+      validate()
    } else {
       return
    }
-})
-
-const advisorsUpdated = ( () => {
-   advisorsChanged.value = true
-   etdForm.value.validate()
 })
 </script>
 
