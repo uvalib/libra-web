@@ -52,7 +52,7 @@ CMD ["scripts/entry.sh"]
 COPY package/data/container_bash_profile /home/docker/.profile
 COPY package/scripts/entry.sh $APP_HOME/scripts/entry.sh
 COPY package/scripts/migrate.sh $APP_HOME/scripts/migrate.sh
-#COPY backend/db/migrations/*.sql $APP_HOME/db/
+COPY backend/db/migrations/*.sql $APP_HOME/db/
 COPY --from=builder /build/bin/libra-web.linux $APP_HOME/bin/libra-web
 COPY --from=builder /build/bin/public $APP_HOME/bin/public
 COPY --from=builder /build/bin/data $APP_HOME/bin/data
