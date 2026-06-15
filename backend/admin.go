@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -513,6 +514,37 @@ func (svc *serviceContext) adminUpdateMimeTypes(c *gin.Context) {
 		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
+
+	added := make([]string, 0)
+	for _, mt := range req {
+		if slices.Index(svc.MimeTypes, mt) == -1 {
+			added = append(added, mt)
+		}
+	}
+	if len(added) > 0 {
+		log.Printf("INFO: add new mimetypes %s", added)
+		if err := svc.DB.Exec("insert into mime_types (mime_type) values ?", added).Error; err != nil {
+			log.Printf("ERROR: unable to add new mimetypes %s: %s", added, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	removed := make([]string, 0)
+	for _, mt := range svc.MimeTypes {
+		if slices.Index(req, mt) == -1 {
+			removed = append(removed, mt)
+		}
+	}
+	if len(removed) > 0 {
+		log.Printf("INFO: delete removed mimetypes %s", removed)
+		if err := svc.DB.Exec("delete from mime_types where mime_type in ?", removed).Error; err != nil {
+			log.Printf("ERROR: unable to remove mimetypes %s: %s", removed, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
 	svc.MimeTypes = req
 	log.Printf("INFO: new list of supported mime types %v", req)
 	c.JSON(http.StatusOK, req)
