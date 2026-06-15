@@ -17,6 +17,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/uvalib/easystore/uvaeasystore"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type eventContext struct {
@@ -67,6 +69,7 @@ func (ps *protectedServices) refreshJWT(key string) error {
 // serviceContext contains common data used by all handlers
 type serviceContext struct {
 	Version         string
+	DB              *gorm.DB
 	EtdURL          string
 	TimeFormat      string
 	HTTPClient      *http.Client
@@ -156,33 +159,38 @@ func initializeService(version string, cfg *configData) *serviceContext {
 		MetricsQueryURL: cfg.metricsQueryURL,
 	}
 
+	log.Printf("INFO: connecting to database")
+	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%d",
+		cfg.db.user, cfg.db.pass, cfg.db.name, cfg.db.host, cfg.db.port)
+	gdb, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx.DB = gdb
+	log.Printf("INFO: database connected")
+
 	// URLs to external service that just JWT protection
 	ctx.Protected.DepositAuthURL = cfg.depositAuthURL
 	ctx.Protected.ORCID = cfg.orcid
 	ctx.Protected.UserServiceURL = cfg.userServiceURL
 
 	log.Printf("INFO: initialize uva ip whitelist")
-	wlBytes, err := os.ReadFile("./data/ipwhitelist.txt")
-	if err != nil {
-		log.Fatalf("read ipwhitelist failed: %s", err.Error())
+	var ipAddresses []string
+	if err := ctx.DB.Raw("select ip_address from ip_whitelist").Scan(&ipAddresses).Error; err != nil {
+		log.Fatalf("unable to load ip whitelist: %s", err.Error())
 	}
-	for ip := range strings.SplitSeq(string(wlBytes), "\n") {
-		cleanIP := strings.TrimSpace(ip)
-		if cleanIP != "" {
-			_, ipnet, ipErr := net.ParseCIDR(cleanIP)
-			if ipErr != nil {
-				log.Fatalf("unable to parse cidr %s: %s", cleanIP, ipErr.Error())
-			}
-			ctx.UVAWhiteList = append(ctx.UVAWhiteList, ipnet)
+	for _, ip := range ipAddresses {
+		_, ipnet, ipErr := net.ParseCIDR(ip)
+		if ipErr != nil {
+			log.Fatalf("unable to parse cidr %s: %s", ip, ipErr.Error())
 		}
+		ctx.UVAWhiteList = append(ctx.UVAWhiteList, ipnet)
 	}
 
 	log.Printf("INFO: initialize supported mime types list")
-	mtBytes, err := os.ReadFile("./data/mimetypes.txt")
-	if err != nil {
-		log.Fatalf("read mimetypes failed: %s", err.Error())
+	if err := ctx.DB.Raw("select mime_type from mime_types").Scan(&ctx.MimeTypes).Error; err != nil {
+		log.Fatalf("unable to load mime types: %s", err.Error())
 	}
-	ctx.MimeTypes = strings.Split(string(mtBytes), "\n")
 
 	log.Printf("INFO: create HTTP client...")
 	defaultTransport := &http.Transport{

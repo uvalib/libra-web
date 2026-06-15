@@ -8,6 +8,11 @@ cd bin; ./libra-web \
    -index           ${INDEX_URL} \
    -jwtkey          ${JWT_KEY} \
    -userws          ${USER_WS} \
+   -dbhost          ${DBHOST} \
+   -dbport          ${DBPORT} \
+   -dbname          ${DBNAME} \
+   -dbuser          ${DBUSER} \
+   -dbpass          ${DBPASS} \
    -namespace       ${ETD_NAMESPACE} \
    -busname         ${BUS_NAME} \
    -eventsrc        ${EVENT_SRC_NAME} \

@@ -12,6 +12,8 @@ require (
 	github.com/uvalib/easystore/uvaeasystore v0.0.0-20260413184000-ac1e96bfa2b7
 	github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1
 	github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20260406142030-486f51674d88
+	gorm.io/driver/postgres v1.6.0
+	gorm.io/gorm v1.31.1
 )
 
 require (
@@ -46,6 +48,12 @@ require (
 	github.com/go-playground/validator/v10 v10.30.3 // indirect
 	github.com/goccy/go-json v0.10.6 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/pgx/v5 v5.10.0 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
@@ -64,6 +72,7 @@ require (
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/exp v0.0.0-20260611194520-c48552f49976 // indirect
 	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect

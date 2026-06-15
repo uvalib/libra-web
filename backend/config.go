@@ -16,11 +16,20 @@ type orcidConfig struct {
 	clientURL  string
 }
 
+type dbConfig struct {
+	host string
+	port int
+	user string
+	pass string
+	name string
+}
+
 type configData struct {
 	port            int
 	etdURL          string
 	userServiceURL  string
 	orcid           orcidConfig
+	db              dbConfig
 	depositAuthURL  string
 	auditQueryURL   string
 	metricsQueryURL string
@@ -48,6 +57,13 @@ func getConfiguration() *configData {
 	// * orcidurl is the url the ORCID client used to manage ORCID connection
 	flag.StringVar(&config.orcid.serviceURL, "getorcidurl", "", "GET orcid for user service")
 	flag.StringVar(&config.orcid.clientURL, "orcidurl", "", "GET orcid for user service")
+
+	// DB connection params
+	flag.StringVar(&config.db.host, "dbhost", "localhost", "Database host")
+	flag.IntVar(&config.db.port, "dbport", 5432, "Database port")
+	flag.StringVar(&config.db.name, "dbname", "libraweb", "Database name")
+	flag.StringVar(&config.db.user, "dbuser", "libraweb", "Database user")
+	flag.StringVar(&config.db.pass, "dbpass", "pass", "Database password")
 
 	// dev mode
 	flag.StringVar(&config.dev.user, "devuser", "", "Authorized computing id for dev")
@@ -96,6 +112,18 @@ func getConfiguration() *configData {
 	if config.indexURL == "" {
 		log.Fatal("Parameter index is required")
 	}
+	if config.db.host == "" {
+		log.Fatal("Parameter dbhost is required")
+	}
+	if config.db.name == "" {
+		log.Fatal("Parameter dbname is required")
+	}
+	if config.db.user == "" {
+		log.Fatal("Parameter dbuser is required")
+	}
+	if config.db.pass == "" {
+		log.Fatal("Parameter dbpass is required")
+	}
 
 	log.Printf("[CONFIG] port            = [%d]", config.port)
 	log.Printf("[CONFIG] etdurl          = [%s]", config.etdURL)
@@ -110,6 +138,9 @@ func getConfiguration() *configData {
 	log.Printf("[CONFIG] busname         = [%s]", config.busName)
 	log.Printf("[CONFIG] index           = [%s]", config.indexURL)
 	log.Printf("[CONFIG] esproxy         = [%s]", config.easyStoreProxy)
+	log.Printf("[CONFIG] dbhost          = [%s]", config.db.host)
+	log.Printf("[CONFIG] dbname          = [%s]", config.db.name)
+	log.Printf("[CONFIG] dbuser          = [%s]", config.db.user)
 
 	if config.dev.user != "" {
 		log.Printf("[CONFIG] devuser         = [%s]", config.dev.user)
