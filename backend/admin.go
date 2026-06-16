@@ -14,7 +14,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/easystore/uvaeasystore"
-	librametadata "github.com/uvalib/libra-metadata"
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
@@ -284,53 +283,6 @@ func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {
 	c.SetCookie("libra3_impersonate_jwt", signedStr, 10, "/", "", false, false)
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.String(http.StatusOK, "impersonated")
-}
-
-func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
-	var regReq registrationRequest
-	err := c.ShouldBindJSON(&regReq)
-	if err != nil {
-		log.Printf("ERROR: bad payload for optional registration request: %s", err.Error())
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	// note: this endpoint is protected by admin middleware which ensures claims are present and admin
-	claims := getJWTClaims(c)
-	log.Printf("INFO: %s requests optional registrations %+v", claims.ComputeID, regReq)
-	for _, student := range regReq.Students {
-		author := librametadata.ContributorData{ComputeID: student.ComputeID,
-			FirstName: student.FirstName, LastName: student.LastName, Institution: "University of Virginia"}
-		etdReg := librametadata.ETDWork{Program: regReq.Program, Degree: regReq.Degree, Author: author}
-		obj := uvaeasystore.NewEasyStoreObject(svc.Namespace, "")
-		fields := uvaeasystore.DefaultEasyStoreFields()
-		fields["create-date"] = time.Now().UTC().Format(svc.TimeFormat)
-		fields["draft"] = "true"
-		fields["default-visibility"] = ""
-		fields["depositor"] = student.ComputeID
-		fields["registrar"] = claims.ComputeID
-		fields["source"] = "optional"
-		obj.SetFields(fields)
-
-		// An ETDWork does not serialize the same way as an EasyStoreMetadata object
-		// does when being managed by json.Marshal/json.Unmarshal so we wrap it in an object that
-		// behaves appropriately
-		pl, err := etdReg.Payload()
-		if err != nil {
-			log.Printf("ERROR: serializing ETDWork: %s", err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-		obj.SetMetadata(uvaeasystore.NewEasyStoreMetadata(etdReg.MimeType(), pl))
-
-		_, err = svc.EasyStore.ObjectCreate(obj)
-		if err != nil {
-			log.Printf("ERROR: admin create registration failed: %s", err.Error())
-			c.String(http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
-	c.String(http.StatusOK, fmt.Sprintf("%d registrations completed", len(claims.ComputeID)))
 }
 
 func (svc *serviceContext) adminUpdatePublishedDate(c *gin.Context) {
