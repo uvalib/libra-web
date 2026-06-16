@@ -141,8 +141,8 @@ github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1 h1:eSDmfVQk1
 github.com/uvalib/libra-metadata v0.0.0-20250513131340-aa4ee04ad7d1/go.mod h1:DsXjFKToNw2VE28Lf9pkV+sHhP3OS+Yr8NM0Cwy+7Lo=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20260406142030-486f51674d88 h1:Vlt703J1r3wPo1o81hqLrR9OS6wTMhzidKg2VkZTVmg=
 github.com/uvalib/librabus-sdk/uvalibrabus v0.0.0-20260406142030-486f51674d88/go.mod h1:cITJrlIM3D+iX5y0dnyFWg45MfnmYKFvyHU1Ghj8Tjk=
-go.mongodb.org/mongo-driver/v2 v2.6.0 h1:b9sJOYrkmt4l8bY43ZenFBcPlhYIjaOfYHLtbB/5qi8=
-go.mongodb.org/mongo-driver/v2 v2.6.0/go.mod h1:yOI9kBsufol30iFsl1slpdq1I0eHPzybRWdyYUs8K/0=
+go.mongodb.org/mongo-driver/v2 v2.6.1 h1:YyGZ2lt+4Nv+dWuiGMKoyWuxmBSlGLH5jllheKiQGu0=
+go.mongodb.org/mongo-driver/v2 v2.6.1/go.mod h1:yOI9kBsufol30iFsl1slpdq1I0eHPzybRWdyYUs8K/0=
 go.uber.org/mock v0.6.0 h1:hyF9dfmbgIX5EfOdasqLsWD6xqpNZlXblLB/Dbnwv3Y=
 go.uber.org/mock v0.6.0/go.mod h1:KiVJ4BqZJaMj4svdfmHM0AUx4NJYO8ZNpPnZn1Z+BBU=
 golang.org/x/arch v0.28.0 h1:wVwVdqsTuUbJvhYVCspQYwZXHNYeLSoZnmHD+ggddpQ=

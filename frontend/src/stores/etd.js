@@ -15,7 +15,7 @@ export const useETDStore = defineStore('etd', {
       visibility: "",
       embargoReleaseDate: null,
       embargoReleaseVisibility: "",
-      licenseID: "0",
+      licenseID: 0,
       persistentLink: "",
       source: "",
       sourceID: "",
@@ -129,12 +129,12 @@ export const useETDStore = defineStore('etd', {
          this.work.files.forEach( f => f.url = "")
 
          // lookup licence ID based on URL
-         this.licenseID = "0"
+         this.licenseID = 0
          if ( this.work.licenseURL || this.work.license) {
             const system = useSystemStore()
             let lic = system.licenses.find( l => l.url == this.work.licenseURL )
             if (lic) {
-               this.licenseID =""+lic.value
+               this.licenseID = lic.value
             }
          }
       },

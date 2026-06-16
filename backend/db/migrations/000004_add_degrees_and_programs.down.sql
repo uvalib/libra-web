@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS programs;
+DROP TABLE IF EXISTS degrees;
+
+COMMIT;

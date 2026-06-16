@@ -108,7 +108,7 @@ type visibility struct {
 }
 
 type license struct {
-	Value string `json:"value"`
+	ID    uint64 `json:"value"`
 	URL   string `json:"url"`
 	Label string `json:"label"`
 }
@@ -118,15 +118,17 @@ type libraNamespace struct {
 	Namespace string `json:"namespace"`
 }
 
-type etdDegree struct {
+type degree struct {
+	ID     uint64 `json:"id"`
 	Type   string `json:"type"` // optional or sis
-	SISKey string `json:"sisKey,omitempty"`
+	SISKey string `gorm:"column:sis_key" json:"sisKey,omitempty"`
 	Degree string `json:"degree"`
 }
 
-type etdProgram struct {
+type program struct {
+	ID      uint64 `json:"id"`
 	Type    string `json:"type"` // optional or sis
-	SISKey  string `json:"sisKey,omitempty"`
+	SISKey  string `gorm:"column:sis_key" json:"sisKey,omitempty"`
 	Program string `json:"program"`
 }
 
@@ -136,8 +138,8 @@ type configResponse struct {
 	Licenses       []license      `json:"licenses"`
 	Languages      []language     `json:"languages"`
 	Visibility     []visibility   `json:"visibility"`
-	Programs       []etdProgram   `json:"programs"`
-	Degrees        []etdDegree    `json:"degrees"`
+	Programs       []program      `json:"programs"`
+	Degrees        []degree       `json:"degrees"`
 	ORCIDClientURL string         `json:"orcid"`
 	MaxSearchHits  int            `json:"maxSearchHits"`
 }
@@ -326,9 +328,14 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		MaxSearchHits:  targetMaxHits,
 	}
 
-	err := loadETDConfig(&resp)
-	if err != nil {
-		log.Printf("ERROR: unable to load config: %s", err.Error())
+	log.Printf("INFO: load degrees")
+	if err := svc.DB.Raw("select id, type, sis_key, degree from degrees").Scan(&resp.Degrees).Error; err != nil {
+		log.Printf("ERROR: unable to load degrees: %s", err.Error())
+	}
+
+	log.Printf("INFO: load programs")
+	if err := svc.DB.Raw("select id, type, sis_key, program from programs").Scan(&resp.Programs).Error; err != nil {
+		log.Printf("ERROR: unable to load programs: %s", err.Error())
 	}
 
 	log.Printf("INFO: load languages")
@@ -342,16 +349,9 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		}
 	}
 
-	// TODO all the data files need to be edited to remove OA . ETD
 	log.Printf("INFO: load licenses")
-	bytes, err = os.ReadFile("./data/licenses.json")
-	if err != nil {
+	if err := svc.DB.Raw("select id,label,url from licenses").Scan(&resp.Licenses).Error; err != nil {
 		log.Printf("ERROR: unable to load licenses: %s", err.Error())
-	} else {
-		err = json.Unmarshal(bytes, &resp.Licenses)
-		if err != nil {
-			log.Printf("ERROR: unable to parse licenses: %s", err.Error())
-		}
 	}
 
 	log.Printf("INFO: load visibility")
@@ -366,66 +366,6 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
-}
-
-func loadETDConfig(cfg *configResponse) error {
-	log.Printf("INFO: load opt programs")
-	var optPrograms []string
-	bytes, err := os.ReadFile("./data/opt_programs.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(bytes, &optPrograms)
-	if err != nil {
-		return err
-	}
-	for _, p := range optPrograms {
-		cfg.Programs = append(cfg.Programs, etdProgram{Type: "optional", Program: p})
-	}
-
-	log.Printf("INFO: load sis programs")
-	var sisPrograms []etdProgram
-	bytes, err = os.ReadFile("./data/sis_programs.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(bytes, &sisPrograms)
-	if err != nil {
-		return err
-	}
-	for _, p := range sisPrograms {
-		cfg.Programs = append(cfg.Programs, etdProgram{Type: "sis", Program: p.Program, SISKey: p.SISKey})
-	}
-
-	log.Printf("INFO: load opt degrees")
-	var optDegrees []string
-	bytes, err = os.ReadFile("./data/opt_degrees.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(bytes, &optDegrees)
-	if err != nil {
-		return err
-	}
-	for _, d := range optDegrees {
-		cfg.Degrees = append(cfg.Degrees, etdDegree{Type: "optional", Degree: d})
-	}
-
-	log.Printf("INFO: load sis degrees")
-	var sisDegrees []etdDegree
-	bytes, err = os.ReadFile("./data/sis_degrees.json")
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(bytes, &sisDegrees)
-	if err != nil {
-		return err
-	}
-	for _, d := range sisDegrees {
-		cfg.Degrees = append(cfg.Degrees, etdDegree{Type: "sis", Degree: d.Degree, SISKey: d.SISKey})
-	}
-
-	return nil
 }
 
 func (svc *serviceContext) lookupVersion() map[string]string {
