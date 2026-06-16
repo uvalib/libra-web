@@ -26,9 +26,15 @@ const router = createRouter({
          meta: { requiresRegistrar: true }
       },
       {
-         path: '/status',
-         name: 'depositstatus',
-         component: () => import('../views/DepositStatus.vue'),
+         path: '/status/sis',
+         name: 'sisdepositstatus',
+         component: () => import('../views/SisDepositStatus.vue'),
+         meta: { requiresRegistrar: true }
+      },
+      {
+         path: '/status/optional',
+         name: 'optdepositstatus',
+         component: () => import('../views/OptionalDepositStatus.vue'),
          meta: { requiresRegistrar: true }
       },
       {

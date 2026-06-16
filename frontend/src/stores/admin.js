@@ -9,8 +9,6 @@ export const useAdminStore = defineStore('admin', {
    state: () => ({
       working: false,
       hits: [],
-      deposits: [],
-      depositSearchMessage: "",
       total: 0,
       offset: 0,
       limit: 20,
@@ -43,13 +41,6 @@ export const useAdminStore = defineStore('admin', {
          this.$reset()
          this.getRecentActivity()
       },
-      async addRegistrations( program, degree, students ) {
-         return axios.post(`/api/register`, {program: program, degree: degree, students: students}).catch( err => {
-            const system = useSystemStore()
-            system.setError(  err )
-         })
-      },
-
       getRecentActivity() {
          this.working = true
          let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}&recent=1`
@@ -93,25 +84,6 @@ export const useAdminStore = defineStore('admin', {
             system.setError(  err )
             this.working = false
             this.searchCompleted = false
-         })
-      },
-
-      depositStatusSearch(searchType, query) {
-         this.working = true
-         this.deposits = []
-         this.depositSearchMessage = ""
-         let url = `/api/deposits?q=${query}&type=${searchType}`
-         axios.get(url).then(response => {
-            this.deposits = response.data
-            this.working = false
-         }).catch(err => {
-            console.error(err)
-            if (err.response && err.response.status == 404) {
-               this.depositSearchMessage = `No items found matching ${query}`
-            } else {
-               this.depositSearchMessage = err
-            }
-            this.working = false
          })
       },
 

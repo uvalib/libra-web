@@ -1,6 +1,6 @@
 <template>
    <div class="status">
-      <h1>Deposit Status</h1>
+      <h1>SIS Deposit Status</h1>
       <div class="search">
          <label>Search by:</label>
          <Select v-model="queryType" aria-label="query type selector" :options="queries" option-label="name" option-value="id"/>
@@ -10,21 +10,21 @@
                aria-label="compute id query string" placeholder="Compute ID"
             />
             <DatePicker v-else v-model="queryDate" dateFormat="yy-mm-dd" showIcon fluid iconDisplay="input" aria-label="date query"/>
-            <Button label="Search" @click="searchClicked()" :loading="admin.working" :disabled="admin.working"/>
+            <Button label="Search" @click="searchClicked()" :loading="registrar.working" :disabled="registrar.working"/>
          </div>
       </div>
       <div class="hint">{{ searchHint }}</div>
       <div class="results">
-         <DataTable :value="admin.deposits" v-model:filters="filters" ref="depositHits"
+         <DataTable :value="registrar.deposits" v-model:filters="filters" ref="depositHits"
             stripedRows showGridlines responsiveLayout="scroll" removableSort
             :paginator="true" :alwaysShowPaginator="true" paginatorPosition="bottom"
             :rows="10" :rowsPerPageOptions="[10, 25, 50, 100]"
             paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} - {last} of {totalRecords} entries"
-            :loading="admin.working"
+            :loading="registrar.working"
          >
             <template #empty>
-               <div class="err">{{ admin.depositSearchMessage }}</div>
+               <div class="err">{{ registrar.depositSearchMessage }}</div>
             </template>
             <template #header>
                <IconField iconPosition="left">
@@ -57,10 +57,10 @@ import Select from 'primevue/select'
 import DataTable from 'primevue/datatable'
 import { FilterMatchMode } from '@primevue/core/api'
 import Column from 'primevue/column'
-import { useAdminStore } from "@/stores/admin"
+import { useRegistrarStore } from "@/stores/registrar"
 import dayjs from 'dayjs'
 
-const admin = useAdminStore()
+const registrar = useRegistrarStore()
 const query = ref("")
 const queryDate = ref( new Date() )
 const queryType = ref("cid")
@@ -107,7 +107,7 @@ const searchClicked = (() => {
    if (queryType.value != "cid") {
       queryStr = dayjs(queryDate.value).format("YYYY-MM-DD")
    }
-   admin.depositStatusSearch(queryType.value, queryStr)
+   registrar.sisDepositStatusSearch(queryType.value, queryStr)
 })
 
 </script>

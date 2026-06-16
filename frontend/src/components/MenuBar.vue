@@ -29,13 +29,22 @@ onMounted(()=>{
 
 const libraMenu = computed( () => {
    let menu = []
-   if ( user.isAdmin ) {
-      menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/admin")})
-      menu.push({label: "Deposit Registration", icon: "pi pi-user-plus", command: ()=>router.push("/register")})
-      menu.push({label: "Deposit Status", icon: "pi pi-calendar-clock", command: ()=>router.push("/status")})
-   } else if ( user.isRegistrar ) {
-      menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/register")})
-      menu.push({label: "Deposit Status", icon: "pi pi-calendar-clock", command: ()=>router.push("/status")})
+   if ( user.isAdmin  || user.isRegistrar ) {
+      let statusMenu = { 
+         label: "Deposit Status", icon: "pi pi-calendar-clock", 
+         items: [
+            {label: "SIS Deposits", icon: "pi pi-graduation-cap", command: ()=>router.push("/status/sis")},
+            {label: "Optional Deposits", icon: "pi pi-book", command: ()=>router.push("/status/optional")},
+         ]
+      }
+      if ( user.isAdmin ) {
+         menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/admin")})
+         menu.push({label: "Deposit Registration", icon: "pi pi-user-plus", command: ()=>router.push("/register")})
+         menu.push( statusMenu )
+      } else if ( user.isRegistrar ) {
+         menu.push({label: "Deposit Registration", icon: "pi pi-user-plus", command: ()=>router.push("/register")})
+         menu.push( statusMenu )
+      }
    } else {
       menu.push({label: "Dashboard", icon: "pi pi-home", command: ()=>router.push("/")})
    }

@@ -44,7 +44,7 @@
 import { ref, computed } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import { useSystemStore } from "@/stores/system"
-import { useAdminStore } from "@/stores/admin"
+import { useRegistrarStore } from "@/stores/registrar"
 import Select from 'primevue/select'
 import FieldSet from 'primevue/fieldset'
 import TextArea from 'primevue/textarea'
@@ -52,7 +52,7 @@ import Message from 'primevue/message'
 import axios from 'axios'
 
 const system = useSystemStore()
-const admin = useAdminStore()
+const registrar = useRegistrarStore()
 
 const program = ref("")
 const degree = ref("")
@@ -120,7 +120,7 @@ const lookup = ( () => {
 })
 
 const submitRegistrations = ( async ( ) => {
-   await admin.addRegistrations(program.value, degree.value, users.value)
+   await registrar.addRegistrations(program.value, degree.value, users.value)
    if (system.error == "") {
       system.toastMessage("Registration success", "All specified users have been registered.")
       program.value = ""

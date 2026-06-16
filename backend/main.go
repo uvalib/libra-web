@@ -64,10 +64,16 @@ func main() {
 		// user search of all works
 		api.GET("/works/search", svc.userSearch)
 
-		// register users for optional works. only available for admin or registrar users
-		api.POST("/register", svc.registrarMiddleware, svc.submitOptionalRegistrations)
-		api.GET("/deposits", svc.registrarMiddleware, svc.depositStatusSearch)
+		// register users for optional works, and search opt/sis deposit status.
+		// These calls are available for admin or registrar users
+		registrar := api.Group("/registrar", svc.registrarMiddleware)
+		{
+			registrar.POST("/register", svc.submitOptionalRegistrations)
+			registrar.GET("/sis", svc.sisDepositStatusSearch)
+			registrar.GET("/optional", svc.optionalDepositStatusSearch)
+		}
 
+		// admin-only requests
 		admin := api.Group("/admin", svc.adminMiddleware)
 		{
 			admin.POST("/impersonate/:computeID", svc.adminImpersonateUser)
