@@ -25,7 +25,7 @@
             <div class="err">{{ registrar.depositSearchMessage }}</div>
          </template>
          <Column expander style="width: 5rem" />
-         <Column field="registrar" header="Registrar" filterField="registrar" :showFilterMenu="false">
+         <Column field="registrar" header="Registrar" filterField="registrar" :showFilterMenu="false" sortable>
             <template #filter="{ filterModel, filterCallback }">
                <InputGroup>
                   <InputText v-model="filterModel.value" type="text" @update:modelValue="filterCallback()" placeholder="Submitted by" />
@@ -43,14 +43,14 @@
                />
             </template>
          </Column>
-         <Column field="program" header="Program" filterField="program" :showFilterMenu="false">
+         <Column field="program" header="Program" filterField="program" :showFilterMenu="false" sortable>
             <template #filter="{ filterModel, filterCallback }">
                <Select v-model="filterModel.value" fluid placeholder="Submitted program" showClear filter
                   :options="system.programs" optionLabel="program" optionValue="program" @change="filterCallback()" 
                />
             </template>
          </Column>
-         <Column field="degree" header="Degree" filterField="degree" :showFilterMenu="false">
+         <Column field="degree" header="Degree" filterField="degree" :showFilterMenu="false" sortable>
             <template #filter="{ filterModel, filterCallback }">
                <Select v-model="filterModel.value" fluid placeholder="Submitted degree" showClear filter
                   :options="system.degrees" optionLabel="degree" optionValue="degree" @change="filterCallback()" 
