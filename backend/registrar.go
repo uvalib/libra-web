@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -21,12 +22,12 @@ type registrationStudent struct {
 }
 
 type registration struct {
-	ID          uint64 `json:"-"`
-	Registrar   string `json:"registrar"`
-	Degree      string `json:"degree"`
-	Program     string `json:"program"`
-	Students    []registrationStudent
-	SubmittedAt time.Time `json:"submittedAt"`
+	ID          uint64                `json:"id"`
+	Registrar   string                `json:"registrar"`
+	Degree      string                `json:"degree"`
+	Program     string                `json:"program"`
+	Students    []registrationStudent `json:"students"`
+	SubmittedAt time.Time             `json:"submittedAt"`
 }
 
 type depositStatusResponse struct {
@@ -115,8 +116,57 @@ func (svc *serviceContext) sisDepositStatusSearch(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+type optSearchResults struct {
+	Hits  []registration `json:"hits"`
+	Total int64          `json:"total"`
+}
+
 func (svc *serviceContext) optionalDepositStatusSearch(c *gin.Context) {
-	c.String(http.StatusNotImplemented, "not yet")
+	offset, pageErr := strconv.ParseInt(c.Query("offset"), 10, 0)
+	if pageErr != nil {
+		offset = 0
+	}
+	limit, pageErr := strconv.ParseInt(c.Query("limit"), 10, 0)
+	if pageErr != nil {
+		limit = 25
+	}
+	sort := c.Query("sort")
+	if len(sort) == 0 {
+		sort = "submitted_at"
+	}
+	order := c.Query("order")
+	if len(sort) == 0 {
+		sort = "desc"
+	}
+
+	baseQ := svc.DB.Table("registrations")
+	if c.Query("registrar") != "" {
+		baseQ = baseQ.Where("registrar ~* ?", fmt.Sprintf("^\\s*%s", c.Query("registrar")))
+	}
+	if c.Query("program") != "" {
+		baseQ = baseQ.Where("program = ?", c.Query("program"))
+	}
+	if c.Query("degree") != "" {
+		baseQ = baseQ.Where("degree = ?", c.Query("degree"))
+	}
+	if c.Query("submitted_at") != "" {
+		baseQ = baseQ.Where("submitted_at >= ?", c.Query("submitted_at"))
+	}
+
+	log.Printf("INFO: search %d limit %d optional deposits order %s %s", offset, limit, sort, order)
+	resp := optSearchResults{}
+	if err := baseQ.Count(&resp.Total).Error; err != nil {
+		log.Printf("ERROR: unable to get optional registrations count: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+	if err := baseQ.Preload("Students").Offset(int(offset)).Limit(int(limit)).Order(fmt.Sprintf("%s %s", sort, order)).Find(&resp.Hits).Error; err != nil {
+		log.Printf("ERROR: unable to get optional registrations: %s", err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 func (svc *serviceContext) submitOptionalRegistrations(c *gin.Context) {
