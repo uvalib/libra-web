@@ -21,8 +21,13 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 
 	etdWork, err := svc.getWork(c, workID, "view")
 	if err != nil {
-		log.Printf("ERROR: get work %s failed: %d - %s", workID, err.StatusCode, err.Message)
-		c.String(err.StatusCode, err.Message)
+		if err.StatusCode == 404 {
+			log.Printf("INFO: work %s was not found", workID)
+			c.String(err.StatusCode, err.Message)
+		} else {
+			log.Printf("ERROR: get work %s failed: %d - %s", workID, err.StatusCode, err.Message)
+			c.String(err.StatusCode, err.Message)
+		}
 		return
 	}
 

@@ -69,9 +69,13 @@ func (svc *serviceContext) getWorkHandler(c *gin.Context) {
 	log.Printf("INFO: get %s work %s for [%s]", svc.Namespace, workID, dataFor)
 	etdWork, err := svc.getWork(c, workID, dataFor)
 	if err != nil {
-		log.Printf("ERROR: get work %s failed: %d - %s", workID, err.StatusCode, err.Message)
-		c.String(err.StatusCode, err.Message)
-		return
+		if err.StatusCode == 404 {
+			log.Printf("INFO: work %s was not found", workID)
+			c.String(err.StatusCode, err.Message)
+		} else {
+			log.Printf("ERROR: get work %s failed: %d - %s", workID, err.StatusCode, err.Message)
+			c.String(err.StatusCode, err.Message)
+		}
 	}
 	c.JSON(http.StatusOK, etdWork)
 }
