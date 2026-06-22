@@ -9,7 +9,7 @@
             :totalRecords="registrar.total" paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink RowsPerPageDropdown"
             currentPageReportTemplate="{first} - {last} of {totalRecords}"
             :loading="registrar.working" @sort="onSort($event)" :sortField="registrar.sortField" :sortOrder="sortOrder"
-            filterDisplay="row" v-model:filters="filters" :globalFilterFields="['registrar', 'submitted_at', 'program', 'degree']" 
+            filterDisplay="row" v-model:filters="filters"
             @update:filters="onFilter($event)"
       >
             <template #paginatorstart>

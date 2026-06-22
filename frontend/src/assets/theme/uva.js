@@ -179,6 +179,12 @@ const UVA = definePreset(Aura, {
             color: colors.textBase,
          },
       },
+      datepicker: {
+         date: {
+            rangeSelectedBackground: colors.brandBlue300,
+            rangeSelectedColor: 'white'
+         }
+      },
       dialog: {
          root: {
             background: '#ffffff',
