@@ -78,7 +78,6 @@ func main() {
 		{
 			admin.POST("/impersonate/:computeID", svc.adminImpersonateUser)
 			admin.GET("/search", svc.adminSearch)
-			admin.POST("/export", svc.adminExportReport)
 			admin.DELETE("/works/:id", svc.adminDeleteWork)
 			admin.DELETE("/works/:id/publish", svc.adminUnpublishWork)
 			admin.POST("/works/:id/files/:name/replace", svc.replaceFile)

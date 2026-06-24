@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import dayjs from 'dayjs'
 import { useSystemStore } from './system'
 import { useETDStore } from './etd'
 import { useUserStore } from './user'
@@ -11,16 +12,15 @@ export const useAdminStore = defineStore('admin', {
       hits: [],
       total: 0,
       offset: 0,
-      limit: 20,
+      limit: 50,
       query: "",
-      filterChanged: false,
       searchCompleted: false,
       sortField: "",
       sortOrder: "",
       statusFilter: "any",
       sourceFilter: "any",
-      fromDate: "",
-      toDate: "",
+      publishedFilter: { from: "", to: ""},
+      createdFilter:  { from: "", to: ""},
       impersonate: {
          adminJWT: "",
          userID: "",
@@ -34,6 +34,12 @@ export const useAdminStore = defineStore('admin', {
       },
       originalAdminID: state => {
          return state.impersonate.adminID
+      },
+      createdFilterSet: state => {
+         return state.createdFilter.to != "" && state.createdFilter.from != ""
+      },
+      publishedFilterSet: state => {
+         return state.publishedFilter.to != "" && state.publishedFilter.from != ""
       }
    },
    actions: {
@@ -54,7 +60,30 @@ export const useAdminStore = defineStore('admin', {
             this.working = false
          })
       },
+      clearPublishedFiter() {
+         this.publishedFilter = { from: "", to: ""}   
+      },
+      clearCreatedFiter() {
+         this.createdFilter = { from: "", to: ""}   
+      },
+      setSearchFilter( createRange, publishRange ) {
+         this.publishedFilter = { from: "", to: ""}
+         this.createdFilter = { from: "", to: ""}
+         if (createRange ) {
+            this.createdFilter.from = dayjs(createRange[0]).format("YYYY-MM-DD")
+            if (createRange[1]) {
+               this.createdFilter.to = dayjs(createRange[1]).format("YYYY-MM-DD")  
+            }
+         }
+         if (publishRange ) {
+            this.publishedFilter.from = dayjs(publishRange[0]).format("YYYY-MM-DD")
+            if (publishRange[1]) {
+               this.publishedFilter.to = dayjs(publishRange[1]).format("YYYY-MM-DD")  
+            }
+         }
+      },
       search() {
+         const system = useSystemStore()
          this.working = true
          let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}`
          if ( this.sortField != "" ) {
@@ -66,21 +95,22 @@ export const useAdminStore = defineStore('admin', {
          if ( this.sourceFilter != "any") {
             url += `&source=${this.sourceFilter}`
          }
-         if ( this.fromDate != "" ) {
-            url += `&from=${this.fromDate}`
+         if ( this.publishedFilterSet ) {
+            url += `&published=${this.publishedFilter.from} to ${this.publishedFilter.to}`
          }
-         if ( this.toDate != "" ) {
-            url += `&to=${this.toDate}`
+         if ( this.createdFilterSet ) {
+            url += `&created=${this.createdFilter.from} to ${this.createdFilter.to}`
          }
          axios.get(url).then(response => {
             this.hits = response.data.hits
             this.total = response.data.total
+            if (this.total > system.maxSearchHits ) {
+               this.total = system.maxSearchHits
+            }
             this.working = false
             this.searchCompleted = true
-            this.filterChanged = false
          }).catch( err => {
             console.error(err)
-            const system = useSystemStore()
             system.setError(  err )
             this.working = false
             this.searchCompleted = false
@@ -88,15 +118,27 @@ export const useAdminStore = defineStore('admin', {
       },
 
       exportCSV() {
+         // TODO just call search with &export={total}
+         const system = useSystemStore()
          this.working = true
-         let q = "*"
-         if (this.query != "" ) {
-            q = this.query
+         let url = `/api/admin/search?q=${this.query}&offset=${this.offset}&limit=${this.limit}`
+         if ( this.sortField != "" ) {
+            url += `&sort=${this.sortField}&order=${this.sortOrder}`
          }
-         let req = {q: q, sort: this.sortField, order: this.sortOrder,
-            status: this.statusFilter, source: this.sourceFilter,
-            from: this.fromDate, to: this.toDate, total: this.total}
-         axios.post("/api/admin/export", req, {responseType: "blob"}).then((response) => {
+         if ( this.statusFilter != "any") {
+            url += `&draft=${this.statusFilter == 'draft'}`
+         }
+         if ( this.sourceFilter != "any") {
+            url += `&source=${this.sourceFilter}`
+         }
+         if ( this.publishedFilterSet ) {
+            url += `&published=${this.publishedFilter.from} to ${this.publishedFilter.to}`
+         }
+         if ( this.createdFilterSet ) {
+            url += `&created=${this.createdFilter.from} to ${this.createdFilter.to}`
+         }
+         url += `&export=${this.total}`
+         axios.get(url).then(response => {
             const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.ms-excel' }))
             const fileLink = document.createElement('a')
             fileLink.href =  fileURL
@@ -114,6 +156,32 @@ export const useAdminStore = defineStore('admin', {
             }
             this.working = false
          })
+         // this.working = true
+         // let q = "*"
+         // if (this.query != "" ) {
+         //    q = this.query
+         // }
+         // let req = {q: q, sort: this.sortField, order: this.sortOrder,
+         //    status: this.statusFilter, source: this.sourceFilter,
+         //    from: "", to: "", total: this.total}
+         // axios.post("/api/admin/export", req, {responseType: "blob"}).then((response) => {
+         //    const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.ms-excel' }))
+         //    const fileLink = document.createElement('a')
+         //    fileLink.href =  fileURL
+         //    fileLink.setAttribute('download', `libraetd-export.csv`)
+         //    document.body.appendChild(fileLink)
+         //    fileLink.click()
+         //    window.URL.revokeObjectURL(fileURL)
+         //    this.working = false
+         // }).catch((error) => {
+         //    console.log(error)
+         //    if (error.message) {
+         //       useSystemStore().setError(error.message)
+         //    } else {
+         //       useSystemStore().setError(error)
+         //    }
+         //    this.working = false
+         // })
       },
 
       becomeUser(tgtID) {

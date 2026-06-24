@@ -17,72 +17,7 @@ import (
 	"github.com/uvalib/librabus-sdk/uvalibrabus"
 )
 
-func (svc *serviceContext) adminExportReport(c *gin.Context) {
-	var req struct {
-		Q      string `json:"q"`
-		Sort   string `json:"sort"`
-		Order  string `json:"order"`
-		Status string `json:"status"`
-		Source string `json:"source"`
-		From   string `json:"from"`
-		To     string `json:"to"`
-		Total  int64  `json:"total"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		log.Printf("INFO: invalid request for export: %s", err.Error())
-		c.String(http.StatusBadRequest, err.Error())
-		return
-	}
-
-	log.Printf("INFO: admin export request %+v", req)
-	payload := map[string]any{"q": req.Q, "offset": 0, "limit": req.Total}
-	if req.Sort != "" {
-		switch req.Sort {
-		case "created":
-			payload["sort"] = []string{fmt.Sprintf("fields.create-date:%s", req.Order)}
-		case "title":
-			payload["sort"] = []string{fmt.Sprintf("metadata.title:%s", req.Order)}
-		case "published":
-			payload["sort"] = []string{fmt.Sprintf("fields.publish-date:%s", req.Order)}
-		}
-	}
-	filters := make([]string, 0)
-	if req.Source != "any" {
-		filters = append(filters, fmt.Sprintf("fields.source=%s", req.Source))
-	}
-	if req.Status != "any" {
-		filters = append(filters, fmt.Sprintf("fields.draft=%t", req.Status == "draft"))
-	}
-	if req.From != "" {
-		dateQ := fmt.Sprintf("fields.publish-date >= %s", req.From)
-		if req.To != "" {
-			dateQ += fmt.Sprintf(" AND fields.publish-date <= %s", req.To)
-		}
-		filters = append(filters, dateQ)
-	} else if req.To != "" {
-		filters = append(filters, fmt.Sprintf("fields.publish-date <= %s", req.To))
-	}
-
-	if len(filters) > 0 {
-		payload["filter"] = filters
-	}
-
-	log.Printf("INFO: export payload %+v", payload)
-	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
-	rawResp, respErr := svc.sendPostRequest(url, payload)
-	if respErr != nil {
-		log.Printf("ERROR: export failed: %s", respErr.Message)
-		c.String(respErr.StatusCode, respErr.Message)
-		return
-	}
-
-	var jsonResp indexResp
-	if err := json.Unmarshal(rawResp, &jsonResp); err != nil {
-		log.Printf("ERROR: unable to parse response: %s", err.Error())
-		c.String(http.StatusInternalServerError, err.Error())
-		return
-	}
-
+func (svc *serviceContext) returnCSV(c *gin.Context, jsonResp *indexResp) {
 	c.Header("Content-Type", "text/csv")
 	cw := csv.NewWriter(c.Writer)
 	csvHead := []string{
@@ -177,6 +112,12 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
+	exportCount, _ := strconv.ParseInt(c.Query("export"), 10, 0)
+	if exportCount > 0 {
+		log.Printf("INFO: export of %d records requested", exportCount)
+		limit = exportCount
+	}
+
 	filters := make([]string, 0)
 	payload := map[string]any{"offset": offset, "limit": limit}
 	if recentActivity {
@@ -208,22 +149,22 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		if c.Query("draft") != "" {
 			filters = append(filters, fmt.Sprintf("fields.draft=%s", c.Query("draft")))
 		}
-		if c.Query("from") != "" {
-			dateQ := fmt.Sprintf("fields.publish-date >= %s", c.Query("from"))
-			if c.Query("to") != "" {
-				dateQ += fmt.Sprintf(" AND fields.publish-date <= %s", c.Query("to"))
-			}
-			filters = append(filters, dateQ)
-		} else if c.Query("to") != "" {
-			filters = append(filters, fmt.Sprintf("fields.publish-date <= %s", c.Query("to")))
+
+		pubDateQ := getUnixDateQuery("publishedUnix", c.Query("published"))
+		if pubDateQ != "" {
+			filters = append(filters, pubDateQ)
+		}
+		createDateQ := getUnixDateQuery("createdUnix", c.Query("created"))
+		if createDateQ != "" {
+			filters = append(filters, createDateQ)
 		}
 	}
 
 	if len(filters) > 0 {
-		payload["filter"] = filters
+		payload["filter"] = strings.Join(filters, " AND ")
 	}
 
-	log.Printf("INFO: search payload [%v]", payload)
+	log.Printf("INFO: search payload [%+v]", payload)
 	url := fmt.Sprintf("%s/indexes/works/search", svc.IndexURL)
 	rawResp, respErr := svc.sendPostRequest(url, payload)
 	if respErr != nil {
@@ -240,11 +181,30 @@ func (svc *serviceContext) adminSearch(c *gin.Context) {
 		return
 	}
 
-	resp := svc.parseIndexSearchHits(jsonResp)
+	if exportCount > 0 {
+		svc.returnCSV(c, &jsonResp)
+	} else {
+		resp := svc.parseIndexSearchHits(jsonResp)
 
-	log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp.Hits), jsonResp.ProcessingTime)
+		log.Printf("INFO: received %d search hits. Elapsed Time: %d (ms)", len(resp.Hits), jsonResp.ProcessingTime)
 
-	c.JSON(http.StatusOK, resp)
+		c.JSON(http.StatusOK, resp)
+	}
+}
+
+func getUnixDateQuery(dateField, dateFilter string) string {
+	dateQ := ""
+	if dateFilter != "" {
+		// query format: 2026-01-01 to 2026-12-31
+		dateParts := strings.Split(dateFilter, " to ")
+		log.Printf("INFO: search for %s from %s to %s", dateField, dateParts[0], dateParts[1])
+		parsedDate, _ := time.Parse("2006-01-02", dateParts[0])
+		dateQ = fmt.Sprintf("%s >= %d", dateField, parsedDate.Unix())
+		parsedDate, _ = time.Parse("2006-01-02", dateParts[1])
+		parsedDate = parsedDate.AddDate(0, 0, 1)
+		dateQ += fmt.Sprintf(" AND %s <= %d", dateField, parsedDate.Unix())
+	}
+	return dateQ
 }
 
 func (svc *serviceContext) adminImpersonateUser(c *gin.Context) {

@@ -4,9 +4,14 @@
          <span>Admin Dashboard</span>
          <Button severity="secondary" size="small" icon="pi pi-pen-to-square" label="Supported Mime Types" @click="editMimeTypesClicked()"/>
       </h1>
+      <WaitSpinner v-if="admin.working" :overlay="true" message="<div>Please wait...</div><p>Loading works</p>" />
       <div class="search-setup">
          <div class="search">
-            <label for="admin-search">Search for works:</label>
+            <label for="admin-search">
+               Search 
+               <Select v-model="admin.statusFilter" :options="publishOpts" optionLabel="label" optionValue="value" id="status-filter" @update:modelValue="statusChanged"/>
+               works for:
+            </label>
             <div class="search-input">
                <IconField iconPosition="left" class="query">
                   <InputIcon class="pi pi-search" />
@@ -14,35 +19,10 @@
                </IconField>
                <Button label="Search" @click="admin.search()" :loading="admin.working" :disabled="admin.working"/>
             </div>
-            <Button severity="secondary" label="Reset Search" @click="resetSearch" :disabled="admin.searchCompleted == false"/>
-         </div>
-         <div class="search-filter">
-            <label for="status-filter">Publication Status:</label>
-            <select v-model="admin.statusFilter" id="status-filter" @update:model-value="admin.filterChanged = true">
-               <option v-for="o in publishOpts" :value="o.value">{{ o.label }}</option>
-            </select>
-            <div class="pub-dates"  v-if="admin.statusFilter=='published'">
-               <label for="from-picker">From:</label>
-               <InputMask  input-id="from-picker" v-model="admin.fromDate"
-                  mask="9999-99-99" placeholder="yyyy-mm-dd" @update:model-value="admin.filterChanged = true"
-               />
-               <label for="to-picker">To: </label>
-               <InputMask input-id="to-picker" v-model="admin.toDate" @update:model-value="admin.filterChanged = true"
-                  mask="9999-99-99" placeholder="yyyy-mm-dd"
-               />
-            </div>
-            <label for="source-filter">Source:</label>
-            <select v-model="admin.sourceFilter" id="source-filter" @update:model-value="admin.filterChanged = true">
-               <option v-for="o in sourceOpts" :value="o.value">{{ o.label }}</option>
-            </select>
-            <div class="filter-acts">
-               <Button severity="secondary" label="Apply Filters" @click="admin.search()"
-                  :loading="admin.working" :disabled="admin.working || admin.filterChanged == false"
-               />
-               <Button severity="secondary" label="Export" @click="exportClicked()"
-                  :disabled="admin.total == 0 || admin.working || admin.searchCompleted == false" :loading="admin.working"
-               />
-            </div>
+            <Button severity="secondary" label="Reset Search" @click="resetSearchClicked()"/>
+            <Button severity="secondary" label="Export" @click="exportClicked()"
+               :disabled="admin.total == 0 || admin.working || admin.searchCompleted == false|| admin.total >= system.maxSearchHits" :loading="admin.working"
+            />
          </div>
       </div>
 
@@ -51,14 +31,15 @@
       </h2>
       <DataTable :value="admin.hits" ref="adminHits" dataKey="id"
             stripedRows showGridlines responsiveLayout="scroll"
-            :lazy="true" :paginator="true" :alwaysShowPaginator="false"
+            :lazy="true" :paginator="true" 
             @page="onPage($event)"  paginatorPosition="both"
-            :first="admin.offset" :rows="admin.limit" :totalRecords="admin.total"
-            paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink"
+            :first="admin.offset" :rows="admin.limit" :totalRecords="admin.total" :rowsPerPageOptions="[25,50,100]"
+            paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
             currentPageReportTemplate="{first} - {last} of {totalRecords}"
             :loading="admin.working" removableSort @sort="onSort($event)"  :sortField="admin.sortField"
+            filterDisplay="row"
       >
-         <template #header v-if="admin.total == system.maxSearchHits">
+         <template #header v-if="admin.total >= system.maxSearchHits">
             <div class="cap-note"><i class="pi pi-exclamation-triangle"></i>Results are capped at {{ system.maxSearchHits }} hits. Please narrow your search.</div>
          </template>
          <template #empty>
@@ -66,16 +47,31 @@
             <div v-else class="none">Enter a search query to see matching works</div>
          </template>
          <template #loading>Loading works. Please wait. </template>
-         <Column field="source" header="Source">
+         <Column field="source" header="Source" style="width:120px" :showFilterMenu="false">
             <template #body="slotProps">
                <div v-if="slotProps.data.source=='sis'" style="text-transform: uppercase;">{{ slotProps.data.source }}</div>
                <div v-else-if="slotProps.data.source=='libra-oa'" style="white-space: nowrap;">Libra-OA</div>
                <div v-else style="text-transform: capitalize;">{{ slotProps.data.source }}</div>
             </template>
+            <template #filter>
+               <Select v-model="admin.sourceFilter" :options="sourceOpts" optionLabel="label" optionValue="value" @update:model-value="admin.search()"/>    
+            </template>
          </Column>
-         <Column field="id" header="ID" class="nowrap"/>
-         <Column field="created" header="Created" dataType="date" sortable class="nowrap">
+         <Column field="id" header="ID" class="nowrap" style="width:230px"/>
+         <Column field="created" header="Created" dataType="date" sortable class="nowrap" :showFilterMenu="false" style="min-width:190px">
             <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
+            <template #filter>
+               <DatePicker v-model="createDateRange" selectionMode="range" :manualInput="false" dateFormat="yy-mm-dd" 
+                  placeholder="Work created" fluid :showButtonBar="true" ref="createdRef" @update:modelValue="filterChanged">
+                  <template #buttonbar>
+                     <Button size="small" label="Clear" severity="danger" variant="outlined" @click="clearCreatedFiter" />
+                     <Button size="small" label="Apply" variant="outlined" @click="applyFilter" />
+                  </template>
+                  <template #footer>
+                     <div class="date-help">Select a date range then click Apply</div>   
+                  </template>
+               </DatePicker>
+            </template>
          </Column>
          <Column field="modified" header="Modified" sortable class="nowrap">
             <template #body="slotProps">
@@ -83,13 +79,25 @@
                <div v-else class="na">N/A</div>
             </template>
          </Column>
-         <Column field="published" header="Published" sortable class="nowrap">
+         <Column field="published" header="Published" sortable class="nowrap" :showFilterMenu="false" style="min-width:190px">
             <template #body="slotProps">
                <div v-if="slotProps.data.published">{{ $formatDateTime(slotProps.data.published) }}</div>
                <div v-else class="na">N/A</div>
             </template>
+            <template #filter>
+               <DatePicker v-model="publishDateRange" selectionMode="range" :manualInput="false" dateFormat="yy-mm-dd" 
+                  placeholder="Work published" fluid :showButtonBar="true" ref="publishedRef" @update:modelValue="filterChanged">
+                  <template #buttonbar>
+                     <Button size="small" label="Clear" severity="danger" variant="outlined" @click="clearPublishedFiter" />
+                     <Button size="small" label="Apply" variant="outlined" @click="applyFilter"  />
+                  </template>
+                  <template #footer>
+                     <div class="date-help">Select a date range then click Apply</div>   
+                  </template>
+               </DatePicker>
+            </template>
          </Column>
-         <Column field="author" header="Author" style="width: 275px">
+         <Column field="author" header="Author">
             <template #body="slotProps">
                {{ slotProps.data.author.lastName }}, {{ slotProps.data.author.firstName }}
             </template>
@@ -100,7 +108,7 @@
                <span v-else class="na">Undefined</span>
             </template>
          </Column>
-         <Column header="Actions">
+         <Column header="Actions" style="width:75px">
             <template #body="slotProps">
                <div  class="acts">
                   <Button asChild v-slot="btnProps" severity="secondary" size="small">
@@ -146,21 +154,26 @@ import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
-import InputMask from 'primevue/inputmask'
+import Select from 'primevue/select'
 import AuditsPanel from '@/components/AuditsPanel.vue'
+import DatePicker from 'primevue/datepicker'
 import Dialog from 'primevue/dialog'
 import Chip from 'primevue/chip'
+import WaitSpinner from '@/components/WaitSpinner.vue'
 
 const admin = useAdminStore()
 const system = useSystemStore()
 
+const createDateRange = ref()
+const createdRef = ref()
+const publishDateRange = ref()
+const publishedRef = ref()
+
 const newMime = ref("")
-const fromDate = ref()
-const toDate = ref()
 const editMime = ref(false)
 
 const publishOpts = computed(() => {
-   return[ {label: "Any", value: "any"}, {label: "Draft", value: "draft"}, {label: "Published", value: "published"} ]
+   return[ {label: "All", value: "any"}, {label: "Draft", value: "draft"}, {label: "Published", value: "published"} ]
 })
 const sourceOpts = computed(() => {
    return[ {label: "Any", value: "any"}, {label: "SIS", value: "sis"}, {label: "Optional", value: "optional"} ]
@@ -171,7 +184,6 @@ onMounted( () => {
       admin.getRecentActivity()
    }
 })
-
 
 const editMimeTypesClicked = (() => {
    system.getMimeTypes()
@@ -190,6 +202,35 @@ const addMimeTypeClicked = (() => {
 const updateMimeTypes = (()=> {
    admin.updateMimeTypes( system.mimeTypes )
    editMime.value = false
+})
+const statusChanged = (() => {
+   if (admin.statusFilter == 'draft' ) {
+      admin.publishedFilter.from = ""
+      admin.publishedFilter.to = ""
+   }
+   if ( admin.total > 0 ) {
+      admin.search()
+   }
+})
+const filterChanged = (() => {
+   admin.setSearchFilter(createDateRange.value, publishDateRange.value)
+})
+const clearPublishedFiter = (() => {
+   publishDateRange.value = null
+   admin.clearPublishedFiter()
+   publishedRef.value.overlayVisible = false
+   admin.search()   
+})
+const clearCreatedFiter = (() => {
+   createDateRange.value = null
+   admin.clearCreatedFiter()
+   createdRef.value.overlayVisible = false
+   admin.search()   
+})
+const applyFilter = (() => {
+   createdRef.value.overlayVisible = false
+   publishedRef.value.overlayVisible = false
+   admin.search()
 })
 
 const onPage = ((event) => {
@@ -211,12 +252,6 @@ const onSort = ((event) => {
    admin.search()
 })
 
-const resetSearch = (() => {
-   toDate.value = null
-   fromDate.value = null
-   admin.resetSearch()
-})
-
 const searchKeyPressed = ((event) => {
    admin.sortField = ""
    admin.sortOrder = ""
@@ -225,6 +260,12 @@ const searchKeyPressed = ((event) => {
    if (event.keyCode == 13) {
       admin.search()
    }
+})
+
+const resetSearchClicked = (() => {
+   createDateRange.value = null
+   publishDateRange.value = null
+   admin.resetSearch()
 })
 
 const exportClicked = (() => {
@@ -291,6 +332,25 @@ const becomeUser = ((computeID) => {
       }
    }
 }
+.date-help {
+   font-size: 0.9em;
+   margin-top: 8px;
+   border-top: 1px solid #e2e8f0;
+   padding-top: 10px;
+   text-align: center;
+}
+:deep(thead.p-datatable-thead) {
+   tr:last-of-type {
+      th {
+         background-color: white ;
+         font-size: 0.8em;
+         padding: 10px;
+         input {
+            width: 100%;
+         }
+      }
+   }
+}
 .admin {
    margin: 0 auto 50px;
    min-height: 600px;
@@ -343,6 +403,17 @@ const becomeUser = ((computeID) => {
          align-items: center;
          justify-content: flex-start;
          margin-top: 20px;
+         label {
+            display: flex;
+            flex-flow: row wrap;
+            gap: 10px;
+            justify-content: flex-start;
+            align-items: baseline;
+         }
+         .p-select {
+            width: 130px;
+            text-align: center;
+         }
          .search-input {
             display: flex;
             flex-flow: row nowrap;
