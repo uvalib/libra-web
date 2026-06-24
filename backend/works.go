@@ -323,6 +323,20 @@ func (svc *serviceContext) publishWork(c *gin.Context) {
 		return
 	}
 	svc.publishEvent(uvalibrabus.EventWorkPublish, svc.Namespace, tgtObj.Id())
+
+	if fields["source"] == "optional" {
+		log.Printf("INFO: update registrations database to flag optional work %s as complete", workID)
+		var studentRegRec registrationStudent
+		if err := svc.DB.Where("work_id=?", workID).First(&studentRegRec).Error; err != nil {
+			log.Printf("ERROR: unable to find student registration record for work %s: %s", workID, err.Error())
+		} else {
+			now := time.Now()
+			studentRegRec.CompletedAt = &now
+			if err := svc.DB.Model(&studentRegRec).Select("CompletedAt").Updates(studentRegRec).Error; err != nil {
+				log.Printf("ERROR: unable to mark student registration record for work %s as completed: %s", workID, err.Error())
+			}
+		}
+	}
 	c.String(http.StatusOK, "published")
 }
 
