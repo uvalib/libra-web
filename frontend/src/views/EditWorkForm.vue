@@ -107,7 +107,7 @@ import Panel from 'primevue/panel'
 import Message from 'primevue/message'
 import Fieldset from 'primevue/fieldset'
 import { useConfirm } from "primevue/useconfirm"
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, onBeforeRouteLeave } from 'vue-router'
 import { useIntervalFn } from '@vueuse/core'
 import WaitSpinner from "@/components/WaitSpinner.vue"
 import ProgramPanel from '@/components/ProgramPanel.vue'
@@ -129,6 +129,7 @@ const isDirty = ref(false)
 const metadataComplete = ref(false)
 const lastChangedAt = ref( new Date().getTime() )
 const saveMessage = ref("")
+const changedWhileSaving = ref(false)
 
 const errors = ref({
    title: "",
@@ -150,9 +151,20 @@ useIntervalFn(() => {
 }, 1000)
 
 const formChanged = (() =>{
+   if ( saveMessage.value != "") {
+      changedWhileSaving.value = true
+   }
    lastChangedAt.value = new Date().getTime()   
    isDirty.value = true
    validate() 
+})
+
+onBeforeRouteLeave( async () => {
+   console.log("LEAVING EDIT PAGE...")
+   if ( isDirty.value ) {
+      console.log("SAVE CHANGES BEFORE ROUTE LEAVE")
+      await saveChanges()
+   }
 })
 
 onBeforeMount( async () => {
@@ -232,9 +244,6 @@ const previewClicked = (() => {
 })
 
 const exitClicked = (async () => {
-   if ( isDirty.value ) {
-      await saveChanges()
-   }
    router.push(user.homePage)
 })
 
@@ -274,8 +283,13 @@ const saveChanges = ( async () => {
    await etdRepo.update( )
    if ( system.showError == false ) {
       saveMessage.value = "Save complete"
-      isDirty.value = false
-      lastChangedAt.value = new Date().getTime()   
+      if ( changedWhileSaving.value == false ) {
+         // if the user changed the form in the small window of time during the save, the 
+         // changedWhileSaving flag is set. In this case, leave the dirty flag and edit time as is
+         isDirty.value = false
+         lastChangedAt.value = new Date().getTime()   
+      } 
+      changedWhileSaving.value = false
       validate()
    } else {
       return

@@ -216,7 +216,8 @@ export const useETDStore = defineStore('etd', {
          }
          let url = `/api/works/${this.work.id}`
          return axios.put(url, payload).then(response => {
-            this.setWorkDetails( response.data )
+             this.modifiedAt = response.data.modifiedAt
+             this.persistentLink = response.data.persistentLink
             this.saving = false
          }).catch( err => {
             const system = useSystemStore()
