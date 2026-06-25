@@ -54,14 +54,14 @@
                <div v-else style="text-transform: capitalize;">{{ slotProps.data.source }}</div>
             </template>
             <template #filter>
-               <Select v-model="admin.sourceFilter" :options="sourceOpts" optionLabel="label" optionValue="value" @update:model-value="admin.search()"/>    
+               <Select size="small" v-model="admin.sourceFilter" :options="sourceOpts" optionLabel="label" optionValue="value" @update:model-value="admin.search()"/>    
             </template>
          </Column>
          <Column field="id" header="ID" class="nowrap" style="width:230px"/>
          <Column field="created" header="Created" dataType="date" sortable class="nowrap" :showFilterMenu="false" style="min-width:190px">
             <template #body="slotProps">{{ $formatDateTime(slotProps.data.created)}}</template>
             <template #filter>
-               <DatePicker v-model="createDateRange" selectionMode="range" :manualInput="false" dateFormat="yy-mm-dd" 
+               <DatePicker size="small" v-model="createDateRange" selectionMode="range" :manualInput="false" dateFormat="yy-mm-dd" 
                   placeholder="Work created" fluid :showButtonBar="true" ref="createdRef" @update:modelValue="filterChanged">
                   <template #buttonbar>
                      <Button size="small" label="Clear" severity="danger" variant="outlined" @click="clearCreatedFiter" />
@@ -85,7 +85,7 @@
                <div v-else class="na">N/A</div>
             </template>
             <template #filter>
-               <DatePicker v-model="publishDateRange" selectionMode="range" :manualInput="false" dateFormat="yy-mm-dd" 
+               <DatePicker size="small" v-model="publishDateRange" selectionMode="range" :manualInput="false" dateFormat="yy-mm-dd" 
                   placeholder="Work published" fluid :showButtonBar="true" ref="publishedRef" @update:modelValue="filterChanged">
                   <template #buttonbar>
                      <Button size="small" label="Clear" severity="danger" variant="outlined" @click="clearPublishedFiter" />
