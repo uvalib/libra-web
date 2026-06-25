@@ -19,8 +19,8 @@ export const useAdminStore = defineStore('admin', {
       sortOrder: "",
       statusFilter: "any",
       sourceFilter: "any",
-      publishedFilter: { from: "", to: ""},
-      createdFilter:  { from: "", to: ""},
+      publishedFilter: { from: null, to: null},
+      createdFilter:  { from: null, to: null},
       impersonate: {
          adminJWT: "",
          userID: "",
@@ -36,11 +36,23 @@ export const useAdminStore = defineStore('admin', {
          return state.impersonate.adminID
       },
       createdFilterSet: state => {
-         return state.createdFilter.to != "" && state.createdFilter.from != ""
+         return state.createdFilter.to != null && state.createdFilter.from != null
+      },
+      isCreatedFilterValid: state => {
+         return (
+            state.createdFilter.to == null && state.createdFilter.from == null ||
+            state.createdFilter.to != null && state.createdFilter.from != null
+         )
       },
       publishedFilterSet: state => {
-         return state.publishedFilter.to != "" && state.publishedFilter.from != ""
-      }
+         return state.publishedFilter.to != null && state.publishedFilter.from != null
+      },
+      isPublishedFilterValid: state => {
+         return (
+            state.publishedFilter.to == null && state.publishedFilter.from == null ||
+            state.publishedFilter.to != null && state.publishedFilter.from != null
+         )
+      },
    },
    actions: {
       resetSearch() {
@@ -61,26 +73,10 @@ export const useAdminStore = defineStore('admin', {
          })
       },
       clearPublishedFiter() {
-         this.publishedFilter = { from: "", to: ""}   
+         this.publishedFilter = { from: null, to: null}   
       },
       clearCreatedFiter() {
-         this.createdFilter = { from: "", to: ""}   
-      },
-      setSearchFilter( createRange, publishRange ) {
-         this.publishedFilter = { from: "", to: ""}
-         this.createdFilter = { from: "", to: ""}
-         if (createRange ) {
-            this.createdFilter.from = dayjs(createRange[0]).format("YYYY-MM-DD")
-            if (createRange[1]) {
-               this.createdFilter.to = dayjs(createRange[1]).format("YYYY-MM-DD")  
-            }
-         }
-         if (publishRange ) {
-            this.publishedFilter.from = dayjs(publishRange[0]).format("YYYY-MM-DD")
-            if (publishRange[1]) {
-               this.publishedFilter.to = dayjs(publishRange[1]).format("YYYY-MM-DD")  
-            }
-         }
+         this.createdFilter = { from: null, to: null}   
       },
       search() {
          const system = useSystemStore()
@@ -96,10 +92,14 @@ export const useAdminStore = defineStore('admin', {
             url += `&source=${this.sourceFilter}`
          }
          if ( this.publishedFilterSet ) {
-            url += `&published=${this.publishedFilter.from} to ${this.publishedFilter.to}`
+            const from = dayjs(this.publishedFilter.from).format("YYYY-MM-DD")
+            const to = dayjs(this.publishedFilter.to).format("YYYY-MM-DD")
+            url += `&published=${from} to ${to}`
          }
          if ( this.createdFilterSet ) {
-            url += `&created=${this.createdFilter.from} to ${this.createdFilter.to}`
+            const from = dayjs(this.createdFilter.from).format("YYYY-MM-DD")
+            const to = dayjs(this.createdFilter.to).format("YYYY-MM-DD")
+            url += `&created=${from} to ${to}`
          }
          axios.get(url).then(response => {
             this.hits = response.data.hits
@@ -156,32 +156,6 @@ export const useAdminStore = defineStore('admin', {
             }
             this.working = false
          })
-         // this.working = true
-         // let q = "*"
-         // if (this.query != "" ) {
-         //    q = this.query
-         // }
-         // let req = {q: q, sort: this.sortField, order: this.sortOrder,
-         //    status: this.statusFilter, source: this.sourceFilter,
-         //    from: "", to: "", total: this.total}
-         // axios.post("/api/admin/export", req, {responseType: "blob"}).then((response) => {
-         //    const fileURL = window.URL.createObjectURL(new Blob([response.data], { type: 'application/vnd.ms-excel' }))
-         //    const fileLink = document.createElement('a')
-         //    fileLink.href =  fileURL
-         //    fileLink.setAttribute('download', `libraetd-export.csv`)
-         //    document.body.appendChild(fileLink)
-         //    fileLink.click()
-         //    window.URL.revokeObjectURL(fileURL)
-         //    this.working = false
-         // }).catch((error) => {
-         //    console.log(error)
-         //    if (error.message) {
-         //       useSystemStore().setError(error.message)
-         //    } else {
-         //       useSystemStore().setError(error)
-         //    }
-         //    this.working = false
-         // })
       },
 
       becomeUser(tgtID) {
