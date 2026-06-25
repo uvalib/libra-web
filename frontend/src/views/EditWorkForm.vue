@@ -88,7 +88,8 @@
             </template>
             <Button label="Exit" severity="secondary" @click="exitClicked" />
          </span>
-         <Message v-if="saveMessage" severity="success" variant="simple" size="large" :life="5000" @life-end="saveMessage=''">{{ saveMessage }}</Message>
+         <Message v-if="saveMessage" severity="success" variant="simple" size="large" :life="2000" @life-end="saveMessage=''">{{ saveMessage }}</Message>
+         <span v-else class="last-saved">Last saved at {{ $formatDateTime(etdRepo.modifiedAt) }}</span>
          <span class="group">
             <Button :disabled="previewDisabled"  severity="success" @click="previewClicked" label="Review and submit" />
          </span>
