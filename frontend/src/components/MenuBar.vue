@@ -17,11 +17,13 @@ import Menubar from 'primevue/menubar'
 import { computed, onMounted } from 'vue'
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
+import { useAdminStore } from "@/stores/admin"
 import { useRouter} from "vue-router"
 
 const router = useRouter()
 const user = useUserStore()
 const system = useSystemStore()
+const admin = useAdminStore()
 
 onMounted(()=>{
    user.getORCID()
@@ -60,9 +62,13 @@ const libraMenu = computed( () => {
    } else {
       let userMenu = { label: `${user.firstName} ${user.lastName}`, icon: "pi pi-user", items: [] }
       if ( user.orcid.id == "") {
-          userMenu.items.push( {label: "Register or connect ORCID ID", url: system.orcidURL, target: "_blank"} )
+         if ( !admin.isImpersonating ) {
+            userMenu.items.push( {label: "Register or connect ORCID ID", url: system.orcidURL, target: "_blank"} )
+         }
       } else {
-         userMenu.items.push( {label: "Manage ORCID ID", url: system.orcidURL, target: "_blank", icon: "pi pi-external-link"} )
+         if ( !admin.isImpersonating ) {
+            userMenu.items.push( {label: "Manage ORCID ID", url: system.orcidURL, target: "_blank", icon: "pi pi-external-link"} )
+         }
          userMenu.items.push( {label: user.orcid.id, url:  user.orcid.uri, target: "_blank"} )
       }
 

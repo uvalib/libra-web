@@ -11,13 +11,13 @@
                </div>
                <div class="orcid">
                   <template  v-if="user.orcid.id.length == 0">
-                     <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" aria-describedby="new-window" variant="outlined">
+                     <Button v-if="!admin.isImpersonating" as="a" severity="secondary" :href="system.orcidURL" target="_blank" aria-describedby="new-window" variant="outlined">
                         <img class="orcid-img" src="@/assets/orcid_id.svg" alt="orcid id logo" aria-hidden="true"/>
                         <span>Register or connect your ORCID ID</span>
                      </Button>
                   </template>
                   <template v-else>
-                     <Button as="a" severity="secondary" :href="system.orcidURL" target="_blank" aria-describedby="new-window" variant="outlined">
+                     <Button v-if="!admin.isImpersonating" as="a" severity="secondary" :href="system.orcidURL" target="_blank" aria-describedby="new-window" variant="outlined">
                         <img class="orcid-img" src="@/assets/orcid_id.svg" aria-hidden="true"/>
                         <span>Manage your ORCID ID</span>
                      </Button>
@@ -87,6 +87,7 @@
 import { onMounted } from 'vue'
 import { useUserStore } from "@/stores/user"
 import { useSystemStore } from "@/stores/system"
+import { useAdminStore } from "@/stores/admin"
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -94,6 +95,7 @@ import WaitSpinner from "@/components/WaitSpinner.vue"
 
 const user = useUserStore()
 const system = useSystemStore()
+const admin = useAdminStore()
 
 onMounted( () => {
    user.getTheses()
