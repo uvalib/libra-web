@@ -145,8 +145,12 @@ func (svc *serviceContext) getStaticPage(c *gin.Context) {
 	}
 
 	if etdWork.Visibility == "uva" || etdWork.Visibility == "embargo" {
-		endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
-		viewData.EmbargoReleaseDate = endDate.Format("2006-01-02")
+		if etdWork.Embargo != nil {
+			endDate, _ := time.Parse(svc.TimeFormat, etdWork.Embargo.ReleaseDate)
+			viewData.EmbargoReleaseDate = endDate.Format("2006-01-02")
+		} else {
+			viewData.EmbargoReleaseDate = "none"
+		}
 	}
 
 	// build suggested citaion

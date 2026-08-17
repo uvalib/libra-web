@@ -3,11 +3,19 @@
    <h2 class="title">Files</h2>
    {{if eq .Visibility "embargo"}}
    <span  class="file-embargo">
+      {{if eq .EmbargoReleaseDate "none"}}
+      This item is permanently restricted to abstract view only.
+      {{else}}
       This item is restricted to abstract view only until {{.EmbargoReleaseDate}}.
+      {{end}}
    </span>
    {{else if eq .Visibility "uva"}}
    <span class="file-embargo">
+      {{if eq .EmbargoReleaseDate "none"}}
+      This item is permanently restricted to UVA. 
+      {{else}}
       This item is restricted to UVA until {{.EmbargoReleaseDate}}.
+      {{end}}
    </span>
    {{end}}
    {{- $workID := .WorkID -}}
