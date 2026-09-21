@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"slices"
@@ -399,23 +398,14 @@ func (svc *serviceContext) replaceFile(c *gin.Context) {
 		return
 	}
 
-	src, err := formFile.Open()
+	esFileBlob, err := createFileBlob(formFile)
 	if err != nil {
-		log.Printf("ERROR: unable to open uploaded file: %s", err.Error())
+		log.Printf("ERROR: %s", err)
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
-	defer src.Close()
 
-	fileBytes, err := io.ReadAll(src)
-	if err != nil {
-		log.Printf("ERROR: unable to read upload file %s: %s", formFile.Filename, err.Error())
-		return
-	}
-
-	mimeType := http.DetectContentType(fileBytes)
-	esBlob := uvaeasystore.NewEasyStoreBlob(fileName, mimeType, fileBytes)
-	if err := svc.EasyStore.FileUpdate(svc.Namespace, workID, esBlob); err != nil {
+	if err := svc.EasyStore.FileUpdate(svc.Namespace, workID, esFileBlob); err != nil {
 		log.Printf("ERROR: unable to update file  %s: %s", fileName, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return

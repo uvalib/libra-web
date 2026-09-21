@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -73,28 +76,17 @@ func (svc *serviceContext) uploadFile(c *gin.Context) {
 		return
 	}
 
-	// only 1 file can be uploaded at a time
+	// only 1 file can be uploaded at a time; use it ro create an easystore file blob
 	formFile := mpForm.File["file"][0]
-	log.Printf("INFO: receive submission %s", formFile.Filename)
-	uploadSrc, err := formFile.Open()
+	esFileBlob, err := createFileBlob(formFile)
 	if err != nil {
-		log.Printf("INFO: unable to open multipart form for file upload: %s", err.Error())
-		c.String(http.StatusBadRequest, fmt.Sprintf("unable to open %s: %s", formFile.Filename, err.Error()))
-		return
-	}
-	defer uploadSrc.Close()
-	uploadBytes, err := io.ReadAll(uploadSrc)
-	if err != nil {
-		log.Printf("INFO: unable to read %s: %s", formFile.Filename, err.Error())
-		c.String(http.StatusBadRequest, fmt.Sprintf("unable to read %s: %s", formFile.Filename, err.Error()))
+		log.Printf("ERROR: %s", err)
+		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	mimeType := http.DetectContentType(uploadBytes)
-	log.Printf("INFO: create easystore file blob for %s with size %d and mime type %s",
-		formFile.Filename, len(uploadBytes), mimeType)
-	esBlob := uvaeasystore.NewEasyStoreBlob(formFile.Filename, mimeType, uploadBytes)
-	if err := svc.EasyStore.FileCreate(esObj.Namespace(), esObj.Id(), esBlob); err != nil {
+	// use the blob to create a new file in the work
+	if err := svc.EasyStore.FileCreate(esObj.Namespace(), esObj.Id(), esFileBlob); err != nil {
 		log.Printf("ERROR: unable to add %s to easystore: %s", formFile.Filename, err.Error())
 		c.String(http.StatusInternalServerError, fmt.Sprintf("add %s failed: %s", formFile.Filename, err.Error()))
 		return
@@ -106,11 +98,38 @@ func (svc *serviceContext) uploadFile(c *gin.Context) {
 
 	resp := librametadata.FileData{
 		Name:      formFile.Filename,
-		MimeType:  mimeType,
+		MimeType:  esFileBlob.MimeType(),
 		CreatedAt: time.Now(),
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func createFileBlob(formFile *multipart.FileHeader) (uvaeasystore.EasyStoreBlob, error) {
+	log.Printf("INFO: receive submission %s into temporary file", formFile.Filename)
+	destFile := path.Join("/tmp", formFile.Filename)
+	frmFile, err := formFile.Open()
+	if err != nil {
+		return nil, fmt.Errorf("unable to open uploaded file %s: %s", formFile.Filename, err.Error())
+	}
+	defer frmFile.Close()
+	out, err := os.Create(destFile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create temp file %s: %s", destFile, err.Error())
+	}
+	defer out.Close()
+	_, err = io.Copy(out, frmFile)
+	if err != nil {
+		return nil, fmt.Errorf("unable to write temp file %s: %s", destFile, err.Error())
+	}
+
+	log.Printf("INFO: create file blob from %s", destFile)
+	esFileBlob, err := uvaeasystore.NewEasyStoreBlobFromFile(formFile.Filename, "", destFile)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("INFO: file blob for %s created and mime type %s detected", destFile, esFileBlob.MimeType())
+	return esFileBlob, nil
 }
 
 func (svc *serviceContext) deleteFile(c *gin.Context) {
