@@ -6,9 +6,11 @@ import (
 )
 
 type devConfig struct {
-	user    string
-	role    string
-	fakeBus bool
+	user     string
+	role     string
+	fakeBus  bool
+	esDB     string
+	esBucket string
 }
 
 type orcidConfig struct {
@@ -69,6 +71,8 @@ func getConfiguration() *configData {
 	flag.StringVar(&config.dev.user, "devuser", "", "Authorized computing id for dev")
 	flag.StringVar(&config.dev.role, "devrole", "user", "Role for dev user")
 	flag.BoolVar(&config.dev.fakeBus, "devbus", false, "bus dev mode (no events sent out)")
+	flag.StringVar(&config.dev.esDB, "deveasystoredb", "", "dev mode easystore; name of a postgres DB (same host and credentials as dbname) used directly instead of esproxy")
+	flag.StringVar(&config.dev.esBucket, "deveasystorebucket", "", "dev mode easystore; S3 bucket for files, used with deveasystoredb")
 
 	// easystore cfg
 	flag.StringVar(&config.easyStoreProxy, "esproxy", "", "EasyStore proxy")
@@ -106,8 +110,11 @@ func getConfiguration() *configData {
 	if config.eventSourceName == "" {
 		log.Fatal("Parameter eventsrc is required")
 	}
-	if config.easyStoreProxy == "" {
+	if config.easyStoreProxy == "" && config.dev.esDB == "" {
 		log.Fatal("Parameter esproxy is required")
+	}
+	if config.dev.esDB != "" && config.dev.esBucket == "" {
+		log.Fatal("Parameter deveasystorebucket is required with deveasystoredb")
 	}
 	if config.indexURL == "" {
 		log.Fatal("Parameter index is required")
@@ -148,6 +155,9 @@ func getConfiguration() *configData {
 	}
 	if config.dev.fakeBus {
 		log.Printf("[CONFIG] ** dev mode bus - event publishing is disabled **")
+	}
+	if config.dev.esDB != "" {
+		log.Printf("[CONFIG] ** dev mode easystore - using DB [%s] and bucket [%s] instead of esproxy **", config.dev.esDB, config.dev.esBucket)
 	}
 
 	return &config

@@ -6,6 +6,10 @@
 * Go 1.21+
 * Node 21.6+
 
+### Running locally
+
+To run the whole app on your machine without any external services, see [dev/README.md](dev/README.md).
+
 ### Database Notes
 
 The backend uses a Postgres DB for user settting, registraction tracking, etc. The schema is managed by 

@@ -1,0 +1,70 @@
+# Local-only dependencies for running libra-web without any external services.
+# Used by dev/local.sh; see dev/README.md
+name: libra-web-local
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16.4-alpine
+    environment:
+      POSTGRES_USER: libraweb
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: libraweb
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro,z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U libraweb -d libraweb"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # one-shot: applies backend/db/migrations to the libraweb DB
+  migrate:
+    image: docker.io/migrate/migrate:v4.18.1
+    profiles: ["tools"]
+    volumes:
+      - ../backend/db/migrations:/migrations:ro,z
+    command: ["-path=/migrations", "-database", "postgres://libraweb:pass@postgres:5432/libraweb?sslmode=disable", "up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  meilisearch:
+    image: docker.io/getmeili/meilisearch:v1.11.3
+    environment:
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+    ports:
+      - "127.0.0.1:7700:7700"
+    volumes:
+      - meilidata:/meili_data
+
+  # local S3 for easystore files
+  s3mock:
+    image: docker.io/adobe/s3mock:3.12.0
+    environment:
+      initialBuckets: easystore-local
+      root: /s3data
+      retainFilesOnExit: "true"
+    volumes:
+      - s3data:/s3data
+
+  # S3 endpoint the backend and browser use; see s3proxy/default.conf.template
+  s3proxy:
+    image: docker.io/library/nginx:1.27.3-alpine
+    environment:
+      NGINX_ENTRYPOINT_LOCAL_RESOLVERS: "1"
+    volumes:
+      - ./s3proxy:/etc/nginx/templates:ro,z
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "[::1]:9000:9000"
+    depends_on:
+      - s3mock
+
+volumes:
+  pgdata:
+  meilidata:
+  s3data:

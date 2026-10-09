@@ -1,0 +1,29 @@
+# Local S3 endpoint for dev: maps virtual-host style requests (<bucket>.localhost:9000/key), which is
+# what the AWS SDK used by easystore sends, onto path style (/bucket/key), which is all S3Mock supports.
+# S3Mock does not verify signatures, so rewriting the request does not break signed/presigned requests.
+# Rendered by the nginx image entrypoint; NGINX_LOCAL_RESOLVERS is the container's DNS server, used so
+# the s3mock address is looked up per request and survives that container being recreated.
+resolver ${NGINX_LOCAL_RESOLVERS} valid=10s;
+
+server {
+   listen 9000 default_server;
+   client_max_body_size 0;
+   proxy_request_buffering off;
+   set $s3mock s3mock:9090;
+
+   location / {
+      proxy_pass http://$s3mock;
+   }
+}
+
+server {
+   listen 9000;
+   server_name ~^(?<bucket>[^.]+)\.localhost$;
+   client_max_body_size 0;
+   proxy_request_buffering off;
+   set $s3mock s3mock:9090;
+
+   location / {
+      proxy_pass http://$s3mock/$bucket$request_uri;
+   }
+}

@@ -220,11 +220,17 @@ func initializeService(version string, cfg *configData) *serviceContext {
 	}
 
 	log.Printf("INFO: configure easystore")
-	config := uvaeasystore.ProxyConfigImpl{
-		ServiceEndpoint: cfg.easyStoreProxy,
-		Log:             log.Default(),
+	var es uvaeasystore.EasyStore
+	if cfg.dev.esDB != "" {
+		// dev mode: talk directly to a local postgres easystore instead of the proxy
+		es, err = newDevEasyStore(cfg)
+	} else {
+		config := uvaeasystore.ProxyConfigImpl{
+			ServiceEndpoint: cfg.easyStoreProxy,
+			Log:             log.Default(),
+		}
+		es, err = uvaeasystore.NewEasyStoreProxy(config)
 	}
-	es, err := uvaeasystore.NewEasyStoreProxy(config)
 	if err != nil {
 		log.Fatalf("create easystore failed: %s", err.Error())
 	}
