@@ -6,7 +6,7 @@
             <div class="help">Set the end date by clicking a helper button, clicking a date on the calendar or enter it directly.</div>
             <div class="datepick">
                <div class="dates">
-                  <DatePicker v-model="pickedEndDate" inline :minDate="new Date()" :maxDate="tenYears" @update:modelValue="datePicked"/>
+                  <DatePicker v-model="pickedEndDate" inline @update:modelValue="datePicked"/>
                   <div class="setter">
                      <InputMask v-model="enteredDate" mask="9999-99-99" placeholder="YYYY-MM-DD" slotChar="YYYY-MM-DD" fluid @keydown="dateKeyPressed"/>
                      <Button label="Set" severity="secondary" @click="dateEntered($event)"/>
